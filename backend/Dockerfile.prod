@@ -1,0 +1,74 @@
+# ==============================================
+# Production Dockerfile for Backend API
+# Multi-stage build optimisé pour la production
+# ==============================================
+
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY package.json package-lock.json ./
+
+# Install ONLY production dependencies (no devDependencies)
+# npm ci is faster and more reliable than npm install
+RUN npm ci --only=production --ignore-scripts
+
+# Copy Prisma schema after dependencies
+COPY prisma ./prisma/
+
+# Generate Prisma Client (includes binary for alpine)
+RUN npx prisma generate
+
+# Copy source code (excluding devDependencies, tests, etc.)
+COPY src ./src
+COPY scripts ./scripts
+
+# ==============================================
+# Production Runtime Stage
+# Minimal image with only runtime requirements
+# ==============================================
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install only essential production tools
+RUN apk add --no-cache \
+    tini \
+    wget \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs
+
+# Copy ONLY production files from builder (no dev files)
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nodejs:nodejs /app/src ./src
+COPY --from=builder --chown=nodejs:nodejs /app/scripts ./scripts
+COPY --chown=nodejs:nodejs package.json ./
+
+# Create necessary directories with proper ownership
+RUN mkdir -p /app/uploads /app/logs /app/uploads/profiles /app/uploads/diagnostics && \
+    chown -R nodejs:nodejs /app
+
+# Switch to non-root user (security best practice)
+USER nodejs
+
+# Use tini for proper signal handling (PID 1 reaping)
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget -q -O - http://localhost:3000/health || exit 1
+
+# Expose port
+EXPOSE 3000
+
+# Environment variables (can be overridden at runtime)
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Start application
+CMD ["node", "src/server.js"]

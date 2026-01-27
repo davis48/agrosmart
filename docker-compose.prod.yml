@@ -1,0 +1,166 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.4
+    container_name: agrismart_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: agrismart_ci
+      MYSQL_USER: agrismart
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - agrismart_network
+
+  # Redis Cache
+  redis:
+    image: redis:7.4-alpine
+    container_name: agrismart_redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - agrismart_network
+
+  # InfluxDB (IoT Time Series)
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: agrismart_influxdb
+    restart: always
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USER}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: agrismart
+      DOCKER_INFLUXDB_INIT_BUCKET: sensors
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - agrismart_network
+
+  # Mosquitto MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: agrismart_mosquitto
+    restart: always
+    volumes:
+      - ./iot_service/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - agrismart_network
+
+  # Backend API
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: agrismart_api
+    restart: always
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mysql://agrismart:${MYSQL_PASSWORD}@mysql:3306/agrismart_ci
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      AI_SERVICE_URL: http://ai_service:5001
+      IOT_SERVICE_URL: http://iot_service:4000
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - agrismart_network
+
+  # AI Service
+  ai_service:
+    build:
+      context: ./ai_service
+      dockerfile: Dockerfile
+    container_name: agrismart_ai
+    restart: always
+    environment:
+      FLASK_ENV: production
+      PORT: 5001
+      USE_GPU: ${USE_GPU}
+    volumes:
+      - ai_models:/app/models
+    networks:
+      - agrismart_network
+
+  # IoT Service
+  iot_service:
+    build:
+      context: ./iot_service
+      dockerfile: Dockerfile
+    container_name: agrismart_iot
+    restart: always
+    depends_on:
+      - influxdb
+      - mosquitto
+      - redis
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      MQTT_BROKER_URL: mqtt://mosquitto:1883
+      MQTT_USERNAME: ${MQTT_USERNAME}
+      MQTT_PASSWORD: ${MQTT_PASSWORD}
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: agrismart
+      INFLUXDB_BUCKET: sensors
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      BACKEND_API_URL: http://api:3000/api
+    networks:
+      - agrismart_network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: https://${API_DOMAIN}/api/v1
+        NEXT_PUBLIC_SOCKET_URL: https://${API_DOMAIN}
+    container_name: agrismart_frontend
+    restart: always
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+    networks:
+      - agrismart_network
+
+networks:
+  agrismart_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  influxdb_data:
+    driver: local
+  mosquitto_data:
+    driver: local
+  mosquitto_logs:
+    driver: local
+  ai_models:
+    driver: local
+  uploads_data:
+    driver: local

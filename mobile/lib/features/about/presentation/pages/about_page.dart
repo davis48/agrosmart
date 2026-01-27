@@ -1,0 +1,254 @@
+import 'package:flutter/material.dart';
+
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('À Propos'),
+        // backgroundColor: Colors.green,
+        // foregroundColor: Colors.white,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Logo and app name
+          Card(
+            color: Theme.of(context).cardColor,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.eco,
+                      size: 50,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Agrosmart CI',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Plateforme Agricole Intelligente',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: const Text(
+                      'Version 1.2.0',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Description
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Notre Mission',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Agrosmart CI combine les capteurs IoT, l\'intelligence artificielle et les données météorologiques pour aider les agriculteurs ivoiriens à optimiser leurs rendements et réduire les pertes.',
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Features
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Fonctionnalités',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildFeature(context, '📡', 'Capteurs IoT en temps réel'),
+                  _buildFeature(context, '🤖', 'Diagnostic IA des maladies'),
+                  _buildFeature(context, '💡', 'Recommandations personnalisées'),
+                  _buildFeature(context, '🌤️', 'Prévisions météo'),
+                  _buildFeature(context, '🛒', 'Marketplace agricole'),
+                  _buildFeature(context, '📚', 'Formations vidéo'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Contact
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Contact',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildContactInfo(context, Icons.email, 'support@agrosmart.ci'),
+                  _buildContactInfo(context, Icons.phone, '+225 07 00 00 00 01'),
+                  _buildContactInfo(context, Icons.language, 'www.agrosmart.ci'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Legal
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.description),
+                  title: const Text('Conditions d\'utilisation'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    // TODO: Show terms
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip),
+                  title: const Text('Politique de confidentialité'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    // TODO: Show privacy policy
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.gavel),
+                  title: const Text('Licences open source'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    showLicensePage(
+                      context: context,
+                      applicationName: 'Agrosmart CI',
+                      applicationVersion: '1.2.0',
+                      applicationIcon: Icon(
+                        Icons.eco,
+                        size: 48,
+                        color: Colors.green.shade700,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Copyright
+          Center(
+            child: Column(
+              children: [
+                Text(
+                  'Développé avec ❤️ pour les agriculteurs ivoiriens 🇨🇮',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '© 2024 Agrosmart CI. Tous droits réservés.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeature(BuildContext context, String emoji, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 12),
+          Text(text, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactInfo(BuildContext context, IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.green),
+          const SizedBox(width: 12),
+          Text(text, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+        ],
+      ),
+    );
+  }
+}

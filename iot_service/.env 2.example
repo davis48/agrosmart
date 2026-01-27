@@ -1,0 +1,22 @@
+# IoT Service Configuration
+NODE_ENV=production
+PORT=4000
+
+# MQTT
+MQTT_BROKER_URL=mqtt://mosquitto:1883
+MQTT_USERNAME=agrismart
+MQTT_PASSWORD=mqtt_secure_password
+
+# InfluxDB
+INFLUXDB_URL=http://influxdb:8086
+INFLUXDB_TOKEN=my-super-secret-influxdb-token
+INFLUXDB_ORG=agrismart
+INFLUXDB_BUCKET=sensors
+
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=redis_secure_password
+
+# Backend API
+BACKEND_API_URL=http://api:3000/api
