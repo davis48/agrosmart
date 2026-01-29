@@ -8,7 +8,9 @@ import 'features/auth/presentation/pages/onboarding_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
 import 'features/auth/presentation/pages/otp_page.dart';
+import 'features/auth/presentation/pages/role_selection_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
+import 'features/buyer_dashboard/presentation/pages/buyer_dashboard_page.dart';
 import 'features/parcelles/presentation/pages/parcelles_page.dart';
 import 'features/capteurs/presentation/pages/capteurs_page.dart';
 import 'package:agriculture/features/diagnostic/presentation/pages/diagnostic_page.dart';
@@ -27,7 +29,6 @@ import 'features/diagnostic/presentation/pages/diagnostic_history_page.dart';
 import 'features/diagnostic/presentation/pages/diagnostic_detail_page.dart';
 import 'features/diagnostic/presentation/pages/pest_map_page.dart';
 import 'features/support/presentation/pages/support_page.dart';
-import 'features/forum/presentation/pages/forum_home_page.dart';
 import 'features/about/presentation/pages/about_page.dart';
 import 'features/orders/presentation/pages/order_detail_page.dart';
 import 'features/orders/domain/entities/order.dart';
@@ -52,6 +53,12 @@ import 'features/community/presentation/pages/create_listing_page.dart';
 import 'features/forum/presentation/pages/community_page.dart';
 import 'features/assistant/presentation/bloc/chatbot_bloc.dart';
 import 'features/assistant/presentation/pages/agri_chatbot_page.dart';
+import 'features/cart/presentation/bloc/cart_bloc.dart';
+import 'features/cart/presentation/pages/cart_page.dart';
+import 'features/favorites/presentation/pages/favorites_page.dart';
+import 'features/favorites/presentation/bloc/favorites_bloc.dart';
+import 'features/checkout/presentation/pages/checkout_page.dart';
+import 'shared/pages/main_shell_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'injection_container.dart' as di;
@@ -93,7 +100,9 @@ void main() async {
             BlocProvider(
               create: (_) => di.sl<ParcelleBloc>()..add(LoadParcelles()),
             ),
-            BlocProvider(create: (_) => di.sl<SensorBloc>()..add(LoadSensors())),
+            BlocProvider(
+              create: (_) => di.sl<SensorBloc>()..add(LoadSensors()),
+            ),
             BlocProvider(create: (_) => di.sl<AlertBloc>()..add(LoadAlerts())),
             BlocProvider(
               create: (_) =>
@@ -101,7 +110,9 @@ void main() async {
             ),
             BlocProvider(
               create: (_) => di.sl<WeatherBloc>()
-                ..add(LoadWeatherForecast(latitude: 5.3600, longitude: -4.0083)),
+                ..add(
+                  LoadWeatherForecast(latitude: 5.3600, longitude: -4.0083),
+                ),
             ),
             BlocProvider(
               create: (_) => di.sl<AnalyticsBloc>()..add(LoadAnalytics()),
@@ -120,6 +131,10 @@ void main() async {
               create: (_) => di.sl<CommunityListingBloc>()..add(LoadListings()),
             ),
             BlocProvider(create: (_) => di.sl<ChatbotBloc>()),
+            BlocProvider(create: (_) => di.sl<CartBloc>()..add(LoadCart())),
+            BlocProvider(
+              create: (_) => di.sl<FavoritesBloc>()..add(LoadFavorites()),
+            ),
           ],
           child: const MyApp(),
         ),
@@ -148,8 +163,11 @@ final _authKey = GlobalKey<NavigatorState>();
 
 final _router = GoRouter(
   navigatorKey: _authKey,
-  initialLocation: '/onboarding',
+  initialLocation: '/', // Marketplace-first: on démarre sur le shell principal
   routes: [
+    // Main Shell (Bottom Navigation avec Marketplace, Dashboard, Panier, Profil)
+    GoRoute(path: '/', builder: (context, state) => const MainShellPage()),
+
     // Auth routes
     GoRoute(
       path: '/onboarding',
@@ -158,7 +176,21 @@ final _router = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     GoRoute(
       path: '/register',
-      builder: (context, state) => const RegisterPage(),
+      builder: (context, state) {
+        // Récupérer le rôle passé en extra depuis la page de sélection
+        String role = 'ACHETEUR';
+        if (state.extra is Map<String, dynamic>) {
+          role = (state.extra as Map<String, dynamic>)['role'] ?? 'ACHETEUR';
+        } else if (state.extra is String) {
+          role = state.extra as String;
+        }
+        return RegisterPage(role: role);
+      },
+    ),
+    GoRoute(
+      path: '/role-selection',
+      name: 'role-selection',
+      builder: (context, state) => const RoleSelectionPage(),
     ),
     GoRoute(
       path: '/otp',
@@ -168,10 +200,32 @@ final _router = GoRouter(
       },
     ),
 
-    // Main app routes
+    // Cart & Checkout routes
+    GoRoute(
+      path: '/cart',
+      name: 'cart',
+      builder: (context, state) => const CartPage(),
+    ),
+    GoRoute(
+      path: '/checkout',
+      name: 'checkout',
+      builder: (context, state) => const CheckoutPage(),
+    ),
+    GoRoute(
+      path: '/favorites',
+      name: 'favorites',
+      builder: (context, state) => const FavoritesPage(),
+    ),
+
+    // Dashboard routes
     GoRoute(
       path: '/dashboard',
       builder: (context, state) => const DashboardPage(),
+    ),
+    GoRoute(
+      path: '/buyer-dashboard',
+      name: 'buyer-dashboard',
+      builder: (context, state) => const BuyerDashboardPage(),
     ),
     GoRoute(
       path: '/parcelles',
@@ -203,10 +257,7 @@ final _router = GoRouter(
     ),
 
     // Profile & Settings
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfilePage(),
-    ),
+    GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
     GoRoute(
       path: '/edit-profile',
       builder: (context, state) => const EditProfilePage(),
@@ -230,10 +281,7 @@ final _router = GoRouter(
       path: '/recommandations',
       builder: (context, state) => const RecommandationsPage(),
     ),
-    GoRoute(
-      path: '/weather',
-      builder: (context, state) => const WeatherPage(),
-    ),
+    GoRoute(path: '/weather', builder: (context, state) => const WeatherPage()),
 
     // Additional pages
     GoRoute(
@@ -290,9 +338,7 @@ final _router = GoRouter(
       path: '/parcelle-detail',
       name: 'parcelle-detail',
       builder: (context, state) {
-        final parcelle =
-            state.extra
-                as Parcelle;
+        final parcelle = state.extra as Parcelle;
         return ParcelleDetailPage(parcelle: parcelle);
       },
     ),
@@ -330,7 +376,7 @@ class MyApp extends StatelessWidget {
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, themeMode) {
         return MaterialApp.router(
-          title: 'AgriSmart CI',
+          title: 'Agrosmart CI',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(

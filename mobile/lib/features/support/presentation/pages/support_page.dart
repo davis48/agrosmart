@@ -8,9 +8,7 @@ class SupportPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Aide et Support'),
-      ),
+      appBar: AppBar(title: const Text('Aide et Support')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -23,10 +21,7 @@ class SupportPage extends StatelessWidget {
                 children: [
                   const Text(
                     'Contactez-nous',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   _buildContactOption(
@@ -40,9 +35,9 @@ class SupportPage extends StatelessWidget {
                   _buildContactOption(
                     icon: Icons.email,
                     title: 'Email',
-                    subtitle: 'support@agrismart.ci',
+                    subtitle: 'support@agrosmart.ci',
                     color: Colors.blue,
-                    onTap: () => _launchUrl('mailto:support@agrismart.ci'),
+                    onTap: () => _launchUrl('mailto:support@agrosmart.ci'),
                   ),
                   const Divider(),
                   _buildContactOption(
@@ -67,27 +62,28 @@ class SupportPage extends StatelessWidget {
                 children: [
                   const Text(
                     'Questions Fréquentes',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   _buildFAQItem(
                     question: 'Comment ajouter un capteur ?',
-                    answer: 'Allez dans "Capteurs" > "+" > Scannez le QR code du capteur ou entrez son code manuellement.',
+                    answer:
+                        'Allez dans "Capteurs" > "+" > Scannez le QR code du capteur ou entrez son code manuellement.',
                   ),
                   _buildFAQItem(
                     question: 'Comment diagnostiquer une maladie ?',
-                    answer: 'Utilisez l\'onglet "Diagnostic" > Prenez une photo de la plante malade > L\'IA analysera l\'image automatiquement.',
+                    answer:
+                        'Utilisez l\'onglet "Diagnostic" > Prenez une photo de la plante malade > L\'IA analysera l\'image automatiquement.',
                   ),
                   _buildFAQItem(
                     question: 'Comment vendre sur le marketplace ?',
-                    answer: 'Allez dans "Marketplace" > "Mes annonces" > "+" > Remplissez les informations du produit.',
+                    answer:
+                        'Allez dans "Marketplace" > "Mes annonces" > "+" > Remplissez les informations du produit.',
                   ),
                   _buildFAQItem(
                     question: 'Mes données sont-elles sécurisées ?',
-                    answer: 'Oui, toutes vos données sont chiffrées et stockées de manière sécurisée. Nous ne partageons jamais vos informations.',
+                    answer:
+                        'Oui, toutes vos données sont chiffrées et stockées de manière sécurisée. Nous ne partageons jamais vos informations.',
                   ),
                 ],
               ),
@@ -105,7 +101,9 @@ class SupportPage extends StatelessWidget {
               onTap: () {
                 // TODO: Navigate to guides
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Guides disponibles dans Formations')),
+                  const SnackBar(
+                    content: Text('Guides disponibles dans Formations'),
+                  ),
                 );
               },
             ),
@@ -149,10 +147,7 @@ class SupportPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFAQItem({
-    required String question,
-    required String answer,
-  }) {
+  Widget _buildFAQItem({required String question, required String answer}) {
     return ExpansionTile(
       title: Text(
         question,
@@ -161,10 +156,7 @@ class SupportPage extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Text(
-            answer,
-            style: TextStyle(color: Colors.grey.shade700),
-          ),
+          child: Text(answer, style: TextStyle(color: Colors.grey.shade700)),
         ),
       ],
     );
@@ -179,7 +171,7 @@ class SupportPage extends StatelessWidget {
 
   void _showFeedbackDialog(BuildContext context) {
     final TextEditingController controller = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

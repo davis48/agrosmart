@@ -12,6 +12,7 @@ const {
   isPartenaire,
   isConseiller,
   isAdmin,
+  isMarketplaceUser,
   schemas,
   body,
   validate
@@ -32,24 +33,33 @@ const upload = multer({
   }
 });
 
-// Toutes les routes nécessitent une authentification
-router.use(authenticate);
-
-/* ========== PRODUITS ========== */
+/* ========== ROUTES PUBLIQUES (sans authentification) ========== */
 
 /**
  * @route   GET /api/marketplace/produits
  * @desc    Lister les produits disponibles
- * @access  Producteur, Partenaire, Conseiller, Admin
+ * @access  Public (consultation sans authentification)
  */
-router.get('/produits', isProducteur, schemas.pagination, marketplaceController.getAllProduits);
+router.get('/produits', schemas.pagination, marketplaceController.getAllProduits);
 
 /**
  * @route   GET /api/marketplace/produits/search
  * @desc    Rechercher des produits
- * @access  Producteur, Partenaire, Conseiller, Admin
+ * @access  Public (consultation sans authentification)
  */
-router.get('/produits/search', isProducteur, marketplaceController.searchProduits);
+router.get('/produits/search', marketplaceController.searchProduits);
+
+/**
+ * @route   GET /api/marketplace/produits/:id
+ * @desc    Obtenir un produit par son ID
+ * @access  Public (consultation sans authentification)
+ */
+router.get('/produits/:id', schemas.paramUuid('id'), marketplaceController.getProduitById);
+
+/* ========== ROUTES PROTÉGÉES (authentification requise) ========== */
+router.use(authenticate);
+
+/* ========== MES PRODUITS ========== */
 
 /**
  * @route   GET /api/marketplace/produits/mes-produits
@@ -83,13 +93,6 @@ router.post('/produits',
 );
 
 /**
- * @route   GET /api/marketplace/produits/:id
- * @desc    Obtenir un produit par son ID
- * @access  Producteur, Partenaire, Conseiller, Admin
- */
-router.get('/produits/:id', schemas.paramUuid('id'), marketplaceController.getProduitById);
-
-/**
  * @route   PUT /api/marketplace/produits/:id
  * @desc    Mettre à jour un produit
  * @access  Propriétaire, Admin
@@ -108,17 +111,17 @@ router.delete('/produits/:id', schemas.paramUuid('id'), marketplaceController.de
 /**
  * @route   GET /api/marketplace/commandes
  * @desc    Lister mes commandes (acheteur ou vendeur)
- * @access  Producteur, Partenaire
+ * @access  Producteur, Partenaire, Acheteur
  */
-router.get('/commandes', isProducteur, schemas.pagination, marketplaceController.getCommandes);
+router.get('/commandes', isMarketplaceUser, schemas.pagination, marketplaceController.getCommandes);
 
 /**
  * @route   POST /api/marketplace/commandes
  * @desc    Passer une commande
- * @access  Producteur, Partenaire
+ * @access  Producteur, Partenaire, Acheteur
  */
 router.post('/commandes',
-  isProducteur,
+  isMarketplaceUser,
   [
     body('produit_id').isUUID(),
     body('quantite').isFloat({ min: 0.01 }),
@@ -146,7 +149,19 @@ router.get('/commandes/:id', schemas.paramUuid('id'), marketplaceController.getC
 router.put('/commandes/:id/status',
   [
     body('statut')
-      .isIn(['en_attente', 'confirmee', 'en_preparation', 'expediee', 'livree', 'annulee'])
+      .isIn([
+        'en_attente',
+        'confirmee',
+        'en_preparation',
+        'expediee',
+        'livree',
+        'annulee',
+        'PENDING',
+        'CONFIRMED',
+        'SHIPPED',
+        'DELIVERED',
+        'CANCELLED'
+      ])
       .withMessage('Statut invalide'),
     body('notes').optional().trim().isLength({ max: 500 }),
     validate

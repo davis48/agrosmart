@@ -215,7 +215,14 @@ exports.getAll = async (req, res, next) => {
 
     if (type) where.type = type;
     if (status) where.statut = status.toUpperCase(); // 'statut'
-    if (parcelle_id) where.station = { parcelleId: parcelle_id };
+    if (parcelle_id) {
+      // Merge parcelle_id filter with existing station filter to preserve userId check
+      if (where.station) {
+        where.station = { ...where.station, parcelleId: parcelle_id };
+      } else {
+        where.station = { parcelleId: parcelle_id };
+      }
+    }
 
     console.log('DEBUG CAPTEURS: User ID:', req.user.id, 'Role:', req.user.role);
     console.log('DEBUG CAPTEURS: WHERE clause:', JSON.stringify(where, null, 2));

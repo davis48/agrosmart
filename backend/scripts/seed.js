@@ -1,6 +1,6 @@
 /**
  * Script de Seed - Données de démonstration
- * AgriSmart CI - Système Agricole Intelligent
+ * Agrosmart CI - Système Agricole Intelligent
  */
 
 const db = require('../src/config/database');
@@ -37,37 +37,37 @@ async function seed() {
       {
         id: uuidv4(),
         telephone: '+2250101010101',
-        email: 'admin@agrismart.ci',
+        email: 'admin@agrosmart.ci',
         nom: 'Kouassi',
         prenom: 'Admin',
-        role: 'admin',
+        role: 'ADMIN',
         localisation: 'Abidjan'
       },
       {
         id: uuidv4(),
         telephone: '+2250102020202',
-        email: 'conseiller@agrismart.ci',
+        email: 'conseiller@agrosmart.ci',
         nom: 'Koné',
         prenom: 'Ibrahim',
-        role: 'conseiller',
+        role: 'CONSEILLER',
         localisation: 'Bouaké'
       },
       {
         id: uuidv4(),
         telephone: '+2250103030303',
-        email: 'producteur1@agrismart.ci',
+        email: 'producteur1@agrosmart.ci',
         nom: 'Tra',
         prenom: 'Bi',
-        role: 'producteur',
+        role: 'PRODUCTEUR',
         localisation: 'Daloa'
       },
       {
         id: uuidv4(),
         telephone: '+2250104040404',
-        email: 'producteur2@agrismart.ci',
+        email: 'producteur2@agrosmart.ci',
         nom: 'Yao',
         prenom: 'Kouadio',
-        role: 'producteur',
+        role: 'PRODUCTEUR',
         localisation: 'Yamoussoukro'
       }
     ];
@@ -81,7 +81,43 @@ async function seed() {
     console.log(`   ✅ ${users.length} utilisateurs créés`);
 
     // Récupérer les IDs des producteurs
-    const producteurs = await db.query(`SELECT id FROM users WHERE role = 'producteur'`);
+    const producteurs = await db.query(`SELECT id FROM users WHERE role = 'PRODUCTEUR'`);
+
+    // Créer des produits marketplace
+    console.log('\n🛒 Création des produits marketplace...');
+    const produits = [
+      { nom: 'Mangues Kent', categorie: 'fruit', unite: 'kg', prix: 800, stock: 120, description: 'Mangues fraîches de saison' },
+      { nom: 'Tomates fraîches', categorie: 'legume', unite: 'kg', prix: 600, stock: 200, description: 'Tomates bio récoltées du jour' },
+      { nom: 'Riz local', categorie: 'cereale', unite: 'kg', prix: 900, stock: 500, description: 'Riz local de qualité supérieure' },
+      { nom: 'Igname', categorie: 'tubercule', unite: 'kg', prix: 700, stock: 150, description: 'Igname fraîchement récoltée' },
+      { nom: 'Piment', categorie: 'legume', unite: 'kg', prix: 1200, stock: 80, description: 'Piment fort' },
+      { nom: 'Banane plantain', categorie: 'fruit', unite: 'kg', prix: 500, stock: 180, description: 'Plantain mûr' }
+    ];
+
+    let produitCount = 0;
+    for (let i = 0; i < produits.length; i++) {
+      const vendeur = producteurs.rows[i % producteurs.rows.length];
+      const item = produits[i];
+
+      await db.query(
+        `INSERT IGNORE INTO marketplace_produits
+          (id, vendeur_id, nom, description, categorie, prix, unite, stock, images, type_offre, actif, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'vente', 1, 1)`,
+        [
+          uuidv4(),
+          vendeur.id,
+          item.nom,
+          item.description,
+          item.categorie,
+          item.prix,
+          item.unite,
+          item.stock,
+          JSON.stringify([])
+        ]
+      );
+      produitCount++;
+    }
+    console.log(`   ✅ ${produitCount} produits marketplace créés`);
 
     // Créer des parcelles
     console.log('\n🌾 Création des parcelles...');

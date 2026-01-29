@@ -13,7 +13,9 @@
  */
 
 const rateLimit = require('express-rate-limit');
-const RedisStore = require('rate-limit-redis');
+const { ipKeyGenerator } = require('express-rate-limit');
+// rate-limit-redis v4.x uses named export or default
+const { RedisStore } = require('rate-limit-redis');
 const Redis = require('ioredis');
 const config = require('../config');
 const logger = require('../utils/logger');
@@ -48,13 +50,22 @@ const getRedisClient = () => {
  * @returns {RedisStore|undefined} Store Redis ou undefined (fallback mémoire)
  */
 const createRedisStore = (prefix) => {
+  // Skip Redis store creation if Redis is disabled
+  if (!config.redis.enabled) {
+    logger.info(`Redis disabled, using memory store for ${prefix}`);
+    return undefined;
+  }
+  
   try {
-    return new RedisStore({
-      sendCommand: (...args) => getRedisClient().call(...args),
+    const client = getRedisClient();
+    const store = new RedisStore({
+      sendCommand: (...args) => client.call(...args),
       prefix: `rl:${prefix}:`
     });
+    logger.info(`Redis store created for ${prefix}`);
+    return store;
   } catch (error) {
-    logger.warn(`Redis store creation failed for ${prefix}, using memory store`);
+    logger.warn(`Redis store creation failed for ${prefix}, using memory store: ${error.message}`);
     return undefined;
   }
 };
@@ -85,23 +96,29 @@ const rateLimitHandler = (req, res, next, options) => {
   });
 };
 
+const getClientIp = (req) => ipKeyGenerator(req);
+
+// Options de validation communes pour désactiver les avertissements IPv6
+const commonValidateOptions = { xForwardedForHeader: false, ip: false, keyGeneratorIpFallback: false };
+
 /**
  * Rate limiter pour la connexion (Login)
- * - 5 tentatives par 15 minutes par IP
+ * - 5 tentatives par 15 minutes par IP en prod
+ * - 30 tentatives en dev
  * - Bloque les attaques brute-force
  */
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 tentatives max
+  max: process.env.NODE_ENV === 'production' ? 5 : 30, // 5 en prod, 30 en dev
   message: 'Trop de tentatives de connexion. Réessayez dans 15 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('login'),
-  validate: { xForwardedForHeader: false, ip: false },
+  validate: commonValidateOptions,
   keyGenerator: (req) => {
     // Combine IP + email pour un tracking plus précis
     const email = req.body?.email || req.body?.telephone || 'unknown';
-    const ip = req.ip || req.socket?.remoteAddress || '127.0.0.1';
+    const ip = getClientIp(req);
     return `${ip}:${email}`;
   },
   skip: (req) => {
@@ -115,18 +132,18 @@ const loginLimiter = rateLimit({
 
 /**
  * Rate limiter pour l'inscription (Register)
- * - 3 créations de compte par heure par IP
+ * - 20 créations de compte par heure par IP (dev mode)
  * - Prévient le spam de comptes
  */
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 heure
-  max: 3, // 3 inscriptions max par heure
+  max: process.env.NODE_ENV === 'production' ? 3 : 20, // 3 en prod, 20 en dev
   message: 'Trop de créations de compte. Réessayez dans 1 heure.',
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('register'),
-  validate: { xForwardedForHeader: false, ip: false },
-  keyGenerator: (req) => req.ip || req.socket?.remoteAddress || '127.0.0.1',
+  validate: commonValidateOptions,
+  keyGenerator: (req) => getClientIp(req),
   skip: (req) => config.isTest,
   handler: (req, res, next, options) => {
     rateLimitHandler(req, res, next, { ...options, limitType: 'register' });
@@ -145,10 +162,10 @@ const otpLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('otp'),
-  validate: { xForwardedForHeader: false, ip: false },
+  validate: commonValidateOptions,
   keyGenerator: (req) => {
     const phone = req.body?.telephone || req.params?.telephone || 'unknown';
-    const ip = req.ip || req.socket?.remoteAddress || '127.0.0.1';
+    const ip = getClientIp(req);
     return `${ip}:${phone}`;
   },
   skip: (req) => config.isTest,
@@ -169,10 +186,10 @@ const otpVerifyLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('otp-verify'),
-  validate: { xForwardedForHeader: false, ip: false },
+  validate: commonValidateOptions,
   keyGenerator: (req) => {
     const phone = req.body?.telephone || 'unknown';
-    const ip = req.ip || req.socket?.remoteAddress || '127.0.0.1';
+    const ip = getClientIp(req);
     return `${ip}:${phone}`;
   },
   skip: (req) => config.isTest,
@@ -193,9 +210,9 @@ const uploadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('upload'),
-  validate: { xForwardedForHeader: false, ip: false },
+  validate: commonValidateOptions,
   keyGenerator: (req) => {
-    const userId = req.user?.id || req.ip || req.socket?.remoteAddress || '127.0.0.1';
+    const userId = req.user?.id || getClientIp(req);
     return `upload:${userId}`;
   },
   skip: (req) => config.isTest,
@@ -216,9 +233,9 @@ const diagnosticLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('diagnostic'),
-  validate: { xForwardedForHeader: false, ip: false },
+  validate: commonValidateOptions,
   keyGenerator: (req) => {
-    const userId = req.user?.id || req.ip || req.socket?.remoteAddress || '127.0.0.1';
+    const userId = req.user?.id || getClientIp(req);
     return `diag:${userId}`;
   },
   skip: (req) => config.isTest,
@@ -239,8 +256,8 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('api'),
-  validate: { xForwardedForHeader: false, ip: false },
-  keyGenerator: (req) => req.ip || req.socket?.remoteAddress || '127.0.0.1',
+  validate: commonValidateOptions,
+  keyGenerator: (req) => getClientIp(req),
   skip: (req) => config.isTest,
   handler: (req, res, next, options) => {
     rateLimitHandler(req, res, next, { ...options, limitType: 'api' });
@@ -259,9 +276,9 @@ const strictLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('strict'),
-  validate: { xForwardedForHeader: false, ip: false },
+  validate: commonValidateOptions,
   keyGenerator: (req) => {
-    const userId = req.user?.id || req.ip || req.socket?.remoteAddress || '127.0.0.1';
+    const userId = req.user?.id || getClientIp(req);
     return `strict:${userId}`;
   },
   skip: (req) => config.isTest,
@@ -281,10 +298,10 @@ const passwordResetLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('pwd-reset'),
-  validate: { xForwardedForHeader: false, ip: false },
+  validate: commonValidateOptions,
   keyGenerator: (req) => {
     const email = req.body?.email || 'unknown';
-    const ip = req.ip || req.socket?.remoteAddress || '127.0.0.1';
+    const ip = getClientIp(req);
     return `${ip}:${email}`;
   },
   skip: (req) => config.isTest,

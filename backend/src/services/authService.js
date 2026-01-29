@@ -19,15 +19,21 @@ class AuthService {
      * Inscription d'un nouvel utilisateur
      */
     async registerUser(userData) {
-        const { email, telephone, password, nom, prenoms, prenom, langue_preferee = 'fr', adresse, type_producteur,
+        const { email, telephone, password, nom, prenoms, prenom, langue_preferee = 'fr', adresse, 
+            role = 'PRODUCTEUR', // Nouveau: rôle par défaut PRODUCTEUR pour compatibilité
+            type_producteur,
             production_3_mois_precedents_kg, superficie_exploitee, unite_superficie, systeme_irrigation,
             production_mois1_kg, production_mois2_kg, production_mois3_kg } = userData;
 
-        logger.info('Registration attempt', { telephone, email: email || 'none' });
+        logger.info('Registration attempt', { telephone, email: email || 'none', role });
 
         // Normalisation prenoms
         const userPrenoms = prenoms || prenom || '';
         const userEmail = email || null;
+        
+        // Validation du rôle (seulement ACHETEUR ou PRODUCTEUR autorisés à l'inscription)
+        const validRoles = ['ACHETEUR', 'PRODUCTEUR'];
+        const userRole = validRoles.includes(role) ? role : 'PRODUCTEUR';
 
         // Vérification existence
         const existingUser = await prisma.user.findFirst({
@@ -50,7 +56,7 @@ class AuthService {
         // Statut initial (actif en dev)
         const initialStatus = (config.isDev || config.env === 'development') ? 'ACTIF' : 'EN_ATTENTE';
 
-        // Insertion
+        // Insertion - Les champs agricoles ne sont pertinents que pour les producteurs
         const user = await prisma.user.create({
             data: {
                 email: userEmail,
@@ -61,15 +67,16 @@ class AuthService {
                 adresse,
                 langue_preferee: langue_preferee,
                 status: initialStatus,
-                // Champs profil agricole optionnels
-                ...(type_producteur && { typeProducteur: type_producteur }),
-                ...(production_3_mois_precedents_kg && !isNaN(parseFloat(production_3_mois_precedents_kg)) && { production3MoisPrecedentsKg: parseFloat(production_3_mois_precedents_kg) }),
-                ...(superficie_exploitee && !isNaN(parseFloat(superficie_exploitee)) && { superficieExploitee: parseFloat(superficie_exploitee) }),
-                ...(unite_superficie && { uniteSuperficie: unite_superficie }),
-                ...(systeme_irrigation && { systemeIrrigation: systeme_irrigation }),
-                ...(production_mois1_kg && !isNaN(parseFloat(production_mois1_kg)) && { productionMois1Kg: parseFloat(production_mois1_kg) }),
-                ...(production_mois2_kg && !isNaN(parseFloat(production_mois2_kg)) && { productionMois2Kg: parseFloat(production_mois2_kg) }),
-                ...(production_mois3_kg && !isNaN(parseFloat(production_mois3_kg)) && { productionMois3Kg: parseFloat(production_mois3_kg) })
+                role: userRole, // Utiliser le rôle validé
+                // Champs profil agricole optionnels (uniquement pour les producteurs)
+                ...(userRole === 'PRODUCTEUR' && type_producteur && { typeProducteur: type_producteur }),
+                ...(userRole === 'PRODUCTEUR' && production_3_mois_precedents_kg && !isNaN(parseFloat(production_3_mois_precedents_kg)) && { production3MoisPrecedentsKg: parseFloat(production_3_mois_precedents_kg) }),
+                ...(userRole === 'PRODUCTEUR' && superficie_exploitee && !isNaN(parseFloat(superficie_exploitee)) && { superficieExploitee: parseFloat(superficie_exploitee) }),
+                ...(userRole === 'PRODUCTEUR' && unite_superficie && { uniteSuperficie: unite_superficie }),
+                ...(userRole === 'PRODUCTEUR' && systeme_irrigation && { systemeIrrigation: systeme_irrigation }),
+                ...(userRole === 'PRODUCTEUR' && production_mois1_kg && !isNaN(parseFloat(production_mois1_kg)) && { productionMois1Kg: parseFloat(production_mois1_kg) }),
+                ...(userRole === 'PRODUCTEUR' && production_mois2_kg && !isNaN(parseFloat(production_mois2_kg)) && { productionMois2Kg: parseFloat(production_mois2_kg) }),
+                ...(userRole === 'PRODUCTEUR' && production_mois3_kg && !isNaN(parseFloat(production_mois3_kg)) && { productionMois3Kg: parseFloat(production_mois3_kg) })
             },
             select: {
                 id: true,
@@ -83,9 +90,9 @@ class AuthService {
             }
         });
 
-        // Gestion des Parcelles multiples (si fournies)
-        if (userData.productions && Array.isArray(userData.productions)) {
-            logger.info('Processing productions for user', { userId: user.id, count: userData.productions.length });
+        // Gestion des Parcelles multiples (uniquement pour les producteurs)
+        if (userRole === 'PRODUCTEUR' && userData.productions && Array.isArray(userData.productions)) {
+            logger.info('Processing productions for producer', { userId: user.id, count: userData.productions.length });
             try {
                 for (const prod of userData.productions) {
                     if (prod.type && prod.surface) {
@@ -106,8 +113,12 @@ class AuthService {
                 logger.error('Erreur lors de la création automatique des parcelles', { error: err.message, userId: user.id });
                 // On ne bloque pas l'inscription pour ça, mais on log l'erreur
             }
-        } else {
-            logger.info('No productions array in userData', { userId: user.id });
+        } else if (userRole === 'PRODUCTEUR') {
+            logger.info('No productions array in userData for producer', { userId: user.id });
+        }
+        // Pour les acheteurs, pas besoin de parcelles
+        if (userRole === 'ACHETEUR') {
+            logger.info('Buyer account created - no parcelle needed', { userId: user.id });
         }
 
         // Logique Auto-Login en Dev

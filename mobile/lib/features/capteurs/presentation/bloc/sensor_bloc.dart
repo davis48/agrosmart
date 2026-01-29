@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:agriculture/features/capteurs/domain/entities/sensor.dart';
 import 'package:agriculture/features/capteurs/domain/repositories/sensor_repository.dart';
@@ -78,11 +79,15 @@ class SensorBloc extends Bloc<SensorEvent, SensorState> {
     LoadSensors event,
     Emitter<SensorState> emit,
   ) async {
+    debugPrint('[SENSOR_BLOC] LoadSensors event received');
     emit(const SensorLoading());
     try {
+      debugPrint('[SENSOR_BLOC] Calling repository.getSensors()');
       final sensors = await repository.getSensors();
+      debugPrint('[SENSOR_BLOC] Got ${sensors.length} sensors');
       emit(SensorLoaded(sensors));
     } catch (e) {
+      debugPrint('[SENSOR_BLOC] Error: $e');
       emit(SensorError(e.toString()));
     }
   }

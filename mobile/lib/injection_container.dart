@@ -24,6 +24,7 @@ import 'features/auth/domain/usecases/login.dart';
 import 'features/auth/domain/usecases/verify_otp.dart';
 import 'features/auth/domain/usecases/register.dart';
 import 'features/auth/domain/usecases/update_profile.dart';
+import 'features/auth/domain/usecases/logout.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 
 // Parcelles
@@ -133,6 +134,12 @@ import 'features/community/presentation/bloc/community_listing_bloc.dart';
 import 'core/services/agri_chatbot_service.dart';
 import 'features/assistant/presentation/bloc/chatbot_bloc.dart';
 
+// Cart imports
+import 'features/cart/presentation/bloc/cart_bloc.dart';
+
+// Favorites imports
+import 'features/favorites/presentation/bloc/favorites_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -165,10 +172,10 @@ Future<void> init() async {
 
   Isar? isar;
   try {
-    isar = await Isar.open(
-      [CachedDashboardDataSchema, CachedSensorDataSchema],
-      directory: path ?? '',
-    );
+    isar = await Isar.open([
+      CachedDashboardDataSchema,
+      CachedSensorDataSchema,
+    ], directory: path ?? '');
   } catch (e) {
     debugPrint('Isar error: $e. Deleting database...');
     if (path != null) {
@@ -177,7 +184,8 @@ Future<void> init() async {
         if (await dir.exists()) {
           final files = dir.listSync();
           for (var file in files) {
-            if (file.path.endsWith('.isar') || file.path.endsWith('.isar.lock')) {
+            if (file.path.endsWith('.isar') ||
+                file.path.endsWith('.isar.lock')) {
               await file.delete();
             }
           }
@@ -187,10 +195,10 @@ Future<void> init() async {
       }
     }
     // Retry opening
-    isar = await Isar.open(
-      [CachedDashboardDataSchema, CachedSensorDataSchema],
-      directory: path ?? '',
-    );
+    isar = await Isar.open([
+      CachedDashboardDataSchema,
+      CachedSensorDataSchema,
+    ], directory: path ?? '');
   }
   sl.registerLazySingleton(() => isar!);
 
@@ -208,6 +216,7 @@ Future<void> init() async {
       verifyOtp: sl(),
       register: sl(),
       updateProfile: sl(),
+      logout: sl(),
     ),
   );
 
@@ -275,6 +284,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AgriChatbotService(apiClient: sl()));
   sl.registerFactory(() => ChatbotBloc(chatbotService: sl()));
 
+  // Cart
+  sl.registerFactory(() => CartBloc());
+
+  // Favorites
+  sl.registerFactory(() => FavoritesBloc());
+
   // ---------------------------------------------------------------------------
   // Use Cases
   // ---------------------------------------------------------------------------
@@ -284,6 +299,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => VerifyOtp(sl()));
   sl.registerLazySingleton(() => Register(sl()));
   sl.registerLazySingleton(() => UpdateProfile(sl()));
+  sl.registerLazySingleton(() => Logout(sl()));
 
   // Dashboard
   sl.registerLazySingleton(() => GetDashboardData(sl()));

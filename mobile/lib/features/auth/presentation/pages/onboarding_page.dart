@@ -41,19 +41,22 @@ class _OnboardingPageState extends State<OnboardingPage> {
     OnboardingItem(
       icon: Icons.sensors,
       title: 'Monitoring IoT',
-      description: 'Capteurs intelligents pour surveiller vos cultures en temps réel.',
+      description:
+          'Capteurs intelligents pour surveiller vos cultures en temps réel.',
       color: Colors.green,
     ),
     OnboardingItem(
       icon: Icons.psychology,
       title: 'IA & Diagnostic',
-      description: 'Détectez les maladies par photo et recevez des recommandations.',
+      description:
+          'Détectez les maladies par photo et recevez des recommandations.',
       color: Colors.blue,
     ),
     OnboardingItem(
       icon: Icons.store,
       title: 'Marketplace',
-      description: 'Achetez et vendez des produits agricoles dans votre région.',
+      description:
+          'Achetez et vendez des produits agricoles dans votre région.',
       color: Colors.orange,
     ),
     OnboardingItem(
@@ -91,7 +94,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       color: Colors.green.shade100,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.eco, size: 28, color: Colors.green.shade700),
+                    child: Icon(
+                      Icons.eco,
+                      size: 28,
+                      color: Colors.green.shade700,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Text(
@@ -105,14 +112,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ],
               ),
               const SizedBox(height: 32),
-              
+
               // Feature carousel
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
                   physics: const BouncingScrollPhysics(),
                   itemCount: _items.length,
-                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
                   itemBuilder: (context, index) {
                     final item = _items[index];
                     return Column(
@@ -141,7 +149,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ],
@@ -149,7 +159,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   },
                 ),
               ),
-              
+
               // Indicators
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +180,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // Buttons
               SizedBox(
                 width: double.infinity,
@@ -231,4 +241,3 @@ class OnboardingItem {
     required this.color,
   });
 }
-

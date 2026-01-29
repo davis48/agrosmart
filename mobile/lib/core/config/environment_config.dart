@@ -22,9 +22,9 @@ class EnvironmentConfig {
         // Pour l'émulateur Android, 10.0.2.2 pointe vers localhost de la machine hôte
         return 'http://10.0.2.2:3000/api/v1';
       case Environment.staging:
-        return 'https://staging-api.agrismart.ci/api/v1';
+        return 'https://staging-api.agrosmart.ci/api/v1';
       case Environment.production:
-        return 'https://api.agrismart.ci/api/v1';
+        return 'https://api.agrosmart.ci/api/v1';
     }
   }
 
@@ -34,9 +34,9 @@ class EnvironmentConfig {
       case Environment.development:
         return 'ws://10.0.2.2:3000';
       case Environment.staging:
-        return 'wss://staging-api.agrismart.ci';
+        return 'wss://staging-api.agrosmart.ci';
       case Environment.production:
-        return 'wss://api.agrismart.ci';
+        return 'wss://api.agrosmart.ci';
     }
   }
 

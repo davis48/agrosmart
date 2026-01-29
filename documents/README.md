@@ -1,4 +1,4 @@
-# 🌾 AgriSmart CI - Plateforme Agricole Intelligente
+# 🌾 Agrosmart CI - Plateforme Agricole Intelligente
 
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/amalamanemmanueljeandavid/agriculture)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -7,11 +7,11 @@
 
 ## 📋 Description
 
-AgriSmart CI est une plateforme complète d'agriculture de précision conçue pour les producteurs agricoles de Côte d'Ivoire. Elle combine IoT, IA et interfaces mobiles/web pour optimiser les rendements.
+Agrosmart CI est une plateforme complète d'agriculture de précision conçue pour les producteurs agricoles de Côte d'Ivoire. Elle combine IoT, IA et interfaces mobiles/web pour optimiser les rendements.
 
 ## 🏗️ Architecture
 
-AgriSmart CI est une plateforme composée de 5 micro-services interconnectés :
+Agrosmart CI est une plateforme composée de 5 micro-services interconnectés :
 
 ```mermaid
 graph TB

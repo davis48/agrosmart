@@ -68,7 +68,7 @@ const config = {
     port: parseInt(process.env.SMTP_PORT) || 587,
     user: process.env.SMTP_USER,
     password: process.env.SMTP_PASSWORD,
-    from: process.env.EMAIL_FROM || 'AgriSmart CI <noreply@agrismart.ci>'
+    from: process.env.EMAIL_FROM || 'Agrosmart CI <noreply@agrosmart.ci>'
   },
 
   // API Météo

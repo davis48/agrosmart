@@ -111,6 +111,12 @@ Future<void> initDioClient(SecureStorageService secureStorage) async {
         final token = await ApiTokenManager().getToken();
         if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';
+          // Debug: Log first 50 chars of token to verify it exists
+          debugPrint(
+            '[DIO] 🔑 Token: ${token.substring(0, token.length > 50 ? 50 : token.length)}...',
+          );
+        } else {
+          debugPrint('[DIO] ⚠️ NO TOKEN FOUND - Request will be unauthorized');
         }
         return handler.next(options);
       },

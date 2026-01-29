@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../../core/services/navigation_intent_service.dart';
 import '../../../../core/theme/theme_cubit.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  /// Rôle sélectionné : 'ACHETEUR' ou 'PRODUCTEUR'
+  /// Les acheteurs ont un parcours simplifié (étape 1 uniquement)
+  /// Les producteurs ont le parcours complet (3 étapes)
+  final String role;
+
+  const RegisterPage({super.key, this.role = 'ACHETEUR'});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -13,6 +19,12 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+
+  /// Indique si l'utilisateur est un acheteur (parcours simplifié)
+  bool get isAcheteur => widget.role == 'ACHETEUR';
+
+  /// Nombre total d'étapes selon le rôle
+  int get totalSteps => isAcheteur ? 1 : 3;
 
   // Step 1: Personal Info
   final _nomController = TextEditingController();
@@ -66,6 +78,24 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      // Pour les acheteurs, on n'a pas besoin des infos de production
+      if (isAcheteur) {
+        context.read<AuthBloc>().add(
+          RegisterRequested(
+            nom: _nomController.text.trim(),
+            prenoms: _prenomsController.text.trim(),
+            telephone: _phoneController.text.trim(),
+            password: _passwordController.text,
+            email: _emailController.text.trim(),
+            adresse: _adresseController.text.trim(),
+            languePreferee: _selectedLanguage,
+            role: 'ACHETEUR',
+          ),
+        );
+        return;
+      }
+
+      // Pour les producteurs, on inclut toutes les infos de production
       // Calculate total surface and ensure parsed correctly
       double surfaceTotal = 0.0;
       if (_prodSurface1Controller.text.isNotEmpty)
@@ -89,6 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
           email: _emailController.text.trim(),
           adresse: _adresseController.text.trim(),
           languePreferee: _selectedLanguage,
+          role: 'PRODUCTEUR',
           // Mapping specific fields to User entity fields
           typeProducteur: mainType,
           superficie: surfaceTotal > 0 ? surfaceTotal.toString() : null,
@@ -154,14 +185,23 @@ class _RegisterPageState extends State<RegisterPage> {
       body: SafeArea(
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
-            if (state is AuthRegistered) {
+            if (state is AuthAuthenticated || state is AuthRegistered) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Inscription réussie !'),
+                  content: Text('Inscription réussie ! Bienvenue !'),
                   backgroundColor: Colors.green,
                 ),
               );
-              context.go('/dashboard');
+
+              // Vérifier s'il y a une route en attente
+              if (NavigationIntent.hasPendingRoute()) {
+                final pendingRoute = NavigationIntent.consumePendingRoute();
+                context.go(pendingRoute!);
+                return;
+              }
+
+              // Tous les utilisateurs vont au dashboard (Accueil)
+              context.go('/');
             } else if (state is AuthError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -179,14 +219,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     height: 10,
                   ), // Reduced spacing as AppBar takes space
                   // Header with Icon
-                  const Icon(
-                    Icons.account_circle,
+                  Icon(
+                    isAcheteur ? Icons.shopping_bag : Icons.account_circle,
                     size: 60,
-                    color: Color(0xFF28A745),
+                    color: const Color(0xFF28A745),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Inscription Producteur',
+                    isAcheteur
+                        ? 'Inscription Acheteur'
+                        : 'Inscription Producteur',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -194,7 +236,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   Text(
-                    'Créez votre compte pour suivre vos productions',
+                    isAcheteur
+                        ? 'Créez votre compte pour accéder au marketplace'
+                        : 'Créez votre compte pour suivre vos productions',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.grey[400] : Colors.grey[700],
@@ -226,8 +270,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           )
                         else
                           const SizedBox(width: 80), // Spacer
-
-                        if (_currentStep < 2)
+                        // Pour les acheteurs: bouton S'inscrire dès l'étape 1
+                        // Pour les producteurs: bouton Suivant jusqu'à l'étape 3
+                        if (!isAcheteur && _currentStep < 2)
                           TextButton.icon(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
@@ -276,7 +321,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
 
-                  if (_currentStep == 2)
+                  // Lien vers connexion (visible uniquement à la dernière étape ou pour les acheteurs)
+                  if (_currentStep == (totalSteps - 1))
                     Padding(
                       padding: const EdgeInsets.only(bottom: 20),
                       child: TextButton(

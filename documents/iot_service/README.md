@@ -50,10 +50,10 @@ graph LR
 
 ### Topics MQTT
 
-- `agrismart/sensors/{sensorId}/temperature`
-- `agrismart/sensors/{sensorId}/humidity`
-- `agrismart/sensors/{sensorId}/soil_ph`
-- `agrismart/sensors/{sensorId}/status`
+- `agrosmart/sensors/{sensorId}/temperature`
+- `agrosmart/sensors/{sensorId}/humidity`
+- `agrosmart/sensors/{sensorId}/soil_ph`
+- `agrosmart/sensors/{sensorId}/status`
 
 ## 🐳 Docker (Recommandé)
 

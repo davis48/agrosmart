@@ -8,7 +8,7 @@ const TEST_USER = {
 
 async function testAPIs() {
     try {
-        console.log('🔍 Testing AgriSmart CI APIs...\n');
+        console.log('🔍 Testing Agrosmart CI APIs...\n');
 
         // 1. Test Login
         console.log('1️⃣ Testing Login...');

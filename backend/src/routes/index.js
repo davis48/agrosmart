@@ -32,6 +32,8 @@ const smsRoutes = require('./sms');
 const gamificationRoutes = require('./gamification');
 const groupPurchasesRoutes = require('./groupPurchases');
 const paymentsRoutes = require('./payments');
+const cartRoutes = require('./cart');
+const favoritesRoutes = require('./favorites');
 
 // Montage des routes
 router.use('/auth', authRoutes);
@@ -60,6 +62,8 @@ router.use('/sms', smsRoutes);
 router.use('/gamification', gamificationRoutes);
 router.use('/group-purchases', groupPurchasesRoutes);
 router.use('/payments', paymentsRoutes);
+router.use('/cart', cartRoutes);
+router.use('/favorites', favoritesRoutes);
 
 // Route de health check
 router.get('/health', (req, res) => {

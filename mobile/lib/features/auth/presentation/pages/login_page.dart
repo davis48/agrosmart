@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/services/navigation_intent_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -27,7 +28,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // Main background color: Mockup Green (Light) vs Theme Surface (Dark)
-    final backgroundColor = isDark ? Theme.of(context).scaffoldBackgroundColor : const Color(0xFFE8F5E9);
+    final backgroundColor = isDark
+        ? Theme.of(context).scaffoldBackgroundColor
+        : const Color(0xFFE8F5E9);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -52,7 +55,15 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            context.go('/dashboard');
+            // Vérifier s'il y a une route en attente (ex: checkout)
+            if (NavigationIntent.hasPendingRoute()) {
+              final pendingRoute = NavigationIntent.consumePendingRoute();
+              context.go(pendingRoute!);
+              return;
+            }
+
+            // Tous les utilisateurs vont au dashboard (Accueil)
+            context.go('/');
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -67,7 +78,9 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 10), // Reduced spacing as AppBar takes space
+              const SizedBox(
+                height: 10,
+              ), // Reduced spacing as AppBar takes space
               // White card container for login form
               Container(
                 padding: const EdgeInsets.all(32),
@@ -102,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Accédez à votre espace producteur',
+                      'Accédez à votre espace',
                       style: TextStyle(
                         fontSize: 14,
                         color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -133,7 +146,9 @@ class _LoginPageState extends State<LoginPage> {
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
                           onPressed: () {
                             setState(() {
@@ -156,11 +171,15 @@ class _LoginPageState extends State<LoginPage> {
                               final email = _emailController.text.trim();
                               final password = _passwordController.text;
                               if (email.isNotEmpty && password.isNotEmpty) {
-                                context.read<AuthBloc>().add(LoginRequested(email, password));
+                                context.read<AuthBloc>().add(
+                                  LoginRequested(email, password),
+                                );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Veuillez remplir tous les champs'),
+                                    content: Text(
+                                      'Veuillez remplir tous les champs',
+                                    ),
                                     backgroundColor: Colors.orange,
                                   ),
                                 );
@@ -174,7 +193,10 @@ class _LoginPageState extends State<LoginPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Se connecter', style: TextStyle(fontSize: 18)),
+                            child: const Text(
+                              'Se connecter',
+                              style: TextStyle(fontSize: 18),
+                            ),
                           ),
                         );
                       },
@@ -190,7 +212,9 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Text(
                     'Pas de compte ? ',
-                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
                   ),
                   TextButton(
                     onPressed: () => context.go('/register'),

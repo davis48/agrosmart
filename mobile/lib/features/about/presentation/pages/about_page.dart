@@ -38,10 +38,7 @@ class AboutPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text(
                     'Agrosmart CI',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -53,7 +50,10 @@ class AboutPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.green.shade50,
                       borderRadius: BorderRadius.circular(12),
@@ -82,10 +82,7 @@ class AboutPage extends StatelessWidget {
                 children: [
                   const Text(
                     'Notre Mission',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -110,15 +107,16 @@ class AboutPage extends StatelessWidget {
                 children: [
                   const Text(
                     'Fonctionnalités',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   _buildFeature(context, '📡', 'Capteurs IoT en temps réel'),
                   _buildFeature(context, '🤖', 'Diagnostic IA des maladies'),
-                  _buildFeature(context, '💡', 'Recommandations personnalisées'),
+                  _buildFeature(
+                    context,
+                    '💡',
+                    'Recommandations personnalisées',
+                  ),
                   _buildFeature(context, '🌤️', 'Prévisions météo'),
                   _buildFeature(context, '🛒', 'Marketplace agricole'),
                   _buildFeature(context, '📚', 'Formations vidéo'),
@@ -137,15 +135,24 @@ class AboutPage extends StatelessWidget {
                 children: [
                   const Text(
                     'Contact',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-                  _buildContactInfo(context, Icons.email, 'support@agrosmart.ci'),
-                  _buildContactInfo(context, Icons.phone, '+225 07 00 00 00 01'),
-                  _buildContactInfo(context, Icons.language, 'www.agrosmart.ci'),
+                  _buildContactInfo(
+                    context,
+                    Icons.email,
+                    'support@agrosmart.ci',
+                  ),
+                  _buildContactInfo(
+                    context,
+                    Icons.phone,
+                    '+225 07 00 00 00 01',
+                  ),
+                  _buildContactInfo(
+                    context,
+                    Icons.language,
+                    'www.agrosmart.ci',
+                  ),
                 ],
               ),
             ),
@@ -233,7 +240,12 @@ class AboutPage extends StatelessWidget {
         children: [
           Text(emoji, style: const TextStyle(fontSize: 20)),
           const SizedBox(width: 12),
-          Text(text, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+          Text(
+            text,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
         ],
       ),
     );
@@ -246,7 +258,12 @@ class AboutPage extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: Colors.green),
           const SizedBox(width: 12),
-          Text(text, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+          Text(
+            text,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
         ],
       ),
     );

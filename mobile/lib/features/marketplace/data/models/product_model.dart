@@ -18,24 +18,31 @@ class ProductModel extends Product {
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    final createdAtValue = json['created_at'] ?? json['createdAt'];
     return ProductModel(
       id: json['id'],
       nom: json['nom'],
       description: json['description'],
       categorie: json['categorie'],
-      prix: (json['prix'] is num) 
-          ? (json['prix'] as num).toDouble() 
+      prix: (json['prix'] is num)
+          ? (json['prix'] as num).toDouble()
           : double.tryParse(json['prix'].toString()) ?? 0.0,
       unite: json['unite'],
-      quantiteDisponible: (json['quantite_disponible'] is num)
-          ? (json['quantite_disponible'] as num).toDouble()
-          : double.tryParse(json['quantite_disponible'].toString()) ?? 0.0,
-      localisation: json['localisation'],
+      quantiteDisponible:
+          ((json['quantite_disponible'] ?? json['stock']) is num)
+          ? (json['quantite_disponible'] ?? json['stock'] as num).toDouble()
+          : double.tryParse(
+                  (json['quantite_disponible'] ?? json['stock']).toString(),
+                ) ??
+                0.0,
+      localisation: json['localisation'] ?? json['adresse'],
       images: json['images'] != null ? List<String>.from(json['images']) : [],
-      vendeurId: json['vendeur_id'],
+      vendeurId: json['vendeur_id'] ?? json['vendeurId'],
       vendeurNom: json['vendeur_nom'],
       vendeurTelephone: json['vendeur_telephone'],
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: createdAtValue != null
+          ? DateTime.parse(createdAtValue.toString())
+          : DateTime.now(),
     );
   }
 

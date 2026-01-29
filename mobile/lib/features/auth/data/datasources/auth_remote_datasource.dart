@@ -17,6 +17,7 @@ abstract class AuthRemoteDataSource {
     String? email,
     String? adresse,
     String languePreferee,
+    String role, // 'ACHETEUR' ou 'PRODUCTEUR'
     String? typeProducteur,
     String? production3Mois,
     String? superficie,
@@ -127,6 +128,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String? email,
     String? adresse,
     String languePreferee = 'fr',
+    String role = 'PRODUCTEUR',
     String? typeProducteur,
     String? production3Mois,
     String? superficie,
@@ -145,6 +147,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'prenoms': prenoms,
           'telephone': telephone,
           'password': password,
+          'role': role, // Envoyer le rôle au backend
           if (email != null && email.isNotEmpty) 'email': email,
           if (adresse != null && adresse.isNotEmpty) 'adresse': adresse,
           'langue_preferee': languePreferee,

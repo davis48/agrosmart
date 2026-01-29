@@ -11,7 +11,10 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<Failure, User>> login(String identifier, String password) async {
+  Future<Either<Failure, User>> login(
+    String identifier,
+    String password,
+  ) async {
     try {
       final user = await remoteDataSource.login(identifier, password);
       return Right(user);
@@ -23,7 +26,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, User>> verifyOtp(String identifier, String code) async {
+  Future<Either<Failure, User>> verifyOtp(
+    String identifier,
+    String code,
+  ) async {
     try {
       final user = await remoteDataSource.verifyOtp(identifier, code);
       return Right(user);
@@ -53,6 +59,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? email,
     String? adresse,
     String languePreferee = 'fr',
+    String role = 'PRODUCTEUR',
     String? typeProducteur,
     String? production3Mois,
     String? superficie,
@@ -72,6 +79,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         adresse: adresse,
         languePreferee: languePreferee,
+        role: role,
         typeProducteur: typeProducteur,
         production3Mois: production3Mois,
         superficie: superficie,
@@ -126,7 +134,9 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerFailure catch (e) {
       return Left(e);
     } catch (e) {
-      return const Left(ServerFailure('Erreur lors de la mise à jour du profil'));
-      }
+      return const Left(
+        ServerFailure('Erreur lors de la mise à jour du profil'),
+      );
+    }
   }
 }

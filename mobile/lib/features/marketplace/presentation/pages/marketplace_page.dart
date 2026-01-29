@@ -1,41 +1,130 @@
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:agriculture/core/widgets/smart_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../injection_container.dart';
 import '../bloc/marketplace_bloc.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import 'product_detail_page.dart';
 import '../../domain/entities/product.dart';
 
 // Placeholder classes for Search and Filter - To be moved to separate files
 class ProductSearchDelegate extends SearchDelegate {
   @override
-  List<Widget>? buildActions(BuildContext context) => [IconButton(icon: const Icon(Icons.clear), onPressed: () => query = '')];
+  List<Widget>? buildActions(BuildContext context) => [
+    IconButton(icon: const Icon(Icons.clear), onPressed: () => query = ''),
+  ];
 
   @override
-  Widget? buildLeading(BuildContext context) => IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => close(context, null));
+  Widget? buildLeading(BuildContext context) => IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () => close(context, null),
+  );
 
   @override
-  Widget buildResults(BuildContext context) => Center(child: Text("Résultats pour '$query'"));
+  Widget buildResults(BuildContext context) =>
+      Center(child: Text("Résultats pour '$query'"));
 
   @override
-  Widget buildSuggestions(BuildContext context) => const Center(child: Text("Recherchez un produit..."));
+  Widget buildSuggestions(BuildContext context) =>
+      const Center(child: Text("Recherchez un produit..."));
 }
 
-class FilterBottomSheet extends StatelessWidget {
-  const FilterBottomSheet({super.key});
+class FilterBottomSheet extends StatefulWidget {
+  final String? selectedCategory;
+  final Function(String?) onCategorySelected;
+
+  const FilterBottomSheet({
+    super.key,
+    this.selectedCategory,
+    required this.onCategorySelected,
+  });
+
+  @override
+  State<FilterBottomSheet> createState() => _FilterBottomSheetState();
+}
+
+class _FilterBottomSheetState extends State<FilterBottomSheet> {
+  String? _selectedCategory;
+
+  // Catégories disponibles dans le marketplace
+  static const List<Map<String, dynamic>> categories = [
+    {'value': null, 'label': 'Toutes les catégories', 'icon': Icons.apps},
+    {'value': 'semences', 'label': 'Semences', 'icon': Icons.grass},
+    {'value': 'engrais', 'label': 'Engrais', 'icon': Icons.science},
+    {'value': 'equipements', 'label': 'Équipements', 'icon': Icons.build},
+    {'value': 'location', 'label': 'Location', 'icon': Icons.calendar_today},
+    {'value': 'pesticides', 'label': 'Pesticides', 'icon': Icons.bug_report},
+    {'value': 'outils', 'label': 'Outils', 'icon': Icons.handyman},
+    {'value': 'recoltes', 'label': 'Récoltes', 'icon': Icons.agriculture},
+    {'value': 'autres', 'label': 'Autres', 'icon': Icons.more_horiz},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = widget.selectedCategory;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      height: 300,
-      child: const Column(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text("Filtrer par catégorie", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          // Add filters here
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Filtrer par catégorie",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              if (_selectedCategory != null)
+                TextButton(
+                  onPressed: () {
+                    setState(() => _selectedCategory = null);
+                    widget.onCategorySelected(null);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Effacer'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: categories.map((cat) {
+              final isSelected = _selectedCategory == cat['value'];
+              return FilterChip(
+                selected: isSelected,
+                label: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      cat['icon'] as IconData,
+                      size: 18,
+                      color: isSelected ? Colors.white : Colors.green[700],
+                    ),
+                    const SizedBox(width: 6),
+                    Text(cat['label'] as String),
+                  ],
+                ),
+                selectedColor: Colors.green[700],
+                checkmarkColor: Colors.white,
+                labelStyle: TextStyle(color: isSelected ? Colors.white : null),
+                onSelected: (selected) {
+                  setState(() => _selectedCategory = cat['value'] as String?);
+                  widget.onCategorySelected(cat['value'] as String?);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -50,127 +139,241 @@ class MarketplacePage extends StatefulWidget {
 }
 
 class _MarketplacePageState extends State<MarketplacePage> {
+  String? _selectedCategory;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<MarketplaceBloc>()..add(LoadMarketplaceProducts()),
+      create: (context) =>
+          sl<MarketplaceBloc>()..add(LoadMarketplaceProducts()),
       child: DefaultTabController(
         length: 2,
-        child: Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Ensure theme background
-          body: Stack(
-            children: [
-              Column(
-                children: [
-                  Material(
-                    color: Theme.of(context).cardColor, // Use theme color
-                    child: const TabBar(
-                      labelColor: Colors.green,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Colors.green,
-                      tabs: [
-                        Tab(text: 'Acheter'),
-                        Tab(text: 'Louer'),
-                      ],
-                    ),
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                Material(
+                  color: Theme.of(context).cardColor, // Use theme color
+                  child: const TabBar(
+                    labelColor: Colors.green,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.green,
+                    tabs: [
+                      Tab(text: 'Acheter'),
+                      Tab(text: 'Louer'),
+                    ],
                   ),
-                  // ... rest (keep mostly same, check indentation)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                ),
+                // Filtre actif indicator
+                if (_selectedCategory != null)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    color: Colors.green[50],
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {
-                            showSearch(
-                              context: context,
-                              delegate: ProductSearchDelegate(),
-                            );
-                          },
+                        Icon(
+                          Icons.filter_list,
+                          size: 16,
+                          color: Colors.green[700],
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.filter_list),
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (context) => const FilterBottomSheet(),
-                            );
-                          },
+                        const SizedBox(width: 8),
+                        Text(
+                          'Filtre: ${_getCategoryLabel(_selectedCategory!)}',
+                          style: TextStyle(
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => setState(() => _selectedCategory = null),
+                          child: Icon(
+                            Icons.close,
+                            size: 18,
+                            color: Colors.green[700],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: BlocBuilder<MarketplaceBloc, MarketplaceState>(
-                      builder: (context, state) {
-                        if (state is MarketplaceLoading) {
-                          return const Center(child: CircularProgressIndicator());
-                        } else if (state is MarketplaceError) {
-                          // Improved Error UI
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.error_outline, size: 48, color: Colors.orange),
-                                const SizedBox(height: 16),
-                                Text(
-                                  "Oups !",
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(height: 8),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                                  child: Text(
-                                    "Impossible de charger les produits pour le moment.",
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context).textTheme.bodyMedium,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    context.read<MarketplaceBloc>().add(LoadMarketplaceProducts());
-                                  },
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text("Réessayer"),
-                                ),
-                              ],
+                // Barre de recherche et filtres
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 4.0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {
+                          showSearch(
+                            context: context,
+                            delegate: ProductSearchDelegate(),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: Badge(
+                          isLabelVisible: _selectedCategory != null,
+                          backgroundColor: Colors.green,
+                          child: const Icon(Icons.filter_list),
+                        ),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (ctx) => FilterBottomSheet(
+                              selectedCategory: _selectedCategory,
+                              onCategorySelected: (category) {
+                                setState(() => _selectedCategory = category);
+                              },
                             ),
                           );
-                        } else if (state is MarketplaceLoaded) {
-                          final sales = state.products.where((p) => p.description?.toLowerCase().contains('location') != true && p.categorie != 'location').toList();
-                          final rentals = state.products.where((p) => p.description?.toLowerCase().contains('location') == true || p.categorie == 'location').toList();
-
-                          return TabBarView(
-                            children: [
-                              _buildProductGrid(sales, "Aucun produit en vente"),
-                              _buildProductGrid(rentals, "Aucun produit en location"),
-                            ],
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              Positioned(
-                bottom: 16,
-                right: 16,
-                child: FloatingActionButton(
-                  onPressed: () => _showAddOptions(context),
-                  tooltip: 'Ajouter une annonce',
-                  backgroundColor: const Color(0xFF28A745),
-                  child: const Icon(Icons.add, color: Colors.white),
                 ),
+                Expanded(
+                  child: BlocBuilder<MarketplaceBloc, MarketplaceState>(
+                    builder: (context, state) {
+                      if (state is MarketplaceLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is MarketplaceError) {
+                        // Improved Error UI
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: Colors.orange,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                "Oups !",
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                ),
+                                child: Text(
+                                  "Impossible de charger les produits pour le moment.",
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  context.read<MarketplaceBloc>().add(
+                                    LoadMarketplaceProducts(),
+                                  );
+                                },
+                                icon: const Icon(Icons.refresh),
+                                label: const Text("Réessayer"),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (state is MarketplaceLoaded) {
+                        // Appliquer le filtre par catégorie
+                        var filteredProducts = state.products;
+                        if (_selectedCategory != null) {
+                          filteredProducts = state.products
+                              .where(
+                                (p) =>
+                                    p.categorie.toLowerCase() ==
+                                    _selectedCategory!.toLowerCase(),
+                              )
+                              .toList();
+                        }
+
+                        final sales = filteredProducts
+                            .where(
+                              (p) =>
+                                  p.description?.toLowerCase().contains(
+                                        'location',
+                                      ) !=
+                                      true &&
+                                  p.categorie != 'location',
+                            )
+                            .toList();
+                        final rentals = filteredProducts
+                            .where(
+                              (p) =>
+                                  p.description?.toLowerCase().contains(
+                                        'location',
+                                      ) ==
+                                      true ||
+                                  p.categorie == 'location',
+                            )
+                            .toList();
+
+                        return TabBarView(
+                          children: [
+                            _buildProductGrid(sales, "Aucun produit en vente"),
+                            _buildProductGrid(
+                              rentals,
+                              "Aucun produit en location",
+                            ),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, authState) {
+                  // Seuls les producteurs connectés peuvent ajouter des produits
+                  if (authState is AuthAuthenticated &&
+                      authState.user.role == 'PRODUCTEUR') {
+                    return FloatingActionButton(
+                      onPressed: () => _showAddOptions(context),
+                      tooltip: 'Ajouter une annonce',
+                      backgroundColor: const Color(0xFF28A745),
+                      child: const Icon(Icons.add, color: Colors.white),
+                    );
+                  }
+                  // Ne pas afficher le FAB pour les non-authentifiés ou acheteurs
+                  return const SizedBox.shrink();
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+
+  String _getCategoryLabel(String category) {
+    const labels = {
+      'semences': 'Semences',
+      'engrais': 'Engrais',
+      'equipements': 'Équipements',
+      'location': 'Location',
+      'pesticides': 'Pesticides',
+      'outils': 'Outils',
+      'recoltes': 'Récoltes',
+      'autres': 'Autres',
+    };
+    return labels[category.toLowerCase()] ?? category;
+  }
+
   void _showAddOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -228,7 +431,9 @@ class _MarketplacePageState extends State<MarketplacePage> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
+          MaterialPageRoute(
+            builder: (_) => ProductDetailPage(product: product),
+          ),
         );
       },
       child: Card(
@@ -256,7 +461,10 @@ class _MarketplacePageState extends State<MarketplacePage> {
                     top: 8,
                     right: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(12),
@@ -284,7 +492,10 @@ class _MarketplacePageState extends State<MarketplacePage> {
                     product.nom,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -294,14 +505,21 @@ class _MarketplacePageState extends State<MarketplacePage> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.location_on, size: 12, color: Colors.grey.shade600),
+                      Icon(
+                        Icons.location_on,
+                        size: 12,
+                        color: Colors.grey.shade600,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           product.localisation ?? 'Non spécifié',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
+                          ),
                         ),
                       ),
                     ],
@@ -318,7 +536,9 @@ class _MarketplacePageState extends State<MarketplacePage> {
   String _getImageUrl(String path) {
     if (path.startsWith('http')) return path;
     // Base URL logic (duplicated from ApiClient for now, strictly should be in config)
-    String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+    String baseUrl = Platform.isAndroid
+        ? 'http://10.0.2.2:3000'
+        : 'http://localhost:3000';
     if (!path.startsWith('/')) path = '/$path';
     return '$baseUrl$path';
   }

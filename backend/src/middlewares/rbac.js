@@ -32,7 +32,8 @@ const ROLES = {
   ADMIN: 'ADMIN',
   CONSEILLER: 'CONSEILLER',
   PRODUCTEUR: 'PRODUCTEUR',
-  PARTENAIRE: 'PARTENAIRE'
+  PARTENAIRE: 'PARTENAIRE',
+  ACHETEUR: 'ACHETEUR'
 };
 
 /**
@@ -42,7 +43,8 @@ const ROLE_HIERARCHY = {
   [ROLES.ADMIN]: 4,
   [ROLES.CONSEILLER]: 3,
   [ROLES.PARTENAIRE]: 2,
-  [ROLES.PRODUCTEUR]: 1
+  [ROLES.PRODUCTEUR]: 1,
+  [ROLES.ACHETEUR]: 1
 };
 
 /**
@@ -274,6 +276,13 @@ const isAdmin = requireRole(ROLES.ADMIN);
 const isConseiller = requireRole(ROLES.ADMIN, ROLES.CONSEILLER);
 const isProducteur = requireRole(ROLES.ADMIN, ROLES.CONSEILLER, ROLES.PRODUCTEUR);
 const isPartenaire = requireRole(ROLES.ADMIN, ROLES.PARTENAIRE);
+const isMarketplaceUser = requireRole(
+  ROLES.ADMIN,
+  ROLES.CONSEILLER,
+  ROLES.PRODUCTEUR,
+  ROLES.PARTENAIRE,
+  ROLES.ACHETEUR
+);
 
 module.exports = {
   ROLES,
@@ -286,5 +295,6 @@ module.exports = {
   isAdmin,
   isConseiller,
   isProducteur,
-  isPartenaire
+  isPartenaire,
+  isMarketplaceUser
 };

@@ -43,9 +43,9 @@ const swaggerOptions = {
         - API général: 100 requêtes / minute
       `,
       contact: {
-        name: 'AgriSmart CI Support',
-        email: 'support@agrismart.ci',
-        url: 'https://agrismart.ci'
+        name: 'Agrosmart CI Support',
+        email: 'support@agrosmart.ci',
+        url: 'https://agrosmart.ci'
       },
       license: {
         name: 'MIT',
@@ -54,7 +54,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: config.isProd ? 'https://api.agrismart.ci/api/v1' : `http://localhost:${config.port}/api/v1`,
+        url: config.isProd ? 'https://api.agrosmart.ci/api/v1' : `http://localhost:${config.port}/api/v1`,
         description: config.isProd ? 'Production' : 'Développement local'
       }
     ],

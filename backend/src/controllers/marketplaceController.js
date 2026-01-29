@@ -74,9 +74,12 @@ exports.getAllProduits = async (req, res, next) => {
 
     const data = produits.map(p => ({
       ...p,
+      quantite_disponible: p.stock,
+      vendeur_id: p.vendeurId,
+      created_at: p.createdAt,
       vendeur_nom: p.vendeur.nom,
       vendeur_telephone: p.vendeur.telephone,
-      village: p.vendeur.village,
+      localisation: p.vendeur.adresse,
       nombre_ventes: p._count.commandes,
       vendeur: undefined, // Cleanup
       _count: undefined // Cleanup
@@ -102,8 +105,8 @@ exports.searchProduits = async (req, res, next) => {
     const { q, categorie } = req.query;
 
     const where = {
-      estActif: true,
-      quantiteDisponible: { gt: 0 }
+      actif: true,
+      stock: { gt: 0 }
     };
     if (categorie) where.categorie = categorie;
     if (q) {
@@ -120,7 +123,7 @@ exports.searchProduits = async (req, res, next) => {
           select: {
             nom: true,
             telephone: true,
-            village: true
+            adresse: true
           }
         },
         _count: {
@@ -133,9 +136,12 @@ exports.searchProduits = async (req, res, next) => {
 
     const data = produits.map(p => ({
       ...p,
+      quantite_disponible: p.stock,
+      vendeur_id: p.vendeurId,
+      created_at: p.createdAt,
       vendeur_nom: p.vendeur.nom,
       vendeur_telephone: p.vendeur.telephone,
-      village: p.vendeur.village,
+      localisation: p.vendeur.adresse,
       nombre_ventes: p._count.commandes,
       vendeur: undefined,
       _count: undefined
@@ -157,9 +163,16 @@ exports.getMyProduits = async (req, res, next) => {
       orderBy: { createdAt: 'desc' }
     });
 
+    const data = produits.map(p => ({
+      ...p,
+      quantite_disponible: p.stock,
+      vendeur_id: p.vendeurId,
+      created_at: p.createdAt
+    }));
+
     res.json({
       success: true,
-      data: produits
+      data
     });
   } catch (error) {
     next(error);
@@ -211,7 +224,12 @@ exports.createProduit = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Produit ajouté au marketplace',
-      data: produit
+      data: {
+        ...produit,
+        quantite_disponible: produit.stock,
+        vendeur_id: produit.vendeurId,
+        created_at: produit.createdAt
+      }
     });
   } catch (error) {
     next(error);
@@ -242,6 +260,9 @@ exports.getProduitById = async (req, res, next) => {
 
     const data = {
       ...produit,
+      quantite_disponible: produit.stock,
+      vendeur_id: produit.vendeurId,
+      created_at: produit.createdAt,
       vendeur_nom: produit.vendeur.nom,
       vendeur_prenom: produit.vendeur.prenoms,
       vendeur_telephone: produit.vendeur.telephone,
@@ -351,11 +372,14 @@ exports.getCommandes = async (req, res, next) => {
     const commandes = await prisma.marketplaceCommande.findMany({
       where,
       include: {
-        produit: true,
-        acheteur: {
-          select: { nom: true, telephone: true }
+        produit: {
+          include: {
+            vendeur: {
+              select: { nom: true, telephone: true }
+            }
+          }
         },
-        vendeur: {
+        acheteur: {
           select: { nom: true, telephone: true }
         }
       },
@@ -368,11 +392,10 @@ exports.getCommandes = async (req, res, next) => {
       produit_prix: c.produit.prix,
       acheteur_nom: c.acheteur.nom,
       acheteur_telephone: c.acheteur.telephone,
-      vendeur_nom: c.vendeur.nom,
-      vendeur_telephone: c.vendeur.telephone,
+      vendeur_nom: c.produit.vendeur?.nom || null,
+      vendeur_telephone: c.produit.vendeur?.telephone || null,
       produit: undefined,
-      acheteur: undefined,
-      vendeur: undefined
+      acheteur: undefined
     }));
 
     res.json({
@@ -387,6 +410,7 @@ exports.getCommandes = async (req, res, next) => {
 exports.createCommande = async (req, res, next) => {
   try {
     const { produit_id, quantite, adresse_livraison, mode_livraison, date_debut, date_fin } = req.body;
+    const quantiteNumber = Number(quantite);
 
     const result = await prisma.$transaction(async (tx) => {
       // Vérifier le produit et la disponibilité
@@ -395,7 +419,7 @@ exports.createCommande = async (req, res, next) => {
       });
 
       if (!produit) throw errors.notFound('Produit non disponible');
-      if (produit.stock < quantite) throw errors.badRequest('Quantité insuffisante en stock');
+      if (produit.stock < quantiteNumber) throw errors.badRequest('Quantité insuffisante en stock');
       if (produit.vendeurId === req.user.id) throw errors.badRequest('Vous ne pouvez pas acheter votre propre produit');
 
       let prix_unitaire = Number(produit.prix);
@@ -418,9 +442,9 @@ exports.createCommande = async (req, res, next) => {
         }
 
         prix_unitaire = Number(produit.prixLocationJour || produit.prix);
-        prix_total = prix_unitaire * diffDays * quantite;
+        prix_total = prix_unitaire * diffDays * quantiteNumber;
       } else {
-        prix_total = prix_unitaire * quantite;
+        prix_total = prix_unitaire * quantiteNumber;
       }
 
       // Créer la commande
@@ -429,7 +453,7 @@ exports.createCommande = async (req, res, next) => {
           acheteurId: req.user.id,
           vendeurId: produit.vendeurId,
           produitId: produit_id,
-          quantite,
+          quantite: quantiteNumber,
           prixUnitaire: prix_unitaire,
           prixTotal: prix_total,
           adresseLivraison: adresse_livraison,
@@ -443,7 +467,7 @@ exports.createCommande = async (req, res, next) => {
       // Mettre à jour le stock
       await tx.marketplaceProduit.update({
         where: { id: produit_id },
-        data: { stock: { decrement: quantite } }
+        data: { stock: { decrement: quantiteNumber } }
       });
 
       return commande;
@@ -513,14 +537,25 @@ exports.updateCommandeStatus = async (req, res, next) => {
     const { id } = req.params;
     const { statut } = req.body;
 
+    const statusMap = {
+      en_attente: 'PENDING',
+      confirmee: 'CONFIRMED',
+      en_preparation: 'CONFIRMED',
+      expediee: 'SHIPPED',
+      livree: 'DELIVERED',
+      annulee: 'CANCELLED'
+    };
+
+    const mappedStatut = statusMap[statut] || statut;
+
     // Use update directly, will throw P2025 if not found
     try {
       const updated = await prisma.marketplaceCommande.update({
         where: { id },
-        data: { statut }
+        data: { statut: mappedStatut }
       });
 
-      logger.audit('Mise à jour statut commande', { userId: req.user.id, commandeId: id, statut });
+      logger.audit('Mise à jour statut commande', { userId: req.user.id, commandeId: id, statut: mappedStatut });
 
       res.json({
         success: true,
@@ -558,13 +593,13 @@ exports.cancelCommande = async (req, res, next) => {
       // 3. Mise à jour statut
       await tx.marketplaceCommande.update({
         where: { id },
-        data: { statut: 'AG_ANNULEE', notes: raison }
+        data: { statut: 'CANCELLED', notes: raison }
       });
 
       // 4. Restaurer Stock
       await tx.marketplaceProduit.update({
         where: { id: commande.produitId },
-        data: { quantiteDisponible: { increment: commande.quantite } }
+        data: { stock: { increment: commande.quantite } }
       });
     });
 
@@ -588,16 +623,16 @@ exports.cancelCommande = async (req, res, next) => {
 exports.getStats = async (req, res, next) => {
   try {
     const [produitsActifs, totalCommandes, commandesLivrees, volumeVentesAgg, vendeursActifsAgg] = await Promise.all([
-      prisma.marketplaceProduit.count({ where: { estActif: true } }),
+      prisma.marketplaceProduit.count({ where: { actif: true } }),
       prisma.marketplaceCommande.count(),
-      prisma.marketplaceCommande.count({ where: { statut: 'LIVREE' } }), // Enum match? SQL 'livree'
+      prisma.marketplaceCommande.count({ where: { statut: 'DELIVERED' } }),
       prisma.marketplaceCommande.aggregate({
         _sum: { prixTotal: true },
-        where: { statut: 'LIVREE' }
+        where: { statut: 'DELIVERED' }
       }),
       prisma.marketplaceProduit.groupBy({
         by: ['vendeurId'],
-        where: { estActif: true }
+        where: { actif: true }
       })
     ]);
 
@@ -621,11 +656,11 @@ exports.getVendeurStats = async (req, res, next) => {
     const userId = req.user.id;
     const [mesProduits, produitsActifs, commandesRecues, revenusAgg] = await Promise.all([
       prisma.marketplaceProduit.count({ where: { vendeurId: userId } }),
-      prisma.marketplaceProduit.count({ where: { vendeurId: userId, estActif: true } }),
+      prisma.marketplaceProduit.count({ where: { vendeurId: userId, actif: true } }),
       prisma.marketplaceCommande.count({ where: { vendeurId: userId } }),
       prisma.marketplaceCommande.aggregate({
         _sum: { prixTotal: true },
-        where: { vendeurId: userId, statut: 'LIVREE' }
+        where: { vendeurId: userId, statut: 'DELIVERED' }
       })
     ]);
 

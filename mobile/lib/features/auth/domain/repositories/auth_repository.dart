@@ -16,6 +16,7 @@ abstract class AuthRepository {
     String? email,
     String? adresse,
     String languePreferee,
+    String role, // 'ACHETEUR' ou 'PRODUCTEUR'
     String? typeProducteur,
     String? production3Mois,
     String? superficie,
@@ -42,4 +43,3 @@ abstract class AuthRepository {
     double? productionMois3,
   });
 }
-

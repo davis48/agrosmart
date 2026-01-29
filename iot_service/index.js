@@ -68,7 +68,7 @@ sensorQueue.on('error', (err) => {
 
 // Configuration MQTT
 const MQTT_BROKER = process.env.MQTT_BROKER_URL || process.env.MQTT_BROKER || 'mqtt://test.mosquitto.org';
-const MQTT_TOPIC = process.env.MQTT_TOPIC || 'agrismart/+/up';
+const MQTT_TOPIC = process.env.MQTT_TOPIC || 'agrosmart/+/up';
 
 // MQTT Authentication
 const mqttOptions = {
@@ -106,7 +106,7 @@ client.on('error', (err) => {
 client.on('message', async (topic, message) => {
     try {
         const payload = message.toString();
-        // Extract device ID from topic (assuming format agrismart/{device_id}/up)
+        // Extract device ID from topic (assuming format agrosmart/{device_id}/up)
         const parts = topic.split('/');
         const deviceId = parts[1]; // e.g. "sensor_001"
 

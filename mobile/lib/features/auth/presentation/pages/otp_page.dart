@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../../core/services/navigation_intent_service.dart';
 
 class OtpPage extends StatefulWidget {
   final String telephone;
@@ -28,11 +29,19 @@ class _OtpPageState extends State<OtpPage> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            context.go('/dashboard');
+            // Vérifier s'il y a une route en attente
+            if (NavigationIntent.hasPendingRoute()) {
+              final pendingRoute = NavigationIntent.consumePendingRoute();
+              context.go(pendingRoute!);
+              return;
+            }
+
+            // Tous les utilisateurs vont au dashboard (Accueil)
+            context.go('/');
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: Padding(
@@ -67,14 +76,19 @@ class _OtpPageState extends State<OtpPage> {
                       onPressed: () {
                         final code = _codeController.text.trim();
                         if (code.isNotEmpty) {
-                          context.read<AuthBloc>().add(VerifyOtpRequested(widget.telephone, code));
+                          context.read<AuthBloc>().add(
+                            VerifyOtpRequested(widget.telephone, code),
+                          );
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
-                      child: const Text('Vérifier', style: TextStyle(fontSize: 18)),
+                      child: const Text(
+                        'Vérifier',
+                        style: TextStyle(fontSize: 18),
+                      ),
                     ),
                   );
                 },

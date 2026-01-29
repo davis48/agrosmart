@@ -16,7 +16,7 @@ const fadeInUp = {
 export function CTASection() {
     return (
         <section className="py-24 px-4 bg-green-900 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-green-500 via-green-900 to-black"></div>
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-green-500 via-green-900 to-black"></div>
             <div className="max-w-4xl mx-auto text-center relative z-10">
                 <motion.h2
                     className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight"

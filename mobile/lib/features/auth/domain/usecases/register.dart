@@ -20,6 +20,7 @@ class Register implements UseCase<User, RegisterParams> {
       email: params.email,
       adresse: params.adresse,
       languePreferee: params.languePreferee,
+      role: params.role,
       typeProducteur: params.typeProducteur,
       production3Mois: params.production3Mois,
       superficie: params.superficie,
@@ -41,6 +42,7 @@ class RegisterParams extends Equatable {
   final String? email;
   final String? adresse;
   final String languePreferee;
+  final String role; // 'ACHETEUR' ou 'PRODUCTEUR'
   final String? typeProducteur;
   final String? production3Mois;
   final String? superficie;
@@ -59,6 +61,7 @@ class RegisterParams extends Equatable {
     this.email,
     this.adresse,
     this.languePreferee = 'fr',
+    this.role = 'PRODUCTEUR',
     this.typeProducteur,
     this.production3Mois,
     this.superficie,
@@ -72,13 +75,14 @@ class RegisterParams extends Equatable {
 
   @override
   List<Object?> get props => [
-    nom, 
-    prenoms, 
-    telephone, 
-    password, 
-    email, 
+    nom,
+    prenoms,
+    telephone,
+    password,
+    email,
     adresse,
-    languePreferee, 
+    languePreferee,
+    role,
     typeProducteur,
     production3Mois,
     superficie,

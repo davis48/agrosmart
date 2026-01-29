@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/user.dart';
@@ -6,12 +7,17 @@ import '../../domain/usecases/login.dart';
 import '../../domain/usecases/verify_otp.dart';
 import '../../domain/usecases/register.dart';
 import '../../domain/usecases/update_profile.dart';
+import '../../domain/usecases/logout.dart';
+import '../../../../core/usecases/usecase.dart';
 
 // Events
 abstract class AuthEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
+
+/// Événement de déconnexion
+class LogoutRequested extends AuthEvent {}
 
 class LoginRequested extends AuthEvent {
   final String identifier;
@@ -37,6 +43,7 @@ class RegisterRequested extends AuthEvent {
   final String? email;
   final String? adresse;
   final String languePreferee;
+  final String role; // 'ACHETEUR' ou 'PRODUCTEUR'
   final String? typeProducteur;
   final String? production3Mois;
   final String? superficie;
@@ -55,6 +62,7 @@ class RegisterRequested extends AuthEvent {
     this.email,
     this.adresse,
     this.languePreferee = 'fr',
+    this.role = 'PRODUCTEUR', // Par défaut pour compatibilité
     this.typeProducteur,
     this.production3Mois,
     this.superficie,
@@ -68,9 +76,23 @@ class RegisterRequested extends AuthEvent {
 
   @override
   List<Object?> get props => [
-    nom, prenoms, telephone, password, email, adresse, languePreferee, 
-    typeProducteur, production3Mois, superficie, uniteSuperficie, systemeIrrigation,
-    productionMois1, productionMois2, productionMois3, productions
+    nom,
+    prenoms,
+    telephone,
+    password,
+    email,
+    adresse,
+    languePreferee,
+    role,
+    typeProducteur,
+    production3Mois,
+    superficie,
+    uniteSuperficie,
+    systemeIrrigation,
+    productionMois1,
+    productionMois2,
+    productionMois3,
+    productions,
   ];
 }
 
@@ -107,9 +129,19 @@ class UpdateProfileRequested extends AuthEvent {
 
   @override
   List<Object?> get props => [
-    nom, prenoms, telephone, email, typeProducteur, region, photo, 
-    superficieExploitee, uniteSuperficie, systemeIrrigation,
-    productionMois1, productionMois2, productionMois3
+    nom,
+    prenoms,
+    telephone,
+    email,
+    typeProducteur,
+    region,
+    photo,
+    superficieExploitee,
+    uniteSuperficie,
+    systemeIrrigation,
+    productionMois1,
+    productionMois2,
+    productionMois3,
   ];
 }
 
@@ -120,13 +152,19 @@ abstract class AuthState extends Equatable {
 }
 
 class AuthInitial extends AuthState {}
+
 class AuthLoading extends AuthState {}
+
+/// État après déconnexion - utilisateur non authentifié mais peut accéder au marketplace
+class AuthUnauthenticated extends AuthState {}
+
 class AuthAuthenticated extends AuthState {
   final User user;
   AuthAuthenticated(this.user);
   @override
   List<Object> get props => [user];
 }
+
 class AuthRegistered extends AuthState {
   final User user;
   final bool requiresOtp;
@@ -134,6 +172,7 @@ class AuthRegistered extends AuthState {
   @override
   List<Object> get props => [user, requiresOtp];
 }
+
 class AuthError extends AuthState {
   final String message;
   AuthError(this.message);
@@ -147,67 +186,106 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final VerifyOtp verifyOtp;
   final Register register;
   final UpdateProfile updateProfile;
+  final Logout logout;
 
   AuthBloc({
     required this.login,
     required this.verifyOtp,
     required this.register,
     required this.updateProfile,
+    required this.logout,
   }) : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<VerifyOtpRequested>(_onVerifyOtpRequested);
     on<RegisterRequested>(_onRegisterRequested);
     on<UpdateProfileRequested>(_onUpdateProfileRequested);
+    on<LogoutRequested>(_onLogoutRequested);
   }
 
-  Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
+  /// Handler pour la déconnexion
+  Future<void> _onLogoutRequested(
+    LogoutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
-    final result = await login(LoginParams(
-      identifier: event.identifier,
-      password: event.password,
-    ));
+    final result = await logout(NoParams());
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthAuthenticated(user)),
+      (_) => emit(AuthUnauthenticated()),
     );
   }
 
-  Future<void> _onVerifyOtpRequested(VerifyOtpRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onLoginRequested(
+    LoginRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
-    final result = await verifyOtp(VerifyOtpParams(telephone: event.identifier, code: event.code));
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthAuthenticated(user)),
+    final result = await login(
+      LoginParams(identifier: event.identifier, password: event.password),
     );
+    result.fold((failure) => emit(AuthError(failure.message)), (user) {
+      debugPrint(
+        '[AUTH] 🎉 Login successful! User: ${user.email}, Role: ${user.role}',
+      );
+      emit(AuthAuthenticated(user));
+    });
   }
 
-  Future<void> _onRegisterRequested(RegisterRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onVerifyOtpRequested(
+    VerifyOtpRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
-    final result = await register(RegisterParams(
-      nom: event.nom,
-      prenoms: event.prenoms,
-      telephone: event.telephone,
-      password: event.password,
-      email: event.email,
-      adresse: event.adresse,
-      languePreferee: event.languePreferee,
-      typeProducteur: event.typeProducteur,
-      production3Mois: event.production3Mois,
-      superficie: event.superficie,
-      uniteSuperficie: event.uniteSuperficie,
-      systemeIrrigation: event.systemeIrrigation,
-      productionMois1: event.productionMois1,
-      productionMois2: event.productionMois2,
-      productionMois3: event.productionMois3,
-      productions: event.productions,
-    ));
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthRegistered(user)),
+    final result = await verifyOtp(
+      VerifyOtpParams(telephone: event.identifier, code: event.code),
     );
+    result.fold((failure) => emit(AuthError(failure.message)), (user) {
+      debugPrint(
+        '[AUTH] 🎉 OTP verified! User: ${user.email}, Role: ${user.role}',
+      );
+      emit(AuthAuthenticated(user));
+    });
   }
 
-  Future<void> _onUpdateProfileRequested(UpdateProfileRequested event, Emitter<AuthState> emit) async {
+  Future<void> _onRegisterRequested(
+    RegisterRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await register(
+      RegisterParams(
+        nom: event.nom,
+        prenoms: event.prenoms,
+        telephone: event.telephone,
+        password: event.password,
+        email: event.email,
+        adresse: event.adresse,
+        languePreferee: event.languePreferee,
+        role: event.role,
+        typeProducteur: event.typeProducteur,
+        production3Mois: event.production3Mois,
+        superficie: event.superficie,
+        uniteSuperficie: event.uniteSuperficie,
+        systemeIrrigation: event.systemeIrrigation,
+        productionMois1: event.productionMois1,
+        productionMois2: event.productionMois2,
+        productionMois3: event.productionMois3,
+        productions: event.productions,
+      ),
+    );
+    result.fold((failure) => emit(AuthError(failure.message)), (user) {
+      // Émettre AuthAuthenticated pour que l'utilisateur soit connecté automatiquement
+      debugPrint(
+        '[AUTH] 🎉 Registration successful! User: ${user.email}, Role: ${user.role}',
+      );
+      emit(AuthAuthenticated(user));
+    });
+  }
+
+  Future<void> _onUpdateProfileRequested(
+    UpdateProfileRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     final result = await updateProfile(
       nom: event.nom,
