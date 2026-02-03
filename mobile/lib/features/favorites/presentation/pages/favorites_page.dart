@@ -41,13 +41,20 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Mes Favoris'),
-            backgroundColor: isDark ? Colors.grey[900] : Colors.white,
-            foregroundColor: isDark ? Colors.white : Colors.black87,
+            title: const Text(
+              'Mes Favoris',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: const Color(0xFF2E7D32),
             elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
             actions: [
               IconButton(
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh, color: Colors.white),
                 onPressed: () {
                   context.read<FavoritesBloc>().add(LoadFavorites());
                 },

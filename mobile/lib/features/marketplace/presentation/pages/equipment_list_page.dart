@@ -36,9 +36,14 @@ class _EquipmentListPageState extends State<EquipmentListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Location d\'Équipements'),
-        backgroundColor: Theme.of(context).primaryColor,
+        title: const Text(
+          'Location d\'Équipements',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [

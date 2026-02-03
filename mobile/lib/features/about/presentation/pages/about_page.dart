@@ -8,9 +8,14 @@ class AboutPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('À Propos'),
-        // backgroundColor: Colors.green,
-        // foregroundColor: Colors.white,
+        title: const Text(
+          'À Propos',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF2E7D32),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

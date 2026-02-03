@@ -19,9 +19,15 @@ class _ParcellesPageState extends State<ParcellesPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Mes Parcelles'),
-        backgroundColor: Colors.green,
+        title: const Text(
+          'Mes Parcelles',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.map),

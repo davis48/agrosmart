@@ -6,10 +6,25 @@
 const express = require('express');
 const router = express.Router();
 const usersController = require('../controllers/usersController');
+const userSettingsController = require('../controllers/userSettingsController');
 const { authenticate, isAdmin, isConseiller, schemas } = require('../middlewares');
 
 // Toutes les routes nécessitent une authentification
 router.use(authenticate);
+
+/**
+ * @route   GET /api/users/settings
+ * @desc    Obtenir les paramètres de l'utilisateur connecté
+ * @access  Private (utilisateur connecté)
+ */
+router.get('/settings', userSettingsController.getSettings);
+
+/**
+ * @route   PATCH /api/users/settings
+ * @desc    Mettre à jour les paramètres de l'utilisateur connecté
+ * @access  Private (utilisateur connecté)
+ */
+router.patch('/settings', userSettingsController.updateSettings);
 
 /**
  * @route   GET /api/users

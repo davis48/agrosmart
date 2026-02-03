@@ -32,18 +32,33 @@ class _UserSearchPageState extends State<UserSearchPage> {
     }
 
     setState(() => _isLoading = true);
-    
+
     // Simulate Backend API call
     await Future.delayed(const Duration(milliseconds: 800));
-    
+
     // Mock Results
     setState(() {
       _isLoading = false;
-      _searchResults = [
-        CommunityUser(id: '101', name: 'Kouassi Yves', bio: 'Producteur de Cacao - Soubré'),
-        CommunityUser(id: '102', name: 'Awa Diallo', bio: 'Commerçante - Abidjan'),
-        CommunityUser(id: '103', name: 'Jean Pierre', bio: 'Transporteur'),
-      ].where((u) => u.name.toLowerCase().contains(query.toLowerCase())).toList();
+      _searchResults =
+          [
+                CommunityUser(
+                  id: '101',
+                  name: 'Kouassi Yves',
+                  bio: 'Producteur de Cacao - Soubré',
+                ),
+                CommunityUser(
+                  id: '102',
+                  name: 'Awa Diallo',
+                  bio: 'Commerçante - Abidjan',
+                ),
+                CommunityUser(
+                  id: '103',
+                  name: 'Jean Pierre',
+                  bio: 'Transporteur',
+                ),
+              ]
+              .where((u) => u.name.toLowerCase().contains(query.toLowerCase()))
+              .toList();
     });
   }
 
@@ -52,28 +67,32 @@ class _UserSearchPageState extends State<UserSearchPage> {
     // 1. Check if conversation exists (optional optimization)
     // 2. Create conversation via Bloc
     // 3. Navigate/Pop back to Chat List or specific Chat Page
-    
-    context.read<ChatBloc>().add(CreateConversation(
-      type: 'prive',
-      participants: [user.id],
-      nom: user.name,
-    ));
-    
+
+    context.read<ChatBloc>().add(
+      CreateConversation(
+        type: 'prive',
+        participants: [user.id],
+        nom: user.name,
+      ),
+    );
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Conversation créée avec ${user.name}')),
     );
-    
+
     // Ideally wait for Bloc State to change to "ConversationCreated" then navigate
     // For now assuming success
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rechercher un utilisateur'),
-      ),
+      appBar: AppBar(title: const Text('Rechercher un utilisateur')),
       body: Column(
         children: [
           Padding(
@@ -83,27 +102,32 @@ class _UserSearchPageState extends State<UserSearchPage> {
               decoration: InputDecoration(
                 hintText: 'Nom, téléphone...',
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
                 fillColor: Colors.grey.shade100,
               ),
               onChanged: _performSearch,
             ),
           ),
-          if (_isLoading)
-            const LinearProgressIndicator(),
-            
+          if (_isLoading) const LinearProgressIndicator(),
+
           Expanded(
             child: _searchResults.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.person_search, size: 60, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.person_search,
+                          size: 60,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 16),
                         Text(
-                          _searchController.text.isEmpty 
-                              ? 'Recherchez des amis ou partenaires' 
+                          _searchController.text.isEmpty
+                              ? 'Recherchez des amis ou partenaires'
                               : 'Aucun résultat trouvé',
                           style: TextStyle(color: Colors.grey.shade500),
                         ),
@@ -117,9 +141,15 @@ class _UserSearchPageState extends State<UserSearchPage> {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.blue.shade100,
-                          child: Text(user.name[0].toUpperCase(), style: TextStyle(color: Colors.blue.shade800)),
+                          child: Text(
+                            user.name[0].toUpperCase(),
+                            style: TextStyle(color: Colors.blue.shade800),
+                          ),
                         ),
-                        title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(
+                          user.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text(user.bio ?? 'Agrosmart Membre'),
                         trailing: IconButton(
                           icon: const Icon(Icons.message, color: Colors.blue),

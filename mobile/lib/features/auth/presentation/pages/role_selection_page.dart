@@ -25,7 +25,13 @@ class RoleSelectionPage extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? Colors.white : Colors.black,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
         ),
         actions: [
           IconButton(

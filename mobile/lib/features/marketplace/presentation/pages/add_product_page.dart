@@ -20,7 +20,7 @@ class _AddProductPageState extends State<AddProductPage> {
   final _descController = TextEditingController();
   final _qtyController = TextEditingController();
   final _locController = TextEditingController();
-  
+
   // Rental specific
   final _cautionController = TextEditingController();
   final _minDurationController = TextEditingController(text: '1');
@@ -29,11 +29,19 @@ class _AddProductPageState extends State<AddProductPage> {
 
   String _selectedCategory = 'test';
   final List<String> _categories = [
-    'cereale', 'legume', 'fruit', 'tubercule', 'oleagineux', 'intrant', 'equipement', 'location', 'autre'
+    'cereale',
+    'legume',
+    'fruit',
+    'tubercule',
+    'oleagineux',
+    'intrant',
+    'equipement',
+    'location',
+    'autre',
   ];
   String? _selectedUnit = 'kg';
   final List<String> _units = ['kg', 'tonne', 'unite', 'sac', 'litre', 'jour'];
-  
+
   final List<File> _selectedImages = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -42,10 +50,11 @@ class _AddProductPageState extends State<AddProductPage> {
     super.initState();
     _isLocation = widget.type == 'location';
     if (_isLocation) {
-       _selectedCategory = 'location'; // Default category for rentals or add new one?
-       _selectedUnit = 'jour';
+      _selectedCategory =
+          'location'; // Default category for rentals or add new one?
+      _selectedUnit = 'jour';
     } else {
-       _selectedCategory = _categories.first;
+      _selectedCategory = _categories.first;
     }
   }
 
@@ -69,7 +78,11 @@ class _AddProductPageState extends State<AddProductPage> {
 
       final data = {
         'nom': _nomController.text,
-        'description': _descController.text + (_isLocation ? ' [LOCATION]' : ''), // Hack to distinguish for now until backend supports proper type
+        'description':
+            _descController.text +
+            (_isLocation
+                ? ' [LOCATION]'
+                : ''), // Hack to distinguish for now until backend supports proper type
         'categorie': _selectedCategory,
         'prix': double.tryParse(_prixController.text) ?? 0,
         'unite': _selectedUnit,
@@ -79,10 +92,9 @@ class _AddProductPageState extends State<AddProductPage> {
         // 'type_offre': _isLocation ? 'location' : 'vente',
       };
 
-      context.read<MarketplaceBloc>().add(AddMarketplaceProduct(
-        data: data,
-        images: _selectedImages,
-      ));
+      context.read<MarketplaceBloc>().add(
+        AddMarketplaceProduct(data: data, images: _selectedImages),
+      );
     }
   }
 
@@ -100,10 +112,17 @@ class _AddProductPageState extends State<AddProductPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Annonce ajoutée avec succès!')),
             );
-            context.pop();
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
           } else if (state is MarketplaceError) {
-             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         },
@@ -117,7 +136,13 @@ class _AddProductPageState extends State<AddProductPage> {
                 // Type Switcher
                 Row(
                   children: [
-                    const Text('Type d\'offre: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Type d\'offre: ',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     ToggleButtons(
                       isSelected: [!_isLocation, _isLocation],
                       onPressed: (index) {
@@ -128,13 +153,19 @@ class _AddProductPageState extends State<AddProductPage> {
                             _selectedCategory = 'location'; // Suggestion
                           } else {
                             _selectedUnit = 'kg';
-                             _selectedCategory = 'cereale';
+                            _selectedCategory = 'cereale';
                           }
                         });
                       },
                       children: const [
-                        Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Vente')),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Location')),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('Vente'),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('Location'),
+                        ),
                       ],
                     ),
                   ],
@@ -156,37 +187,52 @@ class _AddProductPageState extends State<AddProductPage> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.grey.shade400),
                           ),
-                          child: const Icon(Icons.add_a_photo, size: 32, color: Colors.grey),
+                          child: const Icon(
+                            Icons.add_a_photo,
+                            size: 32,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      ..._selectedImages.map((file) => Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(file, width: 100, height: 100, fit: BoxFit.cover),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedImages.remove(file);
-                                  });
-                                },
-                                child: const CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: Colors.red,
-                                  child: Icon(Icons.close, size: 16, color: Colors.white),
+                      ..._selectedImages.map(
+                        (file) => Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  file,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
-                            ),
-                          ],
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedImages.remove(file);
+                                    });
+                                  },
+                                  child: const CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: Colors.red,
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      )),
+                      ),
                     ],
                   ),
                 ),
@@ -194,15 +240,26 @@ class _AddProductPageState extends State<AddProductPage> {
 
                 TextFormField(
                   controller: _nomController,
-                  decoration: InputDecoration(labelText: _isLocation ? 'Nom de l\'équipement' : 'Nom du produit'),
+                  decoration: InputDecoration(
+                    labelText: _isLocation
+                        ? 'Nom de l\'équipement'
+                        : 'Nom du produit',
+                  ),
                   validator: (v) => v!.isEmpty ? 'Requis' : null,
                 ),
                 const SizedBox(height: 16),
-                
+
                 DropdownButtonFormField<String>(
                   initialValue: _selectedCategory,
                   decoration: const InputDecoration(labelText: 'Catégorie'),
-                  items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c.toUpperCase()))).toList(),
+                  items: _categories
+                      .map(
+                        (c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(c.toUpperCase()),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (v) => setState(() => _selectedCategory = v!),
                 ),
                 const SizedBox(height: 16),
@@ -214,7 +271,11 @@ class _AddProductPageState extends State<AddProductPage> {
                       child: TextFormField(
                         controller: _prixController,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(labelText: _isLocation ? 'Prix par jour (FCFA)' : 'Prix (FCFA)'),
+                        decoration: InputDecoration(
+                          labelText: _isLocation
+                              ? 'Prix par jour (FCFA)'
+                              : 'Prix (FCFA)',
+                        ),
                         validator: (v) => v!.isEmpty ? 'Requis' : null,
                       ),
                     ),
@@ -223,7 +284,11 @@ class _AddProductPageState extends State<AddProductPage> {
                       child: DropdownButtonFormField<String>(
                         initialValue: _selectedUnit,
                         decoration: const InputDecoration(labelText: 'Unité'),
-                        items: _units.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+                        items: _units
+                            .map(
+                              (u) => DropdownMenuItem(value: u, child: Text(u)),
+                            )
+                            .toList(),
                         onChanged: (v) => setState(() => _selectedUnit = v),
                       ),
                     ),
@@ -232,22 +297,28 @@ class _AddProductPageState extends State<AddProductPage> {
                 const SizedBox(height: 16),
 
                 if (_isLocation) ...[
-                   TextFormField(
+                  TextFormField(
                     controller: _minDurationController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Durée minimum (jours)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Durée minimum (jours)',
+                    ),
                   ),
                   const SizedBox(height: 16),
-                   TextFormField(
+                  TextFormField(
                     controller: _cautionController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Caution (FCFA)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Caution (FCFA)',
+                    ),
                   ),
                 ] else ...[
-                   TextFormField(
+                  TextFormField(
                     controller: _qtyController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Quantité Disponible'),
+                    decoration: const InputDecoration(
+                      labelText: 'Quantité Disponible',
+                    ),
                     validator: (v) => v!.isEmpty ? 'Requis' : null,
                   ),
                 ],
@@ -255,18 +326,22 @@ class _AddProductPageState extends State<AddProductPage> {
 
                 TextFormField(
                   controller: _locController,
-                  decoration: const InputDecoration(labelText: 'Lieu (Ville/Quartier)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Lieu (Ville/Quartier)',
+                  ),
                 ),
-                 const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 TextFormField(
                   controller: _descController,
                   maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Description (Optionnel)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Description (Optionnel)',
+                  ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -279,9 +354,19 @@ class _AddProductPageState extends State<AddProductPage> {
                     child: BlocBuilder<MarketplaceBloc, MarketplaceState>(
                       builder: (context, state) {
                         if (state is MarketplaceLoading) {
-                          return const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white));
+                          return const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          );
                         }
-                        return Text(_isLocation ? 'Publier la location' : 'Mettre en vente');
+                        return Text(
+                          _isLocation
+                              ? 'Publier la location'
+                              : 'Mettre en vente',
+                        );
                       },
                     ),
                   ),

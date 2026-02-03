@@ -20,10 +20,15 @@ const config = require('./config');
 const { closePool } = require('./config/database');
 const logger = require('./utils/logger');
 const errorHandler = require('./middlewares/errorHandler');
+console.log('🔵 Loading socket module...');
 const socket = require('./socket'); // New socket module import
+console.log('🔵 Loading routes...');
 const routes = require('./routes');
+console.log('🔵 Routes loaded, loading upload routes...');
 const uploadRoutes = require('./routes/upload'); // Import Upload routes
+console.log('🔵 Upload routes loaded, loading swagger...');
 const { setupSwagger } = require('./config/swagger'); // Swagger docs
+console.log('🔵 Swagger loaded, loading individual routes...');
 // const authRoutes = require('./routes/auth');
 const parcelles = require('./routes/parcelles');
 // sensors route does not exist - removed
@@ -32,7 +37,12 @@ const marketplace = require('./routes/marketplace');
 const messages = require('./routes/messages');
 const formations = require('./routes/formations');
 const weather = require('./routes/weather');
+// Temporarily disabled - debugging
+// const reviews = require('./routes/reviews');
+// const wishlist = require('./routes/wishlist');
+console.log('🔵 All routes loaded, loading prisma...');
 const prisma = require('./config/prisma');
+console.log('🔵 Prisma loaded, creating Express app...');
 
 // Création de l'application Express
 const app = express();
@@ -74,6 +84,7 @@ const allowedOrigins = config.isProd
   ? (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)
   : '*';
 
+console.log('🔵 Setting up CORS...');
 app.use(cors({
   origin: (origin, callback) => {
     // Autoriser toutes les origines en développement
@@ -100,40 +111,49 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.maxRequests,
-  message: {
-    success: false,
-    message: 'Trop de requêtes, veuillez réessayer plus tard.',
-    code: 'RATE_LIMIT_EXCEEDED'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res, next, options) => {
-    logger.warn(`Rate limit exceeded for IP: ${req.ip}`);
-    res.status(options.statusCode).send(options.message);
-  }
-});
-app.use('/api/v1/', limiter);
+// Rate limiting (désactivé en mode test)
+if (process.env.NODE_ENV !== 'test') {
+  const limiter = rateLimit({
+    windowMs: config.rateLimit.windowMs,
+    max: config.rateLimit.maxRequests,
+    message: {
+      success: false,
+      message: 'Trop de requêtes, veuillez réessayer plus tard.',
+      code: 'RATE_LIMIT_EXCEEDED'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res, next, options) => {
+      logger.warn(`Rate limit exceeded for IP: ${req.ip}`);
+      res.status(options.statusCode).send(options.message);
+    }
+  });
+  console.log('🔵 Applying rate limiter...');
+  app.use('/api/v1/', limiter);
+} else {
+  console.log('⚠️ Rate limiter disabled in test mode');
+}
 
 // Init Socket.io
+console.log('🔵 Initializing socket.io...');
 const io = socket.init(server); // Initialize socket.io with the server
+console.log('🔵 Socket.io initialized');
 app.set('io', io); // Set io on app after initialization
 
-// Rate limiting spécifique pour l'authentification
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 tentatives
-  message: {
-    success: false,
-    message: 'Trop de tentatives de connexion, veuillez réessayer dans 15 minutes.',
-    code: 'AUTH_RATE_LIMIT_EXCEEDED'
-  }
-});
-app.use('/api/v1/auth/login', authLimiter);
-app.use('/api/v1/auth/otp', authLimiter);
+// Rate limiting spécifique pour l'authentification (désactivé en mode test)
+if (process.env.NODE_ENV !== 'test') {
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 tentatives
+    message: {
+      success: false,
+      message: 'Trop de tentatives de connexion, veuillez réessayer dans 15 minutes.',
+      code: 'AUTH_RATE_LIMIT_EXCEEDED'
+    }
+  });
+  app.use('/api/v1/auth/login', authLimiter);
+  app.use('/api/v1/auth/otp', authLimiter);
+}
 
 // =====================================================
 // MIDDLEWARES GÉNÉRAUX
@@ -182,6 +202,9 @@ app.use('/api/marketplace', marketplace);
 app.use('/api/messages', messages);
 app.use('/api/formations', formations);
 app.use('/api/weather', weather);
+// Temporarily disabled - debugging
+// app.use('/api', reviews);
+// app.use('/api', wishlist);
 
 // Route de santé
 app.get('/health', (req, res) => {
@@ -213,6 +236,7 @@ app.set('emitMeasurement', (parcelleId, measurement) => {
 // =====================================================
 
 const startServer = async () => {
+  console.log('🔵 [START] Entering startServer function...');
   try {
     // Vérification de la connexion à la base de données DISABLED - Using Prisma instead
     // const dbConnected = await checkConnection();
@@ -222,24 +246,29 @@ const startServer = async () => {
     // }
 
     // Test Prisma connection
+    console.log('🔵 [START] Connecting to Prisma...');
     await prisma.$connect();
     logger.info('✅ Prisma connected to MySQL successfully');
+    console.log('✅ [START] Prisma connected');
 
-    // Initialisation du worker IoT
-    const { initWorker } = require('./workers/sensorWorker');
-    initWorker();
+    // Initialisation du worker IoT - Temporarily disabled for debugging
+    // const { initWorker } = require('./workers/sensorWorker');
+    // initWorker();
 
     // Démarrage du serveur
+    console.log('🔵 [START] Calling server.listen...');
     server.listen(config.server.port, () => {
       logger.info(`🌱 AgriSmart CI Backend démarré`);
       logger.info(`📡 Port: ${config.server.port}`);
       logger.info(`🌍 Environnement: ${config.env}`);
       logger.info(`📚 API Version: ${config.server.apiVersion}`);
       logger.info(`🔗 URL: http://localhost:${config.server.port}`);
+      console.log(`🚀 [START] Server listening on port ${config.server.port}`);
     });
 
   } catch (error) {
     logger.error('Erreur au démarrage du serveur', { error: error.message });
+    console.error('❌ [START] Error:', error);
     process.exit(1);
   }
 };

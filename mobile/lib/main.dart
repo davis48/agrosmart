@@ -50,7 +50,7 @@ import 'features/community/presentation/bloc/chat_bloc.dart';
 import 'features/community/presentation/bloc/community_listing_bloc.dart';
 import 'features/community/presentation/pages/community_marketplace_page.dart';
 import 'features/community/presentation/pages/create_listing_page.dart';
-import 'features/forum/presentation/pages/community_page.dart';
+import 'features/community/presentation/pages/community_page.dart';
 import 'features/assistant/presentation/bloc/chatbot_bloc.dart';
 import 'features/assistant/presentation/pages/agri_chatbot_page.dart';
 import 'features/cart/presentation/bloc/cart_bloc.dart';

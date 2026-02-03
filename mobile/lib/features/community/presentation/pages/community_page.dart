@@ -26,7 +26,40 @@ class _CommunityPageState extends State<CommunityPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                top: 60,
+                left: 20,
+                right: 20,
+                bottom: 30,
+              ),
+              decoration: const BoxDecoration(
+                color: Color(0xFF1B5E20),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Communauté",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Echangez avec d'autres producteurs",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Column(
@@ -68,47 +101,6 @@ class _CommunityPageState extends State<CommunityPage> {
         },
         backgroundColor: const Color(0xFFFFC107),
         child: const Icon(Icons.mic, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(top: 60, left: 20, right: 20, bottom: 30),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1B5E20), // Dark Green
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => context.pop(),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                "Communauté",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Echangez avec d'autres producteurs",
-            style: TextStyle(color: Colors.white70, fontSize: 16),
-          ),
-        ],
       ),
     );
   }

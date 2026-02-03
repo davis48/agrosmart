@@ -16,8 +16,14 @@ class CartPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mon Panier'),
+        title: const Text(
+          'Mon Panier',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         centerTitle: true,
+        backgroundColor: const Color(0xFF2E7D32),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           BlocBuilder<CartBloc, CartState>(
             builder: (context, state) {

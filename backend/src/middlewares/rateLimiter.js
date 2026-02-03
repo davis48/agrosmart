@@ -103,27 +103,26 @@ const commonValidateOptions = { xForwardedForHeader: false, ip: false, keyGenera
 
 /**
  * Rate limiter pour la connexion (Login)
- * - 5 tentatives par 15 minutes par IP en prod
- * - 30 tentatives en dev
+ * - 100 tentatives par 15 minutes par IP en dev
+ * - 10 tentatives en prod (plus souple pour UX)
  * - Bloque les attaques brute-force
  */
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 5 : 30, // 5 en prod, 30 en dev
+  max: process.env.NODE_ENV === 'production' ? 10 : 100, // 10 en prod, 100 en dev
   message: 'Trop de tentatives de connexion. Réessayez dans 15 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('login'),
   validate: commonValidateOptions,
   keyGenerator: (req) => {
-    // Combine IP + email pour un tracking plus précis
-    const email = req.body?.email || req.body?.telephone || 'unknown';
+    // Utiliser seulement l'IP pour éviter le blocage par email
     const ip = getClientIp(req);
-    return `${ip}:${email}`;
+    return `${ip}`;
   },
   skip: (req) => {
-    // Ne pas limiter en mode test
-    return config.isTest;
+    // Ne pas limiter en mode test ou dev local
+    return config.isTest || process.env.NODE_ENV === 'development';
   },
   handler: (req, res, next, options) => {
     rateLimitHandler(req, res, next, { ...options, limitType: 'login' });
@@ -132,19 +131,19 @@ const loginLimiter = rateLimit({
 
 /**
  * Rate limiter pour l'inscription (Register)
- * - 20 créations de compte par heure par IP (dev mode)
+ * - 50 créations de compte par heure par IP (dev mode)
  * - Prévient le spam de comptes
  */
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 heure
-  max: process.env.NODE_ENV === 'production' ? 3 : 20, // 3 en prod, 20 en dev
+  max: process.env.NODE_ENV === 'production' ? 5 : 50, // 5 en prod, 50 en dev
   message: 'Trop de créations de compte. Réessayez dans 1 heure.',
   standardHeaders: true,
   legacyHeaders: false,
   store: createRedisStore('register'),
   validate: commonValidateOptions,
   keyGenerator: (req) => getClientIp(req),
-  skip: (req) => config.isTest,
+  skip: (req) => config.isTest || process.env.NODE_ENV === 'development',
   handler: (req, res, next, options) => {
     rateLimitHandler(req, res, next, { ...options, limitType: 'register' });
   }
@@ -152,12 +151,12 @@ const registerLimiter = rateLimit({
 
 /**
  * Rate limiter pour les OTP
- * - 5 demandes par 10 minutes par téléphone
+ * - 20 demandes par 10 minutes par téléphone en dev
  * - Prévient le spam SMS coûteux
  */
 const otpLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 5, // 5 demandes max
+  max: process.env.NODE_ENV === 'production' ? 5 : 20, // 5 en prod, 20 en dev
   message: 'Trop de demandes de code OTP. Réessayez dans 10 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -168,7 +167,7 @@ const otpLimiter = rateLimit({
     const ip = getClientIp(req);
     return `${ip}:${phone}`;
   },
-  skip: (req) => config.isTest,
+  skip: (req) => config.isTest || process.env.NODE_ENV === 'development',
   handler: (req, res, next, options) => {
     rateLimitHandler(req, res, next, { ...options, limitType: 'otp' });
   }
@@ -176,12 +175,12 @@ const otpLimiter = rateLimit({
 
 /**
  * Rate limiter pour la vérification OTP
- * - 10 vérifications par 5 minutes
+ * - 30 vérifications par 5 minutes en dev
  * - Empêche le brute-force des codes
  */
 const otpVerifyLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 10, // 10 essais max
+  max: process.env.NODE_ENV === 'production' ? 10 : 30, // 10 en prod, 30 en dev
   message: 'Trop de tentatives de vérification. Réessayez dans 5 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -192,7 +191,7 @@ const otpVerifyLimiter = rateLimit({
     const ip = getClientIp(req);
     return `${ip}:${phone}`;
   },
-  skip: (req) => config.isTest,
+  skip: (req) => config.isTest || process.env.NODE_ENV === 'development',
   handler: (req, res, next, options) => {
     rateLimitHandler(req, res, next, { ...options, limitType: 'otp-verify' });
   }

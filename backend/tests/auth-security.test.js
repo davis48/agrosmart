@@ -114,31 +114,36 @@ describe('🔐 Auth Security - Password Hashing', () => {
      * Test : Les mots de passe doivent être hashés avec bcrypt
      */
     test('Should store passwords as bcrypt hashes', async () => {
+        if (skipIfNoServer()) return;
         const password = 'TestPassword123!';
         const response = await request(app)
             .post(`${API_PREFIX}/auth/register`)
             .send({
                 nom: 'Test',
                 prenoms: 'User',
+                email: `test-${Date.now()}-${Math.random()}@example.com`,
                 telephone: `+225${Math.floor(Math.random() * 1000000000)}`,
                 password: password,
-                address: 'Test Address' // Ajout d'une adresse factice pour éviter l'erreur
+                address: 'Test Address'
             });
 
-        if (response.status === 201) {
-            const userId = response.body.data.user.id;
-            const user = await prisma.user.findUnique({ where: { id: userId } });
+        expect(response.status).toBe(201);
+        expect(response.body?.data?.user?.id).toBeDefined();
+        
+        const userId = response.body.data.user.id;
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        
+        expect(user).not.toBeNull();
 
-            // Le hash ne doit PAS être le mot de passe en clair
-            expect(user.passwordHash).not.toBe(password);
+        // Le hash ne doit PAS être le mot de passe en clair
+        expect(user.passwordHash).not.toBe(password);
 
-            // Doit être un hash bcrypt valide (commence par $2a$ ou $2b$)
-            expect(user.passwordHash).toMatch(/^\$2[ab]\$/);
+        // Doit être un hash bcrypt valide (commence par $2a$ ou $2b$)
+        expect(user.passwordHash).toMatch(/^\$2[ab]\$/);
 
-            // Vérifier que le hash est valide
-            const isValid = await bcrypt.compare(password, user.passwordHash);
-            expect(isValid).toBe(true);
-        }
+        // Vérifier que le hash est valide
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        expect(isValid).toBe(true);
     });
 
     /**

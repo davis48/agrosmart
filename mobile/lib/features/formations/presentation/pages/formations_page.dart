@@ -14,9 +14,14 @@ class FormationsPage extends StatefulWidget {
 class _FormationsPageState extends State<FormationsPage> {
   String _selectedCategory = 'Toutes';
 
-
-
-  final List<String> _categories = ['Toutes', 'IoT', 'Irrigation', 'Maladies', 'Sol', 'Cultures'];
+  final List<String> _categories = [
+    'Toutes',
+    'IoT',
+    'Irrigation',
+    'Maladies',
+    'Sol',
+    'Cultures',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +30,15 @@ class _FormationsPageState extends State<FormationsPage> {
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text('Formations'),
-          backgroundColor: const Color(0xFFF57C00),
+          title: const Text(
+            'Formations',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          centerTitle: true,
+          backgroundColor: const Color(0xFF2E7D32),
           foregroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
           actions: [
             IconButton(
               icon: const Icon(Icons.bookmark_border),
@@ -48,8 +59,12 @@ class _FormationsPageState extends State<FormationsPage> {
 
                 if (state is FormationLoaded) {
                   total = state.formations.length;
-                  completed = state.formations.where((f) => f.isComplete).length;
-                  inProgress = state.formations.where((f) => (f.progression ?? 0) > 0 && !f.isComplete).length;
+                  completed = state.formations
+                      .where((f) => f.isComplete)
+                      .length;
+                  inProgress = state.formations
+                      .where((f) => (f.progression ?? 0) > 0 && !f.isComplete)
+                      .length;
                 }
 
                 return Container(
@@ -78,19 +93,23 @@ class _FormationsPageState extends State<FormationsPage> {
                 itemBuilder: (context, index) {
                   final cat = _categories[index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
                     child: ChoiceChip(
                       label: Text(
                         cat,
                         style: TextStyle(
-                          color: _selectedCategory == cat 
-                              ? const Color(0xFFF57C00).withOpacity(0.9) 
+                          color: _selectedCategory == cat
+                              ? const Color(0xFFF57C00).withOpacity(0.9)
                               : Theme.of(context).textTheme.bodyMedium?.color,
                         ),
                       ),
                       selected: _selectedCategory == cat,
                       selectedColor: const Color(0xFFF57C00).withOpacity(0.2),
-                      onSelected: (sel) => setState(() => _selectedCategory = cat),
+                      onSelected: (sel) =>
+                          setState(() => _selectedCategory = cat),
                     ),
                   );
                 },
@@ -109,11 +128,13 @@ class _FormationsPageState extends State<FormationsPage> {
                     final filtered = _selectedCategory == 'Toutes'
                         ? state.formations
                         : state.formations
-                            .where((f) => f.categorie == _selectedCategory)
-                            .toList();
+                              .where((f) => f.categorie == _selectedCategory)
+                              .toList();
 
                     if (filtered.isEmpty) {
-                      return const Center(child: Text('Aucune formation trouvée.'));
+                      return const Center(
+                        child: Text('Aucune formation trouvée.'),
+                      );
                     }
 
                     return ListView.builder(
@@ -169,7 +190,9 @@ class _FormationsPageState extends State<FormationsPage> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFF57C00).withValues(alpha: 0.2) : const Color(0xFFF57C00).withOpacity(0.1),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFFF57C00).withValues(alpha: 0.2)
+                          : const Color(0xFFF57C00).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
@@ -188,18 +211,28 @@ class _FormationsPageState extends State<FormationsPage> {
                             if (formation.isNew)
                               Container(
                                 margin: const EdgeInsets.only(right: 8),
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.green,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: const Text(
                                   'NOUVEAU',
-                                  style: TextStyle(color: Colors.white, fontSize: 10),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                  ),
                                 ),
                               ),
                             if (formation.isComplete)
-                              const Icon(Icons.verified, color: Colors.green, size: 16),
+                              const Icon(
+                                Icons.verified,
+                                color: Colors.green,
+                                size: 16,
+                              ),
                           ],
                         ),
                         Text(
@@ -227,7 +260,10 @@ class _FormationsPageState extends State<FormationsPage> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  _buildChip(Icons.access_time, '${formation.dureeMinutes} min'),
+                  _buildChip(
+                    Icons.access_time,
+                    '${formation.dureeMinutes} min',
+                  ),
                   const SizedBox(width: 8),
                   _buildChip(Icons.signal_cellular_alt, formation.type),
                   const SizedBox(width: 8),
@@ -245,7 +281,9 @@ class _FormationsPageState extends State<FormationsPage> {
                           value: (formation.progression ?? 0) / 100,
                           backgroundColor: Colors.grey.shade200,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            formation.isComplete ? Colors.green : const Color(0xFFF57C00),
+                            formation.isComplete
+                                ? Colors.green
+                                : const Color(0xFFF57C00),
                           ),
                           minHeight: 6,
                         ),
@@ -257,7 +295,9 @@ class _FormationsPageState extends State<FormationsPage> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: formation.isComplete ? Colors.green : const Color(0xFFF57C00),
+                        color: formation.isComplete
+                            ? Colors.green
+                            : const Color(0xFFF57C00),
                       ),
                     ),
                   ],
@@ -274,7 +314,9 @@ class _FormationsPageState extends State<FormationsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade100,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -351,7 +393,10 @@ class _FormationsPageState extends State<FormationsPage> {
 
               Text(
                 formation.titre,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               Text(formation.description),
@@ -360,7 +405,10 @@ class _FormationsPageState extends State<FormationsPage> {
               // Infos
               Row(
                 children: [
-                  _buildInfoItem(Icons.access_time, '${formation.dureeMinutes} min'),
+                  _buildInfoItem(
+                    Icons.access_time,
+                    '${formation.dureeMinutes} min',
+                  ),
                   _buildInfoItem(Icons.signal_cellular_alt, formation.type),
                   _buildInfoItem(Icons.play_lesson, '3 modules'), // Placeholder
                 ],
@@ -373,16 +421,23 @@ class _FormationsPageState extends State<FormationsPage> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 12),
-              ...List.generate(3, (i) { // Fixed modules count for now
-                final completed = (formation.progression ?? 0) > (i + 1) / 3 * 100;
+              ...List.generate(3, (i) {
+                // Fixed modules count for now
+                final completed =
+                    (formation.progression ?? 0) > (i + 1) / 3 * 100;
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: completed ? Colors.green : Colors.grey.shade200,
+                    backgroundColor: completed
+                        ? Colors.green
+                        : Colors.grey.shade200,
                     radius: 16,
                     child: completed
                         ? const Icon(Icons.check, size: 16, color: Colors.white)
-                        : Text('${i + 1}', style: const TextStyle(fontSize: 12)),
+                        : Text(
+                            '${i + 1}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
                   ),
                   title: Text('Module ${i + 1}'),
                   subtitle: Text(
@@ -413,8 +468,16 @@ class _FormationsPageState extends State<FormationsPage> {
                       ),
                     );
                   },
-                  icon: Icon((formation.progression ?? 0) == 0 ? Icons.play_arrow : Icons.play_circle),
-                  label: Text((formation.progression ?? 0) == 0 ? 'Commencer' : 'Continuer'),
+                  icon: Icon(
+                    (formation.progression ?? 0) == 0
+                        ? Icons.play_arrow
+                        : Icons.play_circle,
+                  ),
+                  label: Text(
+                    (formation.progression ?? 0) == 0
+                        ? 'Commencer'
+                        : 'Continuer',
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF57C00),
                     foregroundColor: Colors.white,
@@ -438,7 +501,10 @@ class _FormationsPageState extends State<FormationsPage> {
         children: [
           Icon(icon, size: 16, color: Colors.grey),
           const SizedBox(width: 4),
-          Text(text, style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+          Text(
+            text,
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -461,5 +527,3 @@ class _FormationsPageState extends State<FormationsPage> {
     }
   }
 }
-
-

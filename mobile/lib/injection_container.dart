@@ -68,7 +68,6 @@ import 'features/community/presentation/bloc/chat_bloc.dart';
 
 // Marketplace additional blocs
 import 'features/marketplace/presentation/bloc/payment_bloc.dart';
-import 'features/marketplace/presentation/bloc/group_purchase_bloc.dart';
 import 'features/marketplace/presentation/bloc/equipment_bloc.dart';
 
 // Training - Removed duplicate folder (using formations/ instead)
@@ -129,6 +128,27 @@ import 'features/recommandations/data/datasources/recommandation_remote_data_sou
 
 // Community Marketplace imports
 import 'features/community/presentation/bloc/community_listing_bloc.dart';
+
+// Stocks imports
+import 'features/stocks/data/datasources/stock_remote_datasource.dart';
+import 'features/stocks/data/repositories/stock_repository_impl.dart';
+import 'features/stocks/domain/repositories/stock_repository.dart';
+import 'features/stocks/domain/usecases/get_stocks.dart';
+import 'features/stocks/domain/usecases/create_stock.dart';
+import 'features/stocks/domain/usecases/add_mouvement.dart';
+import 'features/stocks/presentation/bloc/stock_bloc.dart';
+
+// Calendrier imports
+import 'features/calendrier/data/datasources/calendrier_remote_datasource.dart';
+import 'features/calendrier/data/repositories/calendrier_repository_impl.dart';
+import 'features/calendrier/domain/repositories/calendrier_repository.dart';
+import 'features/calendrier/domain/usecases/get_activites.dart';
+import 'features/calendrier/domain/usecases/create_activite.dart';
+import 'features/calendrier/domain/usecases/update_activite.dart';
+import 'features/calendrier/domain/usecases/delete_activite.dart';
+import 'features/calendrier/domain/usecases/get_activites_prochaines.dart';
+import 'features/calendrier/domain/usecases/marquer_activite_terminee.dart';
+import 'features/calendrier/presentation/bloc/calendrier_bloc.dart';
 
 // Chatbot imports
 import 'core/services/agri_chatbot_service.dart';
@@ -241,9 +261,6 @@ Future<void> init() async {
   // Payment
   sl.registerFactory(() => PaymentBloc(apiClient: sl()));
 
-  // Group Purchase
-  sl.registerFactory(() => GroupPurchaseBloc(apiClient: sl()));
-
   // Equipment
   sl.registerFactory(() => EquipmentBloc(apiClient: sl()));
 
@@ -290,6 +307,28 @@ Future<void> init() async {
   // Favorites
   sl.registerFactory(() => FavoritesBloc());
 
+  // Stocks
+  sl.registerFactory(
+    () => StockBloc(
+      getStocksUseCase: sl(),
+      createStockUseCase: sl(),
+      addMouvementUseCase: sl(),
+      repository: sl(),
+    ),
+  );
+
+  // Calendrier
+  sl.registerFactory(
+    () => CalendrierBloc(
+      getActivites: sl(),
+      createActivite: sl(),
+      updateActivite: sl(),
+      deleteActivite: sl(),
+      getActivitesProchaines: sl(),
+      marquerActiviteTerminee: sl(),
+    ),
+  );
+
   // ---------------------------------------------------------------------------
   // Use Cases
   // ---------------------------------------------------------------------------
@@ -309,6 +348,19 @@ Future<void> init() async {
   // Marketplace
   sl.registerLazySingleton(() => GetProducts(sl()));
   sl.registerLazySingleton(() => CreateProduct(sl()));
+
+  // Stocks
+  sl.registerLazySingleton(() => GetStocks(sl()));
+  sl.registerLazySingleton(() => CreateStock(sl()));
+  sl.registerLazySingleton(() => AddMouvement(sl()));
+
+  // Calendrier
+  sl.registerLazySingleton(() => GetActivites(sl()));
+  sl.registerLazySingleton(() => CreateActivite(sl()));
+  sl.registerLazySingleton(() => UpdateActivite(sl()));
+  sl.registerLazySingleton(() => DeleteActivite(sl()));
+  sl.registerLazySingleton(() => GetActivitesProchaines(sl()));
+  sl.registerLazySingleton(() => MarquerActiviteTerminee(sl()));
 
   // ---------------------------------------------------------------------------
   // Repositories
@@ -376,6 +428,16 @@ Future<void> init() async {
 
   // Weather
   sl.registerLazySingleton(() => WeatherRepository(remoteDataSource: sl()));
+
+  // Stocks
+  sl.registerLazySingleton<StockRepository>(
+    () => StockRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Calendrier
+  sl.registerLazySingleton<CalendrierRepository>(
+    () => CalendrierRepositoryImpl(sl()),
+  );
 
   // ---------------------------------------------------------------------------
   // Data Sources
@@ -447,6 +509,16 @@ Future<void> init() async {
   // Weather
   sl.registerLazySingleton<WeatherRemoteDataSource>(
     () => WeatherRemoteDataSourceImpl(dio: sl<ApiClient>().dio),
+  );
+
+  // Stocks
+  sl.registerLazySingleton<StockRemoteDataSource>(
+    () => StockRemoteDataSource(apiClient: sl()),
+  );
+
+  // Calendrier
+  sl.registerLazySingleton<CalendrierRemoteDataSource>(
+    () => CalendrierRemoteDataSource(sl()),
   );
 
   // Services

@@ -16,9 +16,14 @@ class OrdersPage extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text('Mes Commandes'),
-          // backgroundColor: Colors.orange, // Use theme default or custom if needed
-          // foregroundColor: Colors.white,
+          title: const Text(
+            'Mes Commandes',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          centerTitle: true,
+          backgroundColor: const Color(0xFF2E7D32),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: BlocBuilder<OrdersBloc, OrdersState>(
           builder: (context, state) {
@@ -28,18 +33,20 @@ class OrdersPage extends StatelessWidget {
               return Center(child: Text(state.message));
             } else if (state is OrdersLoaded) {
               if (state.orders.isEmpty) {
-                 return Center(
-                   child: Text(
-                     "Aucune commande trouvée",
-                     style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-                   )
-                 );
+                return Center(
+                  child: Text(
+                    "Aucune commande trouvée",
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                );
               }
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: state.orders.length,
                 itemBuilder: (context, index) {
-                   return _buildOrderCard(context, state.orders[index]);
+                  return _buildOrderCard(context, state.orders[index]);
                 },
               );
             }
@@ -67,7 +74,7 @@ class OrdersPage extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-           context.pushNamed('order-detail', extra: order);
+          context.pushNamed('order-detail', extra: order);
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -85,7 +92,10 @@ class OrdersPage extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: statutColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -112,11 +122,17 @@ class OrdersPage extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.store, size: 16, color: Theme.of(context).hintColor),
+                  Icon(
+                    Icons.store,
+                    size: 16,
+                    color: Theme.of(context).hintColor,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     order.vendeurNom,
-                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
                   ),
                 ],
               ),
@@ -126,7 +142,9 @@ class OrdersPage extends StatelessWidget {
                 children: [
                   Text(
                     'Quantité: ${order.quantite}',
-                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
                   ),
                   Text(
                     '${order.prixTotal} FCFA',
@@ -141,7 +159,10 @@ class OrdersPage extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Date: $dateStr',
-                style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 12),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),

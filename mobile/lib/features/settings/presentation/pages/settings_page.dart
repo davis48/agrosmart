@@ -25,14 +25,20 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Paramètres'),
-        backgroundColor: Colors.green,
+        title: const Text(
+          'Paramètres',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: ListView(
         children: [
           const SizedBox(height: 8),
-          
+
           // Langue
           Container(
             color: Theme.of(context).cardColor,
@@ -56,7 +62,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // Notifications
           Container(
             color: Theme.of(context).cardColor,
@@ -84,7 +90,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 SwitchListTile(
                   title: const Text('Alertes SMS'),
-                  subtitle: const Text('Recevoir les alertes critiques par SMS'),
+                  subtitle: const Text(
+                    'Recevoir les alertes critiques par SMS',
+                  ),
                   value: _smsAlertsEnabled,
                   activeThumbColor: Colors.green,
                   onChanged: (value) {
@@ -95,7 +103,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // Apparence
           Container(
             color: Theme.of(context).cardColor,
@@ -119,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   activeThumbColor: Colors.green,
                   onChanged: (value) {
                     context.read<ThemeCubit>().setTheme(
-                      value ? ThemeMode.dark : ThemeMode.light
+                      value ? ThemeMode.dark : ThemeMode.light,
                     );
                   },
                 ),
@@ -146,7 +154,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 SwitchListTile(
                   title: const Text('Mode économie de données'),
-                  subtitle: const Text('Ne pas charger les images lourdes automatiquement'),
+                  subtitle: const Text(
+                    'Ne pas charger les images lourdes automatiquement',
+                  ),
                   value: context.watch<SettingsCubit>().state.isLowDataMode,
                   activeThumbColor: Colors.green,
                   onChanged: (value) {
@@ -157,7 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // Compte
           Container(
             color: Theme.of(context).cardColor,
@@ -193,7 +203,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // À propos
           Container(
             color: Theme.of(context).cardColor,
@@ -232,7 +242,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // Danger zone
           Container(
             color: Theme.of(context).cardColor,
@@ -301,10 +311,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.pop(context);
               context.go('/onboarding');
             },
-            child: const Text(
-              'Supprimer',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

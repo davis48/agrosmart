@@ -64,7 +64,11 @@ class _CreateListingPageState extends State<CreateListingPage> {
                 backgroundColor: Colors.green,
               ),
             );
-            context.pop();
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
           } else if (state is CommunityListingError) {
             setState(() => _isLoading = false);
             ScaffoldMessenger.of(context).showSnackBar(

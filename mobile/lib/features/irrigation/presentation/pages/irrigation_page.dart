@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:agriculture/features/parcelles/presentation/bloc/parcelle_bloc.dart';
 import 'package:agriculture/core/network/api_client.dart';
 import 'package:agriculture/injection_container.dart' as di;
@@ -33,9 +32,54 @@ class _IrrigationPageState extends State<IrrigationPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(context),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                top: 60,
+                left: 20,
+                right: 20,
+                bottom: 30,
+              ),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.water_drop, color: Colors.white, size: 28),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          "Programme d'Irrigation",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    "Gérez l'irrigation de vos parcelles de manière intelligente",
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -59,55 +103,6 @@ class _IrrigationPageState extends State<IrrigationPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(top: 60, left: 20, right: 20, bottom: 30),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => context.pop(),
-              ),
-              const SizedBox(width: 8),
-              const Icon(Icons.water_drop, color: Colors.white, size: 28),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  "Programme d'Irrigation",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            "Gérez l'irrigation de vos parcelles de manière intelligente",
-            style: TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-        ],
       ),
     );
   }
@@ -397,7 +392,11 @@ class _IrrigationPageState extends State<IrrigationPage> {
         children: [
           const Row(
             children: [
-              Icon(Icons.settings_input_component, color: Colors.blue, size: 24),
+              Icon(
+                Icons.settings_input_component,
+                color: Colors.blue,
+                size: 24,
+              ),
               SizedBox(width: 12),
               Text(
                 "Contrôle des Vannes",
@@ -421,18 +420,30 @@ class _IrrigationPageState extends State<IrrigationPage> {
     return StatefulBuilder(
       builder: (context, setState) {
         return SwitchListTile(
-          title: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black87)),
+          title: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
           value: value,
           activeColor: Colors.blue,
           onChanged: (newValue) {
             setState(() => value = newValue);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("$label ${newValue ? 'activée' : 'désactivée'}"), duration: const Duration(milliseconds: 500)),
+              SnackBar(
+                content: Text("$label ${newValue ? 'activée' : 'désactivée'}"),
+                duration: const Duration(milliseconds: 500),
+              ),
             );
           },
-          secondary: Icon(Icons.water, color: value ? Colors.blue : Colors.grey),
+          secondary: Icon(
+            Icons.water,
+            color: value ? Colors.blue : Colors.grey,
+          ),
         );
-      }
+      },
     );
   }
 

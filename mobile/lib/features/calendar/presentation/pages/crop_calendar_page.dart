@@ -58,9 +58,15 @@ class _CropCalendarPageState extends State<CropCalendarPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendrier Cultural'),
-        backgroundColor: Colors.green[700],
+        title: const Text(
+          'Calendrier Cultural',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,

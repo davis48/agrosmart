@@ -13,6 +13,7 @@ const config = {
   env: process.env.NODE_ENV || 'development',
   isDev: process.env.NODE_ENV === 'development',
   isProd: process.env.NODE_ENV === 'production',
+  isTest: process.env.NODE_ENV === 'test',
 
   // Serveur
   server: {
@@ -64,10 +65,10 @@ const config = {
 
   // Email
   email: {
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    host: process.env.SMTP_HOST || '',
     port: parseInt(process.env.SMTP_PORT) || 587,
-    user: process.env.SMTP_USER,
-    password: process.env.SMTP_PASSWORD,
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASSWORD || '',
     from: process.env.EMAIL_FROM || 'Agrosmart CI <noreply@agrosmart.ci>'
   },
 

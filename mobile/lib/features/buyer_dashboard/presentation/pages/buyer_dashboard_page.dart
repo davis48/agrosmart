@@ -44,10 +44,82 @@ class _BuyerDashboardPageState extends State<BuyerDashboardPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              _buildHeader(context, isDark),
-              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 60, 16, 24),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
+                child: BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    String userName = "Acheteur";
+                    if (state is AuthAuthenticated) {
+                      userName = state.user.prenoms.isNotEmpty
+                          ? state.user.prenoms
+                          : state.user.nom;
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bonjour,',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                        Text(
+                          userName,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        GestureDetector(
+                          onTap: _goToMarketplace,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.search, color: Colors.grey[400]),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Rechercher des produits...',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 20,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -65,80 +137,6 @@ class _BuyerDashboardPageState extends State<BuyerDashboardPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [Colors.green[900]!, Colors.green[800]!]
-              : [Colors.green[600]!, Colors.green[400]!],
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-      ),
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          String userName = "Acheteur";
-          if (state is AuthAuthenticated) {
-            userName = state.user.prenoms.isNotEmpty
-                ? state.user.prenoms
-                : state.user.nom;
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Bonjour,',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.8),
-                ),
-              ),
-              Text(
-                userName,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Barre de recherche
-              GestureDetector(
-                onTap: _goToMarketplace,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.search, color: Colors.grey[400]),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Rechercher des produits...',
-                        style: TextStyle(color: Colors.grey[500], fontSize: 15),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
       ),
     );
   }

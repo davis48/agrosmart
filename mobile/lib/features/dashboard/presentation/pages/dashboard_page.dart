@@ -140,53 +140,13 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       floatingActionButton: VoiceAssistantButton(
         onResult: (text) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Commande vocale : $text')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Commande vocale : $text')));
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: 0,
-        selectedItemColor: const Color(0xFF28A745),
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart),
-            label: 'Monitoring',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_none),
-            label: 'Alertes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            label: 'Communauté',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: 'Profil',
-          ),
-        ],
-        onTap: (index) {
-          switch (index) {
-            case 1:
-              context.push('/capteurs');
-              break;
-            case 2:
-              context.push('/notifications');
-              break; 
-            case 3:
-              context.push('/community'); // Changed from /forum to /community to reflect new hub
-              break;
-            case 4:
-              context.push('/profile');
-              break;
-          }
-        },
-      ),
+      // Note: La navigation principale est gérée par MainShellPage
+      // Ne pas ajouter de bottomNavigationBar ici pour éviter la superposition
     );
   }
 

@@ -14,7 +14,8 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  
+  bool _isProducer = false; // Déterminer le rôle de l'utilisateur
+
   // Contrôleurs pour les champs
   late TextEditingController _nomController;
   late TextEditingController _prenomsController;
@@ -26,12 +27,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _mois1Controller;
   late TextEditingController _mois2Controller;
   late TextEditingController _mois3Controller;
-  
+
   String _selectedRegion = 'Centre';
+  String _selectedLanguage = 'fr';
   // String _selectedTypeProducteur = 'Producteur individuel'; // Removed
   String _selectedUniteSuperficie = 'ha';
   String _selectedSystemeIrrigation = 'Manuel';
-  
+
   final List<String> _regions = [
     'Abidjan',
     'Centre',
@@ -40,11 +42,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     'Est',
     'Ouest',
   ];
-  
+
   // Removed _typesProducteur list
 
   final List<String> _unitesSuperficie = ['ha', 'm²', 'ares'];
-  
+
   final List<String> _systemesIrrigation = [
     'Manuel',
     'Goutte à goutte',
@@ -68,6 +70,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
       user = authState.user;
     }
 
+    // Déterminer le rôle
+    _isProducer = user?.role == 'PRODUCTEUR';
+
     _nomController = TextEditingController(text: user?.nom ?? '');
     _prenomsController = TextEditingController(text: user?.prenoms ?? '');
     _telephoneController = TextEditingController(text: user?.telephone ?? '');
@@ -85,18 +90,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _mois3Controller = TextEditingController(
       text: user?.productionMois3?.toString() ?? '',
     );
-    
-    _typeProducteurController = TextEditingController(text: user?.typeProducteur ?? '');
+
+    _typeProducteurController = TextEditingController(
+      text: user?.typeProducteur ?? '',
+    );
+    _selectedLanguage = user?.preferredLanguage ?? 'fr';
 
     // Initialize dropdowns safely
     if (user?.regionName != null && _regions.contains(user!.regionName)) {
       _selectedRegion = user.regionName!;
     }
     // Removed _selectedTypeProducteur check
-    if (user?.uniteSuperficie != null && _unitesSuperficie.contains(user!.uniteSuperficie)) {
+    if (user?.uniteSuperficie != null &&
+        _unitesSuperficie.contains(user!.uniteSuperficie)) {
       _selectedUniteSuperficie = user.uniteSuperficie!;
     }
-    if (user?.systemeIrrigation != null && _systemesIrrigation.contains(user!.systemeIrrigation)) {
+    if (user?.systemeIrrigation != null &&
+        _systemesIrrigation.contains(user!.systemeIrrigation)) {
       _selectedSystemeIrrigation = user.systemeIrrigation!;
     }
   }
@@ -124,7 +134,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         maxHeight: 1000,
         imageQuality: 85,
       );
-      
+
       if (pickedFile != null) {
         setState(() {
           _imageFile = File(pickedFile.path);
@@ -151,10 +161,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           Navigator.pop(context); // Go back to profile page
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
@@ -169,7 +176,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               onPressed: _saveProfile,
               child: const Text(
                 'Enregistrer',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -185,11 +195,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 Center(
                   child: Stack(
                     children: [
-                     CircleAvatar(
+                      CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.green.shade100,
-                        backgroundImage: _imageFile != null 
-                            ? FileImage(_imageFile!) 
+                        backgroundImage: _imageFile != null
+                            ? FileImage(_imageFile!)
                             : null, // TODO: Add network image if user has one
                         child: _imageFile == null
                             ? Icon(
@@ -229,11 +239,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Section: Identité
                 _buildSectionTitle('Identité'),
                 const SizedBox(height: 12),
-                
+
                 _buildTextField(
                   controller: _nomController,
                   label: 'Nom',
@@ -246,7 +256,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildTextField(
                   controller: _prenomsController,
                   label: 'Prénoms',
@@ -259,11 +269,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   },
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Section: Contact
                 _buildSectionTitle('Contact'),
                 const SizedBox(height: 12),
-                
+
                 _buildTextField(
                   controller: _telephoneController,
                   label: 'Téléphone',
@@ -278,7 +288,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildTextField(
                   controller: _emailController,
                   label: 'Email (optionnel)',
@@ -286,7 +296,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildTextField(
                   controller: _adresseController,
                   label: 'Adresse',
@@ -294,12 +304,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   maxLines: 2,
                 ),
                 const SizedBox(height: 24),
-                
-                // Section: Exploitation
-                _buildSectionTitle('Exploitation'),
+
+                // Section: Préférences
+                _buildSectionTitle('Préférences'),
                 const SizedBox(height: 12),
-                
-                // Région
+
+                // Langue préférée
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
@@ -309,134 +319,189 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButtonFormField<String>(
-                      initialValue: _selectedRegion,
+                      value: _selectedLanguage,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
-                        labelText: 'Région',
-                        icon: Icon(Icons.map),
+                        labelText: 'Langue préférée',
+                        icon: Icon(Icons.language),
                       ),
-                      items: _regions.map((r) => DropdownMenuItem(
-                        value: r,
-                        child: Text(r),
-                      )).toList(),
+                      items: const [
+                        DropdownMenuItem(value: 'fr', child: Text('Français')),
+                        DropdownMenuItem(
+                          value: 'baoule',
+                          child: Text('Baoulé'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'malinke',
+                          child: Text('Malinké'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'senoufo',
+                          child: Text('Senoufo'),
+                        ),
+                      ],
                       onChanged: (value) {
-                        setState(() => _selectedRegion = value!);
+                        setState(() => _selectedLanguage = value!);
                       },
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                
-                // Type de producteur
-                // Type de producteur (Culture principale)
-                _buildTextField(
-                  controller: _typeProducteurController,
-                  label: 'Type de production / Culture principale',
-                  icon: Icons.agriculture,
-                  hintText: 'Ex: Maïs, Cacao, Hévéa...',
-                ),
-                const SizedBox(height: 24),
-                
-                // Section: Profil Agricole
-                _buildSectionTitle('Profil Agricole'),
-                const SizedBox(height: 12),
-                
-                // Superficie exploitée avec unité
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: _buildTextField(
-                        controller: _superficieController,
-                        label: 'Superficie exploitée',
-                        icon: Icons.square_foot,
-                        keyboardType: TextInputType.number,
+
+                // Sections spécifiques au PRODUCTEUR uniquement
+                if (_isProducer) ...[
+                  const SizedBox(height: 24),
+
+                  // Section: Exploitation
+                  _buildSectionTitle('Exploitation'),
+                  const SizedBox(height: 12),
+
+                  // Région
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedRegion,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          labelText: 'Région',
+                          icon: Icon(Icons.map),
+                        ),
+                        items: _regions
+                            .map(
+                              (r) => DropdownMenuItem(value: r, child: Text(r)),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedRegion = value!);
+                        },
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Type de producteur
+                  // Type de producteur (Culture principale)
+                  _buildTextField(
+                    controller: _typeProducteurController,
+                    label: 'Type de production / Culture principale',
+                    icon: Icons.agriculture,
+                    hintText: 'Ex: Maïs, Cacao, Hévéa...',
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Section: Profil Agricole
+                  _buildSectionTitle('Profil Agricole'),
+                  const SizedBox(height: 12),
+
+                  // Superficie exploitée avec unité
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: _buildTextField(
+                          controller: _superficieController,
+                          label: 'Superficie exploitée',
+                          icon: Icons.square_foot,
+                          keyboardType: TextInputType.number,
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _selectedUniteSuperficie,
-                            isExpanded: true,
-                            items: _unitesSuperficie.map((u) => DropdownMenuItem(
-                              value: u,
-                              child: Text(u),
-                            )).toList(),
-                            onChanged: (value) {
-                              setState(() => _selectedUniteSuperficie = value!);
-                            },
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedUniteSuperficie,
+                              isExpanded: true,
+                              items: _unitesSuperficie
+                                  .map(
+                                    (u) => DropdownMenuItem(
+                                      value: u,
+                                      child: Text(u),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(
+                                  () => _selectedUniteSuperficie = value!,
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                
-                // Système d'irrigation
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
+                    ],
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedSystemeIrrigation,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        labelText: "Système d'irrigation",
-                        icon: Icon(Icons.water_drop),
+                  const SizedBox(height: 16),
+
+                  // Système d'irrigation
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedSystemeIrrigation,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          labelText: "Système d'irrigation",
+                          icon: Icon(Icons.water_drop),
+                        ),
+                        items: _systemesIrrigation
+                            .map(
+                              (s) => DropdownMenuItem(value: s, child: Text(s)),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedSystemeIrrigation = value!);
+                        },
                       ),
-                      items: _systemesIrrigation.map((s) => DropdownMenuItem(
-                        value: s,
-                        child: Text(s),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() => _selectedSystemeIrrigation = value!);
-                      },
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                
-                // Section: Historique Production
-                _buildSectionTitle('Historique Production (3 derniers mois)'),
-                const SizedBox(height: 12),
-                
-                _buildTextField(
-                  controller: _mois1Controller,
-                  label: 'Production Mois - 1 (kg)',
-                  icon: Icons.history,
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 16),
-                
-                _buildTextField(
-                  controller: _mois2Controller,
-                  label: 'Production Mois - 2 (kg)',
-                  icon: Icons.history,
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 16),
-                
-                _buildTextField(
-                  controller: _mois3Controller,
-                  label: 'Production Mois - 3 (kg)',
-                  icon: Icons.history,
-                  keyboardType: TextInputType.number,
-                ),
+                  const SizedBox(height: 24),
+
+                  // Section: Historique Production
+                  _buildSectionTitle('Historique Production (3 derniers mois)'),
+                  const SizedBox(height: 12),
+
+                  _buildTextField(
+                    controller: _mois1Controller,
+                    label: 'Production Mois - 1 (kg)',
+                    icon: Icons.history,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    controller: _mois2Controller,
+                    label: 'Production Mois - 2 (kg)',
+                    icon: Icons.history,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    controller: _mois3Controller,
+                    label: 'Production Mois - 3 (kg)',
+                    icon: Icons.history,
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
                 const SizedBox(height: 32),
-                
+
                 // Bouton de sauvegarde
                 SizedBox(
                   width: double.infinity,
@@ -452,12 +517,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                     child: const Text(
                       'Enregistrer les modifications',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Bouton annuler
                 SizedBox(
                   width: double.infinity,
@@ -512,7 +580,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         hintText: hintText,
         prefixIcon: Icon(icon),
         filled: true,
-        fillColor: enabled ? Theme.of(context).cardColor : Theme.of(context).disabledColor.withValues(alpha: 0.1),
+        fillColor: enabled
+            ? Theme.of(context).cardColor
+            : Theme.of(context).disabledColor.withValues(alpha: 0.1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -584,21 +654,55 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
-      context.read<AuthBloc>().add(UpdateProfileRequested(
-        nom: _nomController.text,
-        prenoms: _prenomsController.text,
-        email: _emailController.text,
-        telephone: _telephoneController.text,
-        typeProducteur: _typeProducteurController.text,
-        region: _selectedRegion,
-        photo: _imageFile,
-        superficieExploitee: double.tryParse(_superficieController.text),
-        uniteSuperficie: _selectedUniteSuperficie,
-        systemeIrrigation: _selectedSystemeIrrigation,
-        productionMois1: double.tryParse(_mois1Controller.text),
-        productionMois2: double.tryParse(_mois2Controller.text),
-        productionMois3: double.tryParse(_mois3Controller.text),
-      ));
+      // Données communes pour tous les utilisateurs
+      final Map<String, dynamic> profileData = {
+        'nom': _nomController.text,
+        'prenoms': _prenomsController.text,
+        'email': _emailController.text,
+        'telephone': _telephoneController.text,
+        'adresse': _adresseController.text,
+        'preferredLanguage': _selectedLanguage,
+      };
+
+      // Ajouter les données producteur si applicable
+      if (_isProducer) {
+        profileData.addAll({
+          'typeProducteur': _typeProducteurController.text,
+          'region': _selectedRegion,
+          'superficieExploitee': double.tryParse(_superficieController.text),
+          'uniteSuperficie': _selectedUniteSuperficie,
+          'systemeIrrigation': _selectedSystemeIrrigation,
+          'productionMois1': double.tryParse(_mois1Controller.text),
+          'productionMois2': double.tryParse(_mois2Controller.text),
+          'productionMois3': double.tryParse(_mois3Controller.text),
+        });
+      }
+
+      context.read<AuthBloc>().add(
+        UpdateProfileRequested(
+          nom: _nomController.text,
+          prenoms: _prenomsController.text,
+          email: _emailController.text,
+          telephone: _telephoneController.text,
+          typeProducteur: _isProducer ? _typeProducteurController.text : null,
+          region: _isProducer ? _selectedRegion : null,
+          photo: _imageFile,
+          superficieExploitee: _isProducer
+              ? double.tryParse(_superficieController.text)
+              : null,
+          uniteSuperficie: _isProducer ? _selectedUniteSuperficie : null,
+          systemeIrrigation: _isProducer ? _selectedSystemeIrrigation : null,
+          productionMois1: _isProducer
+              ? double.tryParse(_mois1Controller.text)
+              : null,
+          productionMois2: _isProducer
+              ? double.tryParse(_mois2Controller.text)
+              : null,
+          productionMois3: _isProducer
+              ? double.tryParse(_mois3Controller.text)
+              : null,
+        ),
+      );
     }
   }
 }

@@ -148,7 +148,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-green-100 px-4 py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-green-50 to-green-100 px-4 py-8">
       {/* Bouton retour accueil */}
       <Link
         href="/"

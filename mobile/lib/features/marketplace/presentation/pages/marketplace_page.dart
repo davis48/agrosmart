@@ -61,14 +61,37 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     {'value': 'autres', 'label': 'Autres', 'icon': Icons.more_horiz},
   ];
 
+  // Catégories autorisées pour les PRODUCTEURS (vendre récoltes, louer/acheter équipements)
+  static const List<String> producteurCategories = [
+    'equipements', // Peut acheter équipements
+    'location', // Peut louer équipements
+    'recoltes', // Peut vendre ses récoltes
+  ];
+
   @override
   void initState() {
     super.initState();
     _selectedCategory = widget.selectedCategory;
   }
 
+  List<Map<String, dynamic>> _getFilteredCategories() {
+    // Récupérer le rôle de l'utilisateur depuis AuthBloc
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated && authState.user.role == 'PRODUCTEUR') {
+      // Filtrer pour ne montrer que les catégories autorisées aux producteurs
+      return categories.where((cat) {
+        return cat['value'] == null ||
+            producteurCategories.contains(cat['value']);
+      }).toList();
+    }
+    // Acheteurs voient tout
+    return categories;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filteredCategories = _getFilteredCategories();
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -97,7 +120,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: categories.map((cat) {
+            children: filteredCategories.map((cat) {
               final isSelected = _selectedCategory == cat['value'];
               return FilterChip(
                 selected: isSelected,
@@ -148,213 +171,229 @@ class _MarketplacePageState extends State<MarketplacePage> {
           sl<MarketplaceBloc>()..add(LoadMarketplaceProducts()),
       child: DefaultTabController(
         length: 2,
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                Material(
-                  color: Theme.of(context).cardColor, // Use theme color
-                  child: const TabBar(
-                    labelColor: Colors.green,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: Colors.green,
-                    tabs: [
-                      Tab(text: 'Acheter'),
-                      Tab(text: 'Louer'),
-                    ],
-                  ),
-                ),
-                // Filtre actif indicator
-                if (_selectedCategory != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    color: Colors.green[50],
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.filter_list,
-                          size: 16,
-                          color: Colors.green[700],
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Filtre: ${_getCategoryLabel(_selectedCategory!)}',
-                          style: TextStyle(
-                            color: Colors.green[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () => setState(() => _selectedCategory = null),
-                          child: Icon(
-                            Icons.close,
-                            size: 18,
-                            color: Colors.green[700],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                // Barre de recherche et filtres
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                    vertical: 4.0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () {
-                          showSearch(
-                            context: context,
-                            delegate: ProductSearchDelegate(),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: Badge(
-                          isLabelVisible: _selectedCategory != null,
-                          backgroundColor: Colors.green,
-                          child: const Icon(Icons.filter_list),
-                        ),
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (ctx) => FilterBottomSheet(
-                              selectedCategory: _selectedCategory,
-                              onCategorySelected: (category) {
-                                setState(() => _selectedCategory = category);
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: BlocBuilder<MarketplaceBloc, MarketplaceState>(
-                    builder: (context, state) {
-                      if (state is MarketplaceLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (state is MarketplaceError) {
-                        // Improved Error UI
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                size: 48,
-                                color: Colors.orange,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                "Oups !",
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(height: 8),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 32,
-                                ),
-                                child: Text(
-                                  "Impossible de charger les produits pour le moment.",
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  context.read<MarketplaceBloc>().add(
-                                    LoadMarketplaceProducts(),
-                                  );
-                                },
-                                icon: const Icon(Icons.refresh),
-                                label: const Text("Réessayer"),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else if (state is MarketplaceLoaded) {
-                        // Appliquer le filtre par catégorie
-                        var filteredProducts = state.products;
-                        if (_selectedCategory != null) {
-                          filteredProducts = state.products
-                              .where(
-                                (p) =>
-                                    p.categorie.toLowerCase() ==
-                                    _selectedCategory!.toLowerCase(),
-                              )
-                              .toList();
-                        }
-
-                        final sales = filteredProducts
-                            .where(
-                              (p) =>
-                                  p.description?.toLowerCase().contains(
-                                        'location',
-                                      ) !=
-                                      true &&
-                                  p.categorie != 'location',
-                            )
-                            .toList();
-                        final rentals = filteredProducts
-                            .where(
-                              (p) =>
-                                  p.description?.toLowerCase().contains(
-                                        'location',
-                                      ) ==
-                                      true ||
-                                  p.categorie == 'location',
-                            )
-                            .toList();
-
-                        return TabBarView(
-                          children: [
-                            _buildProductGrid(sales, "Aucun produit en vente"),
-                            _buildProductGrid(
-                              rentals,
-                              "Aucun produit en location",
-                            ),
-                          ],
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, authState) {
-                  // Seuls les producteurs connectés peuvent ajouter des produits
-                  if (authState is AuthAuthenticated &&
-                      authState.user.role == 'PRODUCTEUR') {
-                    return FloatingActionButton(
-                      onPressed: () => _showAddOptions(context),
-                      tooltip: 'Ajouter une annonce',
-                      backgroundColor: const Color(0xFF28A745),
-                      child: const Icon(Icons.add, color: Colors.white),
-                    );
-                  }
-                  // Ne pas afficher le FAB pour les non-authentifiés ou acheteurs
-                  return const SizedBox.shrink();
-                },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'Marketplace',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
-          ],
+            centerTitle: true,
+            backgroundColor: const Color(0xFF2E7D32),
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.search, color: Colors.white),
+                onPressed: () {
+                  showSearch(
+                    context: context,
+                    delegate: ProductSearchDelegate(),
+                  );
+                },
+              ),
+              IconButton(
+                icon: Badge(
+                  isLabelVisible: _selectedCategory != null,
+                  backgroundColor: Colors.orange,
+                  child: const Icon(Icons.filter_list, color: Colors.white),
+                ),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (ctx) => FilterBottomSheet(
+                      selectedCategory: _selectedCategory,
+                      onCategorySelected: (category) {
+                        setState(() => _selectedCategory = category);
+                      },
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                onPressed: () => context.push('/cart'),
+              ),
+            ],
+            bottom: const TabBar(
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              indicatorColor: Colors.white,
+              indicatorWeight: 3,
+              labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              tabs: [
+                Tab(text: 'Acheter'),
+                Tab(text: 'Louer'),
+              ],
+            ),
+          ),
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  // Filtre actif indicator
+                  if (_selectedCategory != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      color: Colors.green[50],
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.filter_list,
+                            size: 16,
+                            color: Colors.green[700],
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Filtre: ${_getCategoryLabel(_selectedCategory!)}',
+                            style: TextStyle(
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () =>
+                                setState(() => _selectedCategory = null),
+                            child: Icon(
+                              Icons.close,
+                              size: 18,
+                              color: Colors.green[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: BlocBuilder<MarketplaceBloc, MarketplaceState>(
+                      builder: (context, state) {
+                        if (state is MarketplaceLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else if (state is MarketplaceError) {
+                          // Improved Error UI
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
+                                  size: 48,
+                                  color: Colors.orange,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  "Oups !",
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 32,
+                                  ),
+                                  child: Text(
+                                    "Impossible de charger les produits pour le moment.",
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    context.read<MarketplaceBloc>().add(
+                                      LoadMarketplaceProducts(),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text("Réessayer"),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (state is MarketplaceLoaded) {
+                          // Appliquer le filtre par catégorie
+                          var filteredProducts = state.products;
+                          if (_selectedCategory != null) {
+                            filteredProducts = state.products
+                                .where(
+                                  (p) =>
+                                      p.categorie.toLowerCase() ==
+                                      _selectedCategory!.toLowerCase(),
+                                )
+                                .toList();
+                          }
+
+                          final sales = filteredProducts
+                              .where(
+                                (p) =>
+                                    p.description?.toLowerCase().contains(
+                                          'location',
+                                        ) !=
+                                        true &&
+                                    p.categorie != 'location',
+                              )
+                              .toList();
+                          final rentals = filteredProducts
+                              .where(
+                                (p) =>
+                                    p.description?.toLowerCase().contains(
+                                          'location',
+                                        ) ==
+                                        true ||
+                                    p.categorie == 'location',
+                              )
+                              .toList();
+
+                          return TabBarView(
+                            children: [
+                              _buildProductGrid(
+                                sales,
+                                "Aucun produit en vente",
+                              ),
+                              _buildProductGrid(
+                                rentals,
+                                "Aucun produit en location",
+                              ),
+                            ],
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, authState) {
+                    // Seuls les producteurs connectés peuvent ajouter des produits
+                    if (authState is AuthAuthenticated &&
+                        authState.user.role == 'PRODUCTEUR') {
+                      return FloatingActionButton(
+                        onPressed: () => _showAddOptions(context),
+                        tooltip: 'Ajouter une annonce',
+                        backgroundColor: const Color(0xFF28A745),
+                        child: const Icon(Icons.add, color: Colors.white),
+                      );
+                    }
+                    // Ne pas afficher le FAB pour les non-authentifiés ou acheteurs
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

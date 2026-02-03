@@ -42,6 +42,19 @@ const getCorsConfig = () => {
 };
 
 exports.init = (server) => {
+    // En mode test, ne pas initialiser socket.io si le serveur n'écoute pas
+    if (process.env.NODE_ENV === 'test' && (!server || !server.listening)) {
+        // Retourner un mock io pour les tests
+        io = {
+            use: () => {},
+            on: () => {},
+            emit: () => {},
+            to: () => ({ emit: () => {} }),
+            close: (callback) => callback && callback()
+        };
+        return io;
+    }
+    
     io = socketIo(server, {
         cors: getCorsConfig()
     });

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:agriculture/features/capteurs/presentation/bloc/sensor_bloc.dart';
 import 'package:agriculture/features/capteurs/domain/entities/sensor.dart';
 import 'package:agriculture/features/capteurs/presentation/pages/capteur_detail_page.dart';
@@ -109,22 +108,13 @@ class _CapteursPageState extends State<CapteursPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => context.pop(),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Monitoring IoT",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              const Text(
+                "Monitoring IoT",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.white),

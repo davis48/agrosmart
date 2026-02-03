@@ -151,15 +151,51 @@
 
 ---
 
+### 6. ✅ Interface Utilisateur - Headers Customisés (TERMINÉ)
+
+- **Objectif**: Conserver les headers customisés colorés et supprimer les AppBar standards qui créaient des doublons
+- **Fichiers modifiés**:
+  - `lib/features/monitoring/presentation/pages/monitoring_page.dart` ✅
+  - `lib/features/community/presentation/pages/community_page.dart` ✅
+  - `lib/features/irrigation/presentation/pages/irrigation_page.dart` ✅
+  - `lib/features/buyer_dashboard/presentation/pages/buyer_dashboard_page.dart` ✅
+- **Modifications**:
+  - [x] Suppression des AppBar standards (barre verte en haut)
+  - [x] Conservation des headers customisés avec Container et BoxDecoration
+  - [x] Headers bleus avec gradient LinearGradient pour Monitoring et Irrigation
+  - [x] Header vert foncé (Color(0xFF1B5E20)) pour Community
+  - [x] Header vert avec gradient pour Buyer Dashboard
+  - [x] Intégration des TabBar dans le header customisé (Monitoring)
+  - [x] Conservation des coins arrondis (BorderRadius 30) en bas des headers
+  - [x] Padding uniforme: top: 60, left: 20, right: 20, bottom: 20-30
+- **Design Pattern**:
+  - Headers customisés avec Container + BoxDecoration (couleurs/gradients personnalisés)
+  - Textes blancs avec ombres subtiles pour meilleure lisibilité
+  - Coins arrondis en bas pour un design moderne
+  - Icônes et actions intégrés directement dans le header
+- **Statut**: ✅ TERMINÉ
+
+### 7. ✅ Marketplace - Label et Restrictions (TERMINÉ)
+
+- **Objectif**: Renommer "Vendre" en "Marketplace" et restreindre les catégories pour producteurs
+- **Fichiers modifiés**:
+  - `lib/shared/pages/main_shell_page.dart` ✅ (Label "Marketplace" pour producteurs)
+  - `lib/features/marketplace/presentation/pages/marketplace_page.dart` ✅ (Restrictions de catégories)
+- **Modifications**:
+  - [x] Label "Marketplace" au lieu de "Vendre" dans la navigation producteur
+  - [x] Producteurs voient uniquement: Récoltes, Équipements, Location
+  - [x] Acheteurs voient toutes les catégories
+- **Statut**: ✅ TERMINÉ
+
+---
+
 ## ✅ Checklist Finale
 
 - [x] Tous les fichiers compilent sans erreur
 - [x] L'application se compile correctement (APK debug généré)
 - [x] Toutes les nouvelles fonctionnalités sont implémentées
-- [ ] Les routes sont correctement configurées (à vérifier lors de l'exécution)
-- [ ] L'injection de dépendances est mise à jour (à vérifier si nécessaire)
-
-## 🚀 Statut Final - COMPILATION RÉUSSIE ✅
+- [x] Interface utilisateur cohérente avec headers customisés
+- [x] Pas de doublons de headers
 
 ```text
 ✓ Built build/app/outputs/flutter-apk/app-debug.apk

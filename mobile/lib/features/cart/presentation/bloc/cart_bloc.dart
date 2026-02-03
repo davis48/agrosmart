@@ -75,6 +75,31 @@ class RemoveFromCart extends CartEvent {
 
 class ClearCart extends CartEvent {}
 
+class CheckoutCart extends CartEvent {
+  final String adresseLivraison;
+  final String methodePaiement;
+  final String? numeroTelephone;
+  final String? instructions;
+  final DateTime? dateLivraisonProgrammee;
+
+  CheckoutCart({
+    required this.adresseLivraison,
+    required this.methodePaiement,
+    this.numeroTelephone,
+    this.instructions,
+    this.dateLivraisonProgrammee,
+  });
+
+  @override
+  List<Object?> get props => [
+    adresseLivraison,
+    methodePaiement,
+    numeroTelephone,
+    instructions,
+    dateLivraisonProgrammee,
+  ];
+}
+
 /// Event pour ajouter au panier local (sans authentification)
 class AddToLocalCart extends CartEvent {
   final CartItem item;
@@ -134,6 +159,17 @@ class CartItemAdded extends CartState {
   List<Object> get props => [productName];
 }
 
+class CartProcessing extends CartState {}
+
+class OrderCreated extends CartState {
+  final String orderId;
+
+  OrderCreated({required this.orderId});
+
+  @override
+  List<Object> get props => [orderId];
+}
+
 // ============================================
 // BLOC
 // ============================================
@@ -151,6 +187,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<UpdateCartItemQuantity>(_onUpdateQuantity);
     on<RemoveFromCart>(_onRemoveFromCart);
     on<ClearCart>(_onClearCart);
+    on<CheckoutCart>(_onCheckoutCart);
     on<AddToLocalCart>(_onAddToLocalCart);
     on<SyncLocalCart>(_onSyncLocalCart);
   }
@@ -436,6 +473,56 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       add(LoadCart());
     } catch (e) {
       emit(CartError(message: 'Erreur lors de la synchronisation'));
+    }
+  }
+
+  Future<void> _onCheckoutCart(
+    CheckoutCart event,
+    Emitter<CartState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! CartLoaded) return;
+
+    emit(CartProcessing());
+
+    try {
+      final orderData = {
+        'adresseLivraison': event.adresseLivraison,
+        'methodePaiement': event.methodePaiement,
+        if (event.numeroTelephone != null)
+          'numeroTelephone': event.numeroTelephone,
+        if (event.instructions != null) 'instructions': event.instructions,
+        if (event.dateLivraisonProgrammee != null)
+          'dateLivraisonProgrammee': event.dateLivraisonProgrammee!
+              .toIso8601String(),
+      };
+
+      final response = await _apiClient.post('/orders', data: orderData);
+
+      if (response.statusCode == 201 && response.data['success'] == true) {
+        final orderId = response.data['data']['id'];
+
+        // Vider le panier
+        if (currentState.isLocal) {
+          _localCart = Cart.empty();
+        }
+
+        emit(OrderCreated(orderId: orderId));
+        // Recharger le panier vide
+        add(LoadCart());
+      } else {
+        emit(
+          CartError(
+            message:
+                response.data['error'] ??
+                'Erreur lors de la création de la commande',
+          ),
+        );
+        emit(currentState); // Revenir à l'état précédent
+      }
+    } catch (e) {
+      emit(CartError(message: 'Erreur de connexion: $e'));
+      emit(currentState); // Revenir à l'état précédent
     }
   }
 }

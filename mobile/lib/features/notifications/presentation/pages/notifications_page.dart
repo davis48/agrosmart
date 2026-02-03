@@ -8,6 +8,7 @@ import 'package:agriculture/core/network/api_client.dart';
 import 'package:agriculture/features/notifications/domain/entities/alert.dart';
 import 'package:agriculture/features/recommandations/presentation/bloc/recommandation_bloc.dart';
 import 'package:agriculture/features/recommandations/domain/entities/recommandation.dart';
+import 'package:agriculture/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:agriculture/injection_container.dart' as di;
 import 'package:intl/intl.dart';
 
@@ -18,43 +19,63 @@ class NotificationsPage extends StatefulWidget {
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
 
-class _NotificationsPageState extends State<NotificationsPage> with SingleTickerProviderStateMixin {
+class _NotificationsPageState extends State<NotificationsPage>
+    with SingleTickerProviderStateMixin {
   late AlertBloc _alertBloc;
   late RecommandationBloc _recommandationBloc;
   late TabController _tabController;
   int _selectedFilterIndex = 0;
-  final List<String> _filters = ["Tout", "Maladies", "Irrigation", "Sol", "Météo"];
+
+  // Filtres selon le rôle
+  List<String> _filters = [];
+  bool _isProducer = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    
+
+    // Déterminer le rôle de l'utilisateur
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final role = authState.user.role.toUpperCase();
+      _isProducer =
+          role == 'PRODUCTEUR' || role == 'FARMER' || role == 'PRODUCER';
+    }
+
+    // Filtres différents selon le rôle
+    if (_isProducer) {
+      _filters = ["Tout", "Maladies", "Irrigation", "Sol", "Météo", "Récolte"];
+      _tabController = TabController(
+        length: 2,
+        vsync: this,
+      ); // Alertes + Conseils
+    } else {
+      _filters = ["Tout", "Commandes", "Promotions", "Livraisons"];
+      _tabController = TabController(
+        length: 2,
+        vsync: this,
+      ); // Notifications + Offres
+    }
+
     // Init AlertBloc
     final dataSource = AlertRemoteDataSourceImpl(dio: dioClient);
     final repository = AlertRepositoryImpl(remoteDataSource: dataSource);
     _alertBloc = AlertBloc(repository: repository)..add(LoadAlerts());
 
-    // Init RecommandationBloc
-    // Assuming DI container has it registered, otherwise we might need to create it manually like AlertBloc
-    // For safety, we try to get it from DI, if fails we might need fallback or manually create it if logic allows
-    try {
-      _recommandationBloc = di.sl<RecommandationBloc>()..add(LoadRecommandations());
-    } catch (e) {
-      // Fallback if not registered in SL (though it should be if used in Dashboard)
-      // This part is a placeholder, strictly we should ensure DI is correct.
-      debugPrint("RecommandationBloc retrieval failed: $e");
+    // Init RecommandationBloc seulement pour les producteurs
+    if (_isProducer) {
+      try {
+        _recommandationBloc = di.sl<RecommandationBloc>()
+          ..add(LoadRecommandations());
+      } catch (e) {
+        debugPrint("RecommandationBloc retrieval failed: $e");
+      }
     }
   }
 
   @override
   void dispose() {
     _alertBloc.close();
-    // _recommandationBloc.close(); // Do not close if it is a singleton from DI. If we created it, we should close it.
-    // Assuming we retrieved it from DI and it might be shared or factory. 
-    // If factory, we should close it. Safe to close if text implies local usage. 
-    // But earlier I said dashboard used it. 
-    // Let's assume we don't close it if it comes from SL and might be shared, OR we create a new instance and close it.
     _tabController.dispose();
     super.dispose();
   }
@@ -64,7 +85,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _alertBloc),
-        BlocProvider.value(value: _recommandationBloc),
+        if (_isProducer) BlocProvider.value(value: _recommandationBloc),
       ],
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -74,10 +95,9 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [
-                  _buildAlertsTab(),
-                  _buildRecommendationsTab(),
-                ],
+                children: _isProducer
+                    ? [_buildAlertsTab(), _buildRecommendationsTab()]
+                    : [_buildBuyerNotificationsTab(), _buildBuyerOffersTab()],
               ),
             ),
           ],
@@ -87,14 +107,16 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
   }
 
   Widget _buildHeader() {
+    final headerColor = _isProducer
+        ? const Color(0xFFD32F2F)
+        : Colors.green[700];
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 60, left: 20, right: 20, bottom: 0),
-      decoration: const BoxDecoration(
-        color: Color(0xFFD32F2F), // Red base color, but we might want dynamic color based on tab?
-        // Let's keep it Red for consistency with "Notifications" or change to Neutral/Green?
-        // User asked for "Recommandations" in "volet alerte".
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: headerColor,
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
@@ -106,12 +128,18 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
             children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => context.pop(),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/');
+                  }
+                },
               ),
               const SizedBox(width: 8),
-              const Text(
-                "Centre de Notifications",
-                style: TextStyle(
+              Text(
+                _isProducer ? "Alertes Producteur" : "Mes Notifications",
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -126,11 +154,13 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
             indicatorWeight: 3,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            tabs: const [
-              Tab(text: "Alertes"),
-              Tab(text: "Conseils"),
-            ],
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+            tabs: _isProducer
+                ? const [Tab(text: "Alertes"), Tab(text: "Conseils")]
+                : const [Tab(text: "Notifications"), Tab(text: "Offres")],
           ),
           const SizedBox(height: 10),
         ],
@@ -138,6 +168,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
     );
   }
 
+  // ======== ONGLETS PRODUCTEUR ========
   Widget _buildAlertsTab() {
     return BlocBuilder<AlertBloc, AlertState>(
       builder: (context, state) {
@@ -150,11 +181,16 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
         if (_selectedFilterIndex != 0) {
           alerts = alerts.where((a) {
             switch (_selectedFilterIndex) {
-              case 1: return a.category == AlertCategory.maladie;
-              case 2: return a.category == AlertCategory.irrigation;
-              case 3: return a.category == AlertCategory.sol;
-              case 4: return a.category == AlertCategory.meteo;
-              default: return true;
+              case 1:
+                return a.category == AlertCategory.maladie;
+              case 2:
+                return a.category == AlertCategory.irrigation;
+              case 3:
+                return a.category == AlertCategory.sol;
+              case 4:
+                return a.category == AlertCategory.meteo;
+              default:
+                return true;
             }
           }).toList();
         }
@@ -183,7 +219,9 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                       checkmarkColor: Colors.red,
                       labelStyle: TextStyle(
                         color: isSelected ? Colors.red : Colors.black87,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -196,7 +234,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                 }),
               ),
             ),
-            
+
             // List
             Expanded(
               child: alerts.isEmpty
@@ -204,11 +242,16 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.notifications_off_outlined,
-                              size: 48, color: Colors.grey.shade400),
+                          Icon(
+                            Icons.notifications_off_outlined,
+                            size: 48,
+                            color: Colors.grey.shade400,
+                          ),
                           const SizedBox(height: 16),
-                          Text("Aucune alerte pour ce filtre",
-                              style: TextStyle(color: Colors.grey.shade600)),
+                          Text(
+                            "Aucune alerte pour ce filtre",
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
                         ],
                       ),
                     )
@@ -217,20 +260,25 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                       child: Column(
                         children: [
                           if (_selectedFilterIndex == 0) ...[
-                             // Timeline Alertes (Small Cards) - Only on 'All' view for summary
-                            ...alerts.take(3).map((alert) => _buildSmallAlertCard(alert)),
+                            // Timeline Alertes (Small Cards) - Only on 'All' view for summary
+                            ...alerts
+                                .take(3)
+                                .map((alert) => _buildSmallAlertCard(alert)),
                             const SizedBox(height: 24),
                           ],
-                          
+
                           // Detailed Cards
                           ...alerts.map((a) {
-                            if (a.category == AlertCategory.maladie) return _buildDiseaseAlertCard(a);
-                            if (a.category == AlertCategory.irrigation) return _buildIrrigationCard(a);
-                            if (a.category == AlertCategory.sol) return _buildPhCard(a);
+                            if (a.category == AlertCategory.maladie)
+                              return _buildDiseaseAlertCard(a);
+                            if (a.category == AlertCategory.irrigation)
+                              return _buildIrrigationCard(a);
+                            if (a.category == AlertCategory.sol)
+                              return _buildPhCard(a);
                             // Fallback
-                            return _buildSmallAlertCard(a); 
+                            return _buildSmallAlertCard(a);
                           }),
-                          
+
                           const SizedBox(height: 40),
                         ],
                       ),
@@ -246,9 +294,9 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
     return BlocBuilder<RecommandationBloc, RecommandationState>(
       builder: (context, state) {
         if (state is RecommandationLoading) {
-           return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
-        
+
         List<Recommandation> recs = [];
         if (state is RecommandationLoaded) {
           recs = state.recommandations;
@@ -259,10 +307,20 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.thumb_up_alt_outlined, size: 60, color: Colors.green.withOpacity(0.5)),
+                Icon(
+                  Icons.thumb_up_alt_outlined,
+                  size: 60,
+                  color: Colors.green.withOpacity(0.5),
+                ),
                 const SizedBox(height: 16),
-                const Text("Tout est optimal !", style: TextStyle(color: Colors.grey, fontSize: 18)),
-                const Text("Aucun conseil pour le moment.", style: TextStyle(color: Colors.grey)),
+                const Text(
+                  "Tout est optimal !",
+                  style: TextStyle(color: Colors.grey, fontSize: 18),
+                ),
+                const Text(
+                  "Aucun conseil pour le moment.",
+                  style: TextStyle(color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -281,7 +339,11 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.green.shade100),
                 boxShadow: [
-                  BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 3)),
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
                 ],
               ),
               child: Row(
@@ -302,17 +364,26 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                       children: [
                         Text(
                           rec.titre,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           rec.description,
-                          style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 13,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         if (rec.impactEstime != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.orange.shade50,
                               borderRadius: BorderRadius.circular(4),
@@ -320,7 +391,11 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                             ),
                             child: Text(
                               "Impact: ${rec.impactEstime}",
-                              style: TextStyle(color: Colors.orange.shade800, fontSize: 11, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Colors.orange.shade800,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                       ],
@@ -337,11 +412,16 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
 
   IconData _getIconForType(RecommandationType type) {
     switch (type) {
-      case RecommandationType.irrigation: return Icons.water_drop;
-      case RecommandationType.fertilisation: return Icons.science;
-      case RecommandationType.traitement: return Icons.healing;
-      case RecommandationType.recolte: return Icons.agriculture;
-      default: return Icons.lightbulb_outline;
+      case RecommandationType.irrigation:
+        return Icons.water_drop;
+      case RecommandationType.fertilisation:
+        return Icons.science;
+      case RecommandationType.traitement:
+        return Icons.healing;
+      case RecommandationType.recolte:
+        return Icons.agriculture;
+      default:
+        return Icons.lightbulb_outline;
     }
   }
 
@@ -349,15 +429,15 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
     Color barColor = Colors.orange;
     IconData icon = Icons.warning_amber_rounded;
     Color iconColor = Colors.orange;
-    
+
     if (alert.category == AlertCategory.irrigation) {
-        barColor = Colors.green;
-        icon = Icons.check_circle_outline;
-        iconColor = Colors.green;
+      barColor = Colors.green;
+      icon = Icons.check_circle_outline;
+      iconColor = Colors.green;
     } else if (alert.category == AlertCategory.maladie) {
-        barColor = Colors.red;
-        icon = Icons.error_outline;
-        iconColor = Colors.red;
+      barColor = Colors.red;
+      icon = Icons.error_outline;
+      iconColor = Colors.red;
     }
 
     return Container(
@@ -371,24 +451,27 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           Icon(icon, color: iconColor),
-           const SizedBox(width: 12),
-           Expanded(
-             child: Column(
-               crossAxisAlignment: CrossAxisAlignment.start,
-               children: [
-                 Text(
-                   DateFormat('HH:mm').format(alert.date),
-                   style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                 ),
-                 const SizedBox(height: 4),
-                 Text(
-                   alert.title, 
-                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                 ),
-               ],
-             )
-           )
+          Icon(icon, color: iconColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  DateFormat('HH:mm').format(alert.date),
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  alert.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -399,7 +482,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFEBEE), 
+        color: const Color(0xFFFFEBEE),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.red[100]!),
       ),
@@ -408,7 +491,11 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
         children: [
           Row(
             children: [
-              const Icon(Icons.bug_report_outlined, color: Colors.red, size: 28),
+              const Icon(
+                Icons.bug_report_outlined,
+                color: Colors.red,
+                size: 28,
+              ),
               const SizedBox(width: 10),
               const Text(
                 "Alerte Maladie - IA",
@@ -422,11 +509,8 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
           ),
           const SizedBox(height: 12),
           Text(
-            alert.message, 
-            style: const TextStyle(
-              color: Color(0xFFB71C1C),
-              fontSize: 14,
-            ),
+            alert.message,
+            style: const TextStyle(color: Color(0xFFB71C1C), fontSize: 14),
           ),
           const SizedBox(height: 20),
           Row(
@@ -437,9 +521,15 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD32F2F),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: const Text("Voir\nRecommandations", textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
+                  child: const Text(
+                    "Voir\nRecommandations",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -449,33 +539,43 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFD32F2F),
                     side: const BorderSide(color: Color(0xFFD32F2F)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: const Text("Contacter un\nexpert", textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
+                  child: const Text(
+                    "Contacter un\nexpert",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
   }
 
   Widget _buildIrrigationCard(Alert alert) {
-     return Container(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFE3F2FD), 
+        color: const Color(0xFFE3F2FD),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.blue[100]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           Row(
+          Row(
             children: [
-              const Icon(Icons.water_drop_outlined, color: Colors.blue, size: 28),
+              const Icon(
+                Icons.water_drop_outlined,
+                color: Colors.blue,
+                size: 28,
+              ),
               const SizedBox(width: 10),
               const Text(
                 "Irrigation Programmée",
@@ -489,11 +589,8 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
           ),
           const SizedBox(height: 12),
           Text(
-            alert.message, 
-            style: const TextStyle(
-              color: Color(0xFF0D47A1),
-              fontSize: 14,
-            ),
+            alert.message,
+            style: const TextStyle(color: Color(0xFF0D47A1), fontSize: 14),
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -503,15 +600,17 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1976D2),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               child: const Text("Modifier la programmation"),
             ),
-          )
+          ),
         ],
       ),
-     );
+    );
   }
 
   Widget _buildPhCard(Alert alert) {
@@ -519,7 +618,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0), 
+        color: const Color(0xFFFFF3E0),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.orange[100]!),
       ),
@@ -528,7 +627,11 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
         children: [
           Row(
             children: [
-              const Icon(Icons.science_outlined, color: Colors.orange, size: 28),
+              const Icon(
+                Icons.science_outlined,
+                color: Colors.orange,
+                size: 28,
+              ),
               const SizedBox(width: 10),
               const Text(
                 "pH Acide",
@@ -542,7 +645,8 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
           ),
           const SizedBox(height: 12),
           Text(
-            alert.actionRecommandee ?? "Mets un peu de chaux ou de cendre de bois pour remonter le pH.",
+            alert.actionRecommandee ??
+                "Mets un peu de chaux ou de cendre de bois pour remonter le pH.",
             style: const TextStyle(
               color: Color(0xFFE65100),
               fontSize: 14,
@@ -553,5 +657,212 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
       ),
     );
   }
-}
 
+  // ======== ONGLETS ACHETEUR ========
+  Widget _buildBuyerNotificationsTab() {
+    // Notifications d'achat pour les acheteurs
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildBuyerNotificationCard(
+            icon: Icons.local_shipping,
+            iconColor: Colors.blue,
+            title: 'Commande en cours de livraison',
+            subtitle: 'Votre commande #CMD-2024-001 est en route',
+            time: 'Il y a 2h',
+          ),
+          _buildBuyerNotificationCard(
+            icon: Icons.check_circle,
+            iconColor: Colors.green,
+            title: 'Paiement confirmé',
+            subtitle: 'Paiement de 25 000 FCFA reçu avec succès',
+            time: 'Hier',
+          ),
+          _buildBuyerNotificationCard(
+            icon: Icons.star,
+            iconColor: Colors.orange,
+            title: 'Donnez votre avis',
+            subtitle: 'Que pensez-vous de votre dernière commande ?',
+            time: 'Il y a 2 jours',
+          ),
+          _buildBuyerNotificationCard(
+            icon: Icons.storefront,
+            iconColor: Colors.purple,
+            title: 'Nouveau vendeur vérifié',
+            subtitle: 'Coopérative de Yamoussoukro maintenant disponible',
+            time: 'Il y a 3 jours',
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBuyerNotificationCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String time,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            time,
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBuyerOffersTab() {
+    // Offres et promotions pour les acheteurs
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildOfferCard(
+            title: '🎉 -20% sur les semences',
+            description:
+                'Profitez de 20% de réduction sur toutes les semences jusqu\'au 15 février',
+            validUntil: 'Valable jusqu\'au 15/02/2026',
+            color: Colors.green,
+          ),
+          _buildOfferCard(
+            title: '🚚 Livraison gratuite',
+            description:
+                'Livraison offerte pour toute commande supérieure à 50 000 FCFA',
+            validUntil: 'Offre permanente',
+            color: Colors.blue,
+          ),
+          _buildOfferCard(
+            title: '🌾 Pack Producteur',
+            description:
+                'Engrais + Semences + Outils à prix réduit pour démarrer la saison',
+            validUntil: 'Stock limité',
+            color: Colors.orange,
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOfferCard({
+    required String title,
+    required String description,
+    required String validUntil,
+    required Color color,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  validUntil,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {},
+                child: Text(
+                  'Voir plus →',
+                  style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

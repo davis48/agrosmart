@@ -119,6 +119,29 @@ enum TransactionStatus {
   REFUNDED
 }
 
+enum StockCategory {
+  SEMENCES
+  ENGRAIS
+  PESTICIDES
+  HERBICIDES
+  OUTILS
+  RECOLTES
+  AUTRES
+}
+
+enum TypeMouvement {
+  ENTREE
+  SORTIE
+  AJUSTEMENT
+  PERTE
+}
+
+enum TypeAlerte {
+  STOCK_BAS
+  EXPIRATION_PROCHE
+  STOCK_EPUISE
+}
+
 // ============================================
 // MODELS
 // ============================================
@@ -234,6 +257,10 @@ model User {
   // Relations pour fonctionnalités Acheteur
   cart               Cart?
   favorites          Favorite[]
+  stocks             Stock[]
+  calendrierActivites CalendrierActivite[]
+  wishlist           Wishlist?
+  avis               Avis[]
 
   @@index([email])
   @@index([telephone])
@@ -302,6 +329,8 @@ model Parcelle {
   recommandations  Recommandation[]
   plantations      Plantation[]
   detections       DetectionMaladie[]
+  stocks           Stock[]
+  calendrierActivites CalendrierActivite[]
 
   @@index([userId])
   @@index([regionId])
@@ -507,6 +536,8 @@ model MarketplaceProduit {
   commandes     MarketplaceCommande[]
   cartItems     CartItem[]
   favorites     Favorite[]
+  wishlistItems WishlistItem[]
+  avis          Avis[]
 
   @@index([vendeurId])
   @@index([categorie])
@@ -560,6 +591,61 @@ model Favorite {
   @@index([userId])
   @@index([produitId])
   @@map("favorites")
+}
+
+// ============================================
+// WISHLIST (Liste de souhaits)
+// ============================================
+
+model Wishlist {
+  id            String          @id @default(uuid())
+  userId        String          @unique @map("user_id")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         WishlistItem[]
+
+  @@map("wishlists")
+}
+
+model WishlistItem {
+  id            String      @id @default(uuid())
+  wishlistId    String      @map("wishlist_id")
+  produitId     String      @map("produit_id")
+  addedAt       DateTime    @default(now()) @map("added_at")
+
+  wishlist      Wishlist    @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  produit       MarketplaceProduit @relation(fields: [produitId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, produitId])
+  @@index([wishlistId])
+  @@index([produitId])
+  @@map("wishlist_items")
+}
+
+// ============================================
+// AVIS & EVALUATIONS
+// ============================================
+
+model Avis {
+  id            String      @id @default(uuid())
+  produitId     String      @map("produit_id")
+  utilisateurId String      @map("utilisateur_id")
+  note          Int         // Note de 1 à 5
+  commentaire   String?     @db.Text
+  images        String?     @db.Text // JSON array of image URLs
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  produit       MarketplaceProduit @relation(fields: [produitId], references: [id], onDelete: Cascade)
+  utilisateur   User        @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@unique([produitId, utilisateurId]) // Un utilisateur ne peut donner qu'un seul avis par produit
+  @@index([produitId])
+  @@index([utilisateurId])
+  @@index([note])
+  @@map("avis")
 }
 
 model MarketplaceCommande {
@@ -1210,6 +1296,71 @@ model PerformanceParcelle {
   @@map("performance_parcelles")
 }
 
+model Stock {
+  id                String       @id @default(uuid())
+  userId            String       @map("user_id")
+  parcelleId        String?      @map("parcelle_id")
+  nom               String       @db.VarChar(200)
+  categorie         StockCategory
+  type              String       @db.VarChar(100) // Type spécifique (ex: Semences de Maïs, Engrais NPK)
+  quantite          Decimal      @db.Decimal(10, 2)
+  unite             String       @db.VarChar(20) // kg, L, sacs, etc.
+  seuilAlerte       Decimal      @map("seuil_alerte") @db.Decimal(10, 2) // Niveau minimum avant alerte
+  prixUnitaire      Decimal?     @map("prix_unitaire") @db.Decimal(10, 2)
+  dateAchat         DateTime?    @map("date_achat") @db.Date
+  dateExpiration    DateTime?    @map("date_expiration") @db.Date
+  fournisseur       String?      @db.VarChar(200)
+  localisation      String?      @db.VarChar(200) // Où est stocké le produit
+  notes             String?      @db.Text
+  estActif          Boolean      @default(true) @map("est_actif")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parcelle          Parcelle?    @relation(fields: [parcelleId], references: [id], onDelete: SetNull)
+  mouvements        MouvementStock[]
+  alertesStock      AlerteStock[]
+
+  @@index([userId])
+  @@index([parcelleId])
+  @@index([categorie])
+  @@map("stocks")
+}
+
+model MouvementStock {
+  id                String         @id @default(uuid())
+  stockId           String         @map("stock_id")
+  typeMouvement     TypeMouvement  @map("type_mouvement")
+  quantite          Decimal        @db.Decimal(10, 2)
+  quantiteAvant     Decimal        @map("quantite_avant") @db.Decimal(10, 2)
+  quantiteApres     Decimal        @map("quantite_apres") @db.Decimal(10, 2)
+  motif             String?        @db.Text
+  reference         String?        @db.VarChar(100) // Référence d'achat, de vente, etc.
+  createdAt         DateTime       @default(now()) @map("created_at")
+
+  stock             Stock          @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@index([stockId])
+  @@index([typeMouvement])
+  @@index([createdAt])
+  @@map("mouvements_stock")
+}
+
+model AlerteStock {
+  id                String        @id @default(uuid())
+  stockId           String        @map("stock_id")
+  typeAlerte        TypeAlerte    @map("type_alerte")
+  message           String        @db.Text
+  estLue            Boolean       @default(false) @map("est_lue")
+  createdAt         DateTime      @default(now()) @map("created_at")
+
+  stock             Stock         @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@index([stockId])
+  @@index([estLue])
+  @@map("alertes_stock")
+}
+
 model Meteo {
   id            String   @id @default(uuid())
   latitude      Decimal  @db.Decimal(10, 8)
@@ -1227,4 +1378,77 @@ model Meteo {
   @@index([latitude, longitude])
   @@index([observationAt])
   @@map("meteo")
+}
+// ============================================
+// CALENDRIER AGRICOLE
+// ============================================
+
+enum TypeActivite {
+  SEMIS
+  PLANTATION
+  ARROSAGE
+  FERTILISATION
+  TRAITEMENT
+  DESHERBAGE
+  TAILLE
+  RECOLTE
+  AUTRE
+}
+
+enum StatutActivite {
+  PLANIFIEE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+  REPORTEE
+}
+
+enum PrioriteActivite {
+  BASSE
+  MOYENNE
+  HAUTE
+  URGENTE
+}
+
+model CalendrierActivite {
+  id                String            @id @default(uuid())
+  userId            String            @map("user_id")
+  parcelleId        String?           @map("parcelle_id")
+  titre             String            @db.VarChar(255)
+  description       String?           @db.Text
+  typeActivite      TypeActivite      @map("type_activite")
+  statut            StatutActivite    @default(PLANIFIEE)
+  priorite          PrioriteActivite  @default(MOYENNE)
+  
+  // Dates
+  dateDebut         DateTime          @map("date_debut")
+  dateFin           DateTime?         @map("date_fin")
+  dateRappel        DateTime?         @map("date_rappel")
+  
+  // Récurrence
+  estRecurrente     Boolean           @default(false) @map("est_recurrente")
+  frequenceJours    Int?              @map("frequence_jours") // Nombre de jours entre chaque occurrence
+  dateFinRecurrence DateTime?         @map("date_fin_recurrence")
+  
+  // Détails
+  coutEstime        Decimal?          @map("cout_estime") @db.Decimal(10, 2)
+  notesTechniques   String?           @map("notes_techniques") @db.Text
+  produitsUtilises  String?           @map("produits_utilises") @db.Text // JSON array
+  
+  // Notification envoyée
+  rappelEnvoye      Boolean           @default(false) @map("rappel_envoye")
+  
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parcelle          Parcelle?         @relation(fields: [parcelleId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([parcelleId])
+  @@index([typeActivite])
+  @@index([statut])
+  @@index([dateDebut])
+  @@index([dateRappel])
+  @@map("calendrier_activites")
 }
