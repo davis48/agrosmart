@@ -18,7 +18,10 @@ class CertificatePinningManager {
 
   /// Initialise le certificate pinning en production
   Future<void> init() async {
-    if (_isInitialized || !EnvironmentConfig.isProduction) return;
+    if (_isInitialized || !EnvironmentConfig.isProduction) {
+      debugPrint('[SECURITY] 📋 Certificate pinning skipped (not in production)');
+      return;
+    }
 
     try {
       // Charger les certificats depuis les assets (à ajouter: assets/certs/api_cert.pem)
@@ -31,6 +34,7 @@ class CertificatePinningManager {
       debugPrint('[SECURITY] ⚠️ Certificate pinning non configuré: $e');
       // En prod, on ne veut pas bloquer si le certificat n'est pas disponible
       // mais on devrait logger cet événement
+      _isInitialized = false;
     }
   }
 
