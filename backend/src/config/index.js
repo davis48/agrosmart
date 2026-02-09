@@ -1,6 +1,6 @@
 /**
  * Configuration générale de l'application
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 // Charger le bon fichier .env selon l'environnement
@@ -69,7 +69,7 @@ const config = {
     port: parseInt(process.env.SMTP_PORT) || 587,
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASSWORD || '',
-    from: process.env.EMAIL_FROM || 'Agrosmart CI <noreply@agrosmart.ci>'
+    from: process.env.EMAIL_FROM || 'AgroSmart <noreply@agrosmart.ci>'
   },
 
   // API Météo

@@ -1,9 +1,10 @@
 /**
  * Group Purchases Controller
- * AgriSmart CI - Achats Groupés
+ * AgroSmart - Achats Groupés
  */
 
 const prisma = require('../config/prisma');
+const logger = require('../utils/logger');
 
 exports.getGroupPurchases = async (req, res, next) => {
     try {
@@ -23,7 +24,7 @@ exports.getGroupPurchases = async (req, res, next) => {
             data: purchases
         });
     } catch (error) {
-        console.error('Error fetching group purchases:', error);
+        logger.error('Error fetching group purchases:', error);
         next(error);
     }
 };
@@ -76,7 +77,7 @@ exports.joinGroupPurchase = async (req, res, next) => {
 
     } catch (error) {
         if (error.status === 404) return res.status(404).json({ success: false, message: error.message });
-        console.error('Error joining group purchase:', error);
+        logger.error('Error joining group purchase:', error);
         next(error);
     }
 };

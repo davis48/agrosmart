@@ -4,7 +4,7 @@
 
 ## Résumé
 
-Ce document présente les 3 nouvelles fonctionnalités majeures implémentées dans l'application mobile AgriSmart CI, suivant l'architecture Clean Architecture avec BLoC pattern.
+Ce document présente les 3 nouvelles fonctionnalités majeures implémentées dans l'application mobile AgroSmart, suivant l'architecture Clean Architecture avec BLoC pattern.
 
 ---
 
@@ -364,7 +364,7 @@ SyncStatusBanner(
 ✅ **Backend API** prêt et testé  
 ✅ **Documentation** complète  
 
-L'application AgriSmart CI est maintenant enrichie de fonctionnalités essentielles pour les agriculteurs:
+L'application AgroSmart est maintenant enrichie de fonctionnalités essentielles pour les agriculteurs:
 - Planification complète des activités agricoles
 - Traçabilité rapide via QR codes
 - Synchronisation intelligente en mode hors ligne

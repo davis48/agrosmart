@@ -1,6 +1,6 @@
 /**
  * Middleware de versioning API
- * AgriSmart CI - Backend
+ * AgroSmart - Backend
  * 
  * Gère le versioning de l'API via:
  * - Chemin URL: /api/v1/, /api/v2/

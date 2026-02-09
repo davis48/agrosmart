@@ -1,4 +1,4 @@
-# 📡 AgriSmart CI - IoT Service
+# 📡 AgroSmart - IoT Service
 
 Gateway pour la collecte et le traitement des données capteurs.
 

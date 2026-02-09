@@ -1,6 +1,6 @@
 /**
  * Service de notifications
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const prisma = require('../config/prisma');
@@ -68,7 +68,7 @@ exports.sendAlert = async (userId, alerte) => {
     if (prefs.whatsapp && user.telephone) {
       try {
         await smsService.sendWhatsApp(user.telephone,
-          `🌱 AgriSmart CI - ${alerte.titre}\n\n${alerte.message}`
+          `🌱 AgroSmart - ${alerte.titre}\n\n${alerte.message}`
         );
         results.whatsapp = true;
       } catch (error) {
@@ -197,7 +197,7 @@ exports.sendDailyReminder = async (userId, data) => {
     const emailContent = `
       Bonjour ${user.prenoms},
 
-      Voici votre résumé quotidien AgriSmart CI:
+      Voici votre résumé quotidien AgroSmart:
 
       📊 Parcelles: ${data.parcelles || 0}
       🌡️ Alertes actives: ${data.alertes || 0}
@@ -205,13 +205,13 @@ exports.sendDailyReminder = async (userId, data) => {
       📈 Mesures collectées: ${data.mesures || 0}
 
       Bonne journée !
-      L'équipe AgriSmart CI
+      L'équipe AgroSmart
     `;
 
     if (user.email) {
       await emailService.sendEmail(
         user.email,
-        '📊 Votre résumé quotidien AgriSmart CI',
+        '📊 Votre résumé quotidien AgroSmart',
         emailContent.replace(/\n/g, '<br>')
       );
     }

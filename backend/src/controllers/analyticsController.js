@@ -1,9 +1,10 @@
 /**
  * Contrôleur d'Analytique
- * AgriSmart CI - Statistiques et analytiques de la ferme
+ * AgroSmart - Statistiques et analytiques de la ferme
  */
 
 const prisma = require('../config/prisma');
+const logger = require('../utils/logger');
 
 /**
  * Obtenir les statistiques complètes de l'exploitation pour un utilisateur
@@ -168,7 +169,7 @@ exports.getStats = async (req, res, next) => {
             data: stats
         });
     } catch (error) {
-        console.error('Error fetching analytics:', error.message);
+        logger.error('Error fetching analytics:', error.message);
         next(error);
     }
 };
@@ -401,7 +402,7 @@ exports.getPublicStats = async (req, res, next) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching public stats:', error.message);
+        logger.error('Error fetching public stats:', error.message);
         // Fallback checks
         res.json({
             success: true,

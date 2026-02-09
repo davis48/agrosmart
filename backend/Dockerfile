@@ -1,10 +1,10 @@
 # ============================================
-# AgriSmart CI - Backend API Dockerfile (Development)
+# AgroSmart - Backend API Dockerfile (Development)
 # Optimisé pour le layer caching et rebuild rapide
 # Base de données: MySQL avec Prisma ORM
 # ============================================
 
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 
 # Installer les dépendances système (mutualisé et caché)
 RUN apt-get update && apt-get install -y \

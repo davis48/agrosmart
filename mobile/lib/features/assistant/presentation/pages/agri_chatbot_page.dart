@@ -90,7 +90,7 @@ class _AgriChatbotPageState extends State<AgriChatbotPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Assistant AgriSmart',
+                'Assistant AgroSmart',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,

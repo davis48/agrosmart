@@ -106,7 +106,7 @@ export default function RegisterPage() {
           setRequiresOtp(true)
           toast.success('Code OTP envoyé par SMS')
         } else {
-          login(response.data.data.user, response.data.data.token)
+          login(response.data.data.user, response.data.data.accessToken)
           toast.success('Compte créé avec succès!')
           router.push('/dashboard')
         }
@@ -133,7 +133,7 @@ export default function RegisterPage() {
       const response = await authApi.verifyOtp({ telephone: getValues('telephone'), otp: otpCode })
 
       if (response.data.success) {
-        login(response.data.data.user, response.data.data.token)
+        login(response.data.data.user, response.data.data.accessToken)
         toast.success('Compte vérifié avec succès!')
         router.push('/dashboard')
       } else {
@@ -164,7 +164,7 @@ export default function RegisterPage() {
           <Leaf className="h-8 w-8 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AgriTech CI</h1>
+          <h1 className="text-2xl font-bold text-gray-900">AgroSmart</h1>
           <p className="text-sm text-gray-500">Surveillance Agricole Intelligente</p>
         </div>
       </div>

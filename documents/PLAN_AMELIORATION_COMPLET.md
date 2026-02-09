@@ -1,4 +1,4 @@
-# 📋 PLAN D'AMÉLIORATION COMPLET - AgriSmart CI
+# 📋 PLAN D'AMÉLIORATION COMPLET - AgroSmart
 
 ## Objectif: Atteindre 10/10 sur tous les critères
 

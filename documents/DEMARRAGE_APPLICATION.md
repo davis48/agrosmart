@@ -1,4 +1,4 @@
-# 🚀 Guide de Démarrage - AgriSmart CI
+# 🚀 Guide de Démarrage - AgroSmart
 
 ## ✅ État Actuel de l'Application
 

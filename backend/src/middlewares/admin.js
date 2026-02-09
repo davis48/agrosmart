@@ -1,6 +1,6 @@
 /**
  * Middleware Admin
- * AgriSmart CI - Backend API
+ * AgroSmart - Backend API
  * 
  * Middleware simplifié pour vérifier les permissions administrateur
  */

@@ -1,6 +1,6 @@
 /**
  * Routes du Marketplace
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const express = require('express');

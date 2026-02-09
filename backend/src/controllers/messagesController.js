@@ -1,6 +1,6 @@
 /**
  * Contrôleur des Messages
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Table messages: id, user_id, destinataire_id, cooperative_id, est_public,
  *                 contenu, type, media_url, parcelle_id, alerte_id, lu, lu_at, created_at

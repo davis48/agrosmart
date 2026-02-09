@@ -9,7 +9,7 @@ class AppLocalizationsBci extends AppLocalizations {
   AppLocalizationsBci([String locale = 'bci']) : super(locale);
 
   @override
-  String get appTitle => 'Agrosmart CI';
+  String get appTitle => 'AgroSmart';
 
   @override
   String get welcome => 'Akwaba';

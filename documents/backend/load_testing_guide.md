@@ -1,4 +1,4 @@
-# Load Testing Setup for AgriSmart CI
+# Load Testing Setup for AgroSmart
 
 ## Installation
 

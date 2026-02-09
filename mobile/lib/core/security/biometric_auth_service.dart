@@ -120,7 +120,7 @@ class BiometricAuthService {
   /// Authentification simplifiée pour connexion rapide
   Future<bool> authenticateForLogin() async {
     final result = await authenticate(
-      localizedReason: 'Authentifiez-vous pour vous connecter à AgriSmart',
+      localizedReason: 'Authentifiez-vous pour vous connecter à AgroSmart',
       useErrorDialogs: true,
       stickyAuth: true,
       sensitiveTransaction: false,

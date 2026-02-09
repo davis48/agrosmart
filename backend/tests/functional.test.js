@@ -1,5 +1,5 @@
 /**
- * Tests Fonctionnels AgriSmart CI
+ * Tests Fonctionnels AgroSmart
  * ================================
  * Tests de création de compte, connexion, parcelles, etc.
  */
@@ -61,7 +61,7 @@ const API_PREFIX = '/api/v1';
 const generatePhone = () => `+2250${Math.floor(100000000 + Math.random() * 900000000)}`;
 const generateEmail = () => `test${Date.now()}@agrismart.ci`;
 
-describe('🧪 Tests Fonctionnels AgriSmart CI', () => {
+describe('🧪 Tests Fonctionnels AgroSmart', () => {
   let authToken;
   let testUserId;
   let testParcelleId;

@@ -6,8 +6,8 @@
  */
 
 const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const logger = require('../utils/logger');
+const prisma = require('../config/prisma');
 
 const PASSWORD_HISTORY_LIMIT = 5; // Nombre de mots de passe à conserver
 
@@ -60,7 +60,7 @@ class PasswordService {
 
       return { isReused: false };
     } catch (error) {
-      console.error('Erreur lors de la vérification de l\'historique:', error);
+      logger.error('Erreur lors de la vérification de l\'historique:', error);
       throw error;
     }
   }
@@ -97,7 +97,7 @@ class PasswordService {
         });
       }
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde dans l\'historique:', error);
+      logger.error('Erreur lors de la sauvegarde dans l\'historique:', error);
       throw error;
     }
   }
@@ -152,7 +152,7 @@ class PasswordService {
 
       return { success: true, message: 'Mot de passe modifié avec succès' };
     } catch (error) {
-      console.error('Erreur lors du changement de mot de passe:', error);
+      logger.error('Erreur lors du changement de mot de passe:', error);
       throw error;
     }
   }

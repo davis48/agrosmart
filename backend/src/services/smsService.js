@@ -1,6 +1,6 @@
 /**
  * Service SMS via Twilio
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const config = require('../config');
@@ -70,7 +70,7 @@ exports.sendSms = async (to, body) => {
  * Envoyer un code OTP par SMS
  */
 exports.sendOtp = async (to, otp) => {
-  const body = `Votre code de vérification AgriSmart CI est: ${otp}. Ce code expire dans 10 minutes.`;
+  const body = `Votre code de vérification AgroSmart est: ${otp}. Ce code expire dans 10 minutes.`;
   return this.sendSms(to, body);
 };
 
@@ -85,7 +85,7 @@ exports.sendAlert = async (to, alerte) => {
   };
 
   const emoji = niveauEmoji[alerte.niveau] || '';
-  const body = `${emoji} AgriSmart CI - ${alerte.titre}\n${alerte.message}`;
+  const body = `${emoji} AgroSmart - ${alerte.titre}\n${alerte.message}`;
 
   return this.sendSms(to, body);
 };

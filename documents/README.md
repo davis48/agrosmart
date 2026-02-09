@@ -139,4 +139,4 @@ Chaque micro-service possède sa propre documentation détaillée :
 
 ## 📞 Support
 
-Pour toute assistance, contactez l'équipe technique AgriSmart CI.
+Pour toute assistance, contactez l'équipe technique AgroSmart.

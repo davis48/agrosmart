@@ -1,6 +1,6 @@
 /**
  * Soft Delete Middleware pour Prisma
- * AgriSmart CI - Backend
+ * AgroSmart - Backend
  * 
  * Ce middleware intercepte les opérations de suppression et les convertit
  * en mises à jour de soft delete. Il filtre également automatiquement

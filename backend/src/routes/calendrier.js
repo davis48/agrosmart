@@ -7,7 +7,7 @@ const router = express.Router();
 const calendrierController = require('../controllers/calendrierController');
 const { authenticate } = require('../middlewares/auth');
 const { body, query, param } = require('express-validator');
-const validate = require('../middlewares/validate');
+const { validate } = require('../middlewares/validation');
 
 // Toutes les routes nécessitent une authentification
 router.use(authenticate);

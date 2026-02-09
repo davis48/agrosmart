@@ -1,6 +1,6 @@
 /**
  * Contrôleur des cultures et plantations
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const prisma = require('../config/prisma');

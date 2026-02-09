@@ -1,11 +1,12 @@
 /**
  * Middleware de validation des requêtes
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const { validationResult, body, param, query } = require('express-validator');
 const { AppError } = require('./errorHandler');
 const config = require('../config');
+const logger = require('../utils/logger');
 
 /**
  * Middleware pour vérifier les résultats de validation
@@ -24,7 +25,7 @@ const validate = (req, res, next) => {
     // Log seulement en développement, sans valeurs sensibles
     if (config.isDev) {
       const safeErrors = errorMessages.map(({ field, message }) => ({ field, message }));
-      console.log('[DEV] VALIDATION_ERRORS:', JSON.stringify(safeErrors, null, 2));
+      logger.debug('Validation errors', { errors: safeErrors });
     }
 
     // Créer un message explicite avec toutes les erreurs

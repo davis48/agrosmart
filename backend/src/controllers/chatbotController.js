@@ -1,6 +1,6 @@
 /**
  * Contrôleur Chatbot IA Assistant Vocal
- * AgriSmart CI - Backend
+ * AgroSmart - Backend
  * 
  * Ce contrôleur gère l'assistant vocal multilingue capable de:
  * - Répondre aux questions agricoles
@@ -197,7 +197,7 @@ const AVAILABLE_ACTIONS = {
  */
 const LOCAL_RESPONSES = {
   bci: {
-    greeting: 'Aló! N ti AgriSmart uka. Ɔ sɛ man a?',
+    greeting: 'Aló! N ti AgroSmart uka. Ɔ sɛ man a?',
     weather_good: 'Andɛ wia su nglo kpa. I fie su duman.',
     weather_rain: 'Nzue su ba. Man fa i ninnge mun sie kpa.',
     alert_critical: 'Sa tɛ kpa! Fa i wun nian i fie.',
@@ -210,7 +210,7 @@ const LOCAL_RESPONSES = {
     goodbye: 'Kloman! Ka nglɛmun!'
   },
   dyu: {
-    greeting: 'I ni sogoma! N ye AgriSmart dɛmɛbaga ye. N bɛ se ka i dɛmɛ cogo di?',
+    greeting: 'I ni sogoma! N ye AgroSmart dɛmɛbaga ye. N bɛ se ka i dɛmɛ cogo di?',
     weather_good: 'Bi tile bɛ ɲi. Waati ka ɲi sɛnɛ ye.',
     weather_rain: 'Sanjii bɛna na. I ka i fɛnw mara.',
     alert_critical: 'Kibaro gɛlɛn! Taa i sɛnɛ lajɛ joona.',
@@ -223,7 +223,7 @@ const LOCAL_RESPONSES = {
     goodbye: 'K\'an bɛn! Ka tile ɲi!'
   },
   sev: {
-    greeting: 'Wali! N ye AgriSmart demebaga ye. N kɔ ye i deme?',
+    greeting: 'Wali! N ye AgroSmart demebaga ye. N kɔ ye i deme?',
     weather_good: 'Bi yiri ye. Sangari ka di fankan ye.',
     weather_rain: 'Fyɛ bɛna na. I ka i fɛnw mara.',
     alert_critical: 'Tifaari gbɔgɔ! Kàn i fankan lɛɛri joona.',
@@ -729,7 +729,7 @@ async function generateResponse(intent, entities, context, langue, historique) {
       if (localResponses.greeting) {
         text = localResponses.greeting;
       } else {
-        text = `Bonjour! Je suis votre assistant AgriSmart. Comment puis-je vous aider aujourd'hui?`;
+        text = `Bonjour! Je suis votre assistant AgroSmart. Comment puis-je vous aider aujourd'hui?`;
       }
       suggestions = ['Voir mes parcelles', 'Météo', 'Alertes', 'Marketplace'];
       break;

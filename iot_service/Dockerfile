@@ -1,13 +1,13 @@
 # ========================================
 # Dockerfile - IoT Service
-# AgriSmart CI - Gateway IoT
+# AgroSmart - Gateway IoT
 # ========================================
 
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Informations de build
-LABEL maintainer="AgriSmart CI Team"
-LABEL description="IoT Gateway Service for AgriSmart CI"
+LABEL maintainer="AgroSmart Team"
+LABEL description="IoT Gateway Service for AgroSmart"
 
 # Dossier de travail
 WORKDIR /app

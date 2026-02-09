@@ -1,6 +1,6 @@
 /**
  * Index des Services
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const smsService = require('./smsService');

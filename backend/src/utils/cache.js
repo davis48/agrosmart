@@ -1,6 +1,6 @@
 /**
  * Service de cache Redis amélioré
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Features:
  * - Cache météo (30 minutes)

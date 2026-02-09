@@ -9,7 +9,7 @@ class AppLocalizationsFf extends AppLocalizations {
   AppLocalizationsFf([String locale = 'ff']) : super(locale);
 
   @override
-  String get appTitle => 'Agrosmart CI';
+  String get appTitle => 'AgroSmart';
 
   @override
   String get welcome => 'Jam weli';

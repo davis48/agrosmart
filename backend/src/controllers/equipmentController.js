@@ -1,9 +1,10 @@
 /**
  * Equipment Rental Controller
- * AgriSmart CI - Marketplace Location d'Équipements
+ * AgroSmart - Marketplace Location d'Équipements
  */
 
 const prisma = require('../config/prisma');
+const logger = require('../utils/logger');
 
 /**
  * Get all available equipment (optionally filtered by category)
@@ -49,7 +50,7 @@ exports.getEquipments = async (req, res, next) => {
             data: equipmentsWithStats
         });
     } catch (error) {
-        console.error('Error fetching equipment:', error);
+        logger.error('Error fetching equipment:', error);
         next(error);
     }
 };
@@ -112,7 +113,7 @@ exports.getEquipmentById = async (req, res, next) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching equipment details:', error);
+        logger.error('Error fetching equipment details:', error);
         next(error);
     }
 };
@@ -161,7 +162,7 @@ exports.createEquipment = async (req, res, next) => {
             data: equipment
         });
     } catch (error) {
-        console.error('Error creating equipment:', error);
+        logger.error('Error creating equipment:', error);
         next(error);
     }
 };
@@ -242,7 +243,7 @@ exports.createRentalRequest = async (req, res, next) => {
             data: rental
         });
     } catch (error) {
-        console.error('Error creating rental request:', error);
+        logger.error('Error creating rental request:', error);
         next(error);
     }
 };
@@ -281,7 +282,7 @@ exports.getMyRentals = async (req, res, next) => {
             data: formatted
         });
     } catch (error) {
-        console.error('Error fetching user rentals:', error);
+        logger.error('Error fetching user rentals:', error);
         next(error);
     }
 };
@@ -320,7 +321,7 @@ exports.getRentalRequests = async (req, res, next) => {
             data: formatted
         });
     } catch (error) {
-        console.error('Error fetching rental requests:', error);
+        logger.error('Error fetching rental requests:', error);
         next(error);
     }
 };
@@ -372,7 +373,7 @@ exports.updateRentalStatus = async (req, res, next) => {
             data: updatedRental
         });
     } catch (error) {
-        console.error('Error updating rental status:', error);
+        logger.error('Error updating rental status:', error);
         next(error);
     }
 };
@@ -407,7 +408,7 @@ exports.cancelRental = async (req, res, next) => {
             message: 'Location annulée'
         });
     } catch (error) {
-        console.error('Error canceling rental:', error);
+        logger.error('Error canceling rental:', error);
         next(error);
     }
 };

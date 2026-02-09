@@ -1,6 +1,6 @@
 /**
  * Validateurs communs réutilisables
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const { param, query } = require('express-validator');

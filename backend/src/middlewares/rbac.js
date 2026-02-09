@@ -1,6 +1,6 @@
 /**
  * Middleware de contrôle d'accès basé sur les rôles (RBAC)
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Ce module implémente le contrôle d'accès basé sur les rôles (Role-Based Access Control)
  * pour sécuriser les endpoints de l'API selon les permissions des utilisateurs.

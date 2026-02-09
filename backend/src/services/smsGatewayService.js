@@ -1,6 +1,6 @@
 /**
  * Service SMS Gateway
- * AgriSmart CI - Backend
+ * AgroSmart - Backend
  * 
  * Utilise Africa's Talking API pour l'envoi de SMS en Côte d'Ivoire
  * Fallback vers Twilio si nécessaire
@@ -19,7 +19,7 @@ const SMS_PROVIDERS = {
 const SMS_TEMPLATES = {
   // Alertes météo
   weather_alert: {
-    fr: "⚠️ ALERTE METEO AgriSmart: {message}. Parcelle: {parcelle}. Protégez vos cultures!",
+    fr: "⚠️ ALERTE METEO AgroSmart: {message}. Parcelle: {parcelle}. Protégez vos cultures!",
     bci: "⚠️ ALERTE: {message}. {parcelle} su. Aw nian aw djué!",
     dyu: "⚠️ ALERTE: {message}. {parcelle} kɔnɔ. Aw ka sɛnɛ tanga!",
   },
@@ -49,15 +49,15 @@ const SMS_TEMPLATES = {
   },
   // Confirmation inscription
   welcome: {
-    fr: "Bienvenue sur Agrosmart CI! Votre compte agriculteur est activé. Appelez le 1234 pour aide.",
-    bci: "Akwaba Agrosmart CI su! Aw compte ti kpa. Frapper 1234 aide ti.",
-    dyu: "Aw ni sɔgɔma Agrosmart CI! Aw ka jatebila dabɔra. 1234 wele dɛmɛ fɛ.",
+    fr: "Bienvenue sur AgroSmart! Votre compte agriculteur est activé. Appelez le 1234 pour aide.",
+    bci: "Akwaba AgroSmart su! Aw compte ti kpa. Frapper 1234 aide ti.",
+    dyu: "Aw ni sɔgɔma AgroSmart! Aw ka jatebila dabɔra. 1234 wele dɛmɛ fɛ.",
   },
   // Code OTP
   otp: {
-    fr: "Votre code Agrosmart: {code}. Valide 10 minutes. Ne partagez pas ce code.",
-    bci: "Aw Agrosmart code: {code}. Minute 10 kpa. Kan man fa sran be.",
-    dyu: "Aw ka Agrosmart kode: {code}. Miniti 10 kɔnɔ. Kana a di mɔgɔ ma.",
+    fr: "Votre code AgroSmart: {code}. Valide 10 minutes. Ne partagez pas ce code.",
+    bci: "Aw AgroSmart code: {code}. Minute 10 kpa. Kan man fa sran be.",
+    dyu: "Aw ka AgroSmart kode: {code}. Miniti 10 kɔnɔ. Kana a di mɔgɔ ma.",
   },
   // Alerte capteur
   sensor_alert: {
@@ -86,7 +86,7 @@ class SmsGatewayService {
     this.provider = process.env.SMS_PROVIDER || SMS_PROVIDERS.AFRICAS_TALKING;
     this.apiKey = process.env.SMS_API_KEY;
     this.apiSecret = process.env.SMS_API_SECRET;
-    this.senderId = process.env.SMS_SENDER_ID || 'Agrosmart';
+    this.senderId = process.env.SMS_SENDER_ID || 'AgroSmart';
     this.initialized = false;
     this.messageQueue = [];
     this.rateLimitPerSecond = 10;

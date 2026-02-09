@@ -1,19 +1,19 @@
 {
-    "name": "agrismart-iot-service",
+    "name": "agrosmart-iot-service",
     "version": "1.0.0",
-    "description": "Service d'ingestion IoT pour AgriSmart CI",
+    "description": "Service d'ingestion IoT pour AgroSmart",
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js"
     },
     "dependencies": {
-        "bullmq": "^5.66.2",
-        "dotenv": "^16.3.1",
+        "bullmq": "^5.67.3",
+        "dotenv": "^17.2.4",
         "mqtt": "^5.14.1",
         "pg": "^8.16.3"
     },
     "devDependencies": {
-        "nodemon": "^3.0.2"
+        "nodemon": "^3.1.11"
     }
 }

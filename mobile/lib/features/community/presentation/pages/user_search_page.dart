@@ -150,7 +150,7 @@ class _UserSearchPageState extends State<UserSearchPage> {
                           user.name,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        subtitle: Text(user.bio ?? 'Agrosmart Membre'),
+                        subtitle: Text(user.bio ?? 'AgroSmart Membre'),
                         trailing: IconButton(
                           icon: const Icon(Icons.message, color: Colors.blue),
                           onPressed: () => _startChat(user),

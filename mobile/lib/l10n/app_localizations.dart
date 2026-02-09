@@ -105,7 +105,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Agrosmart CI'**
+  /// **'AgroSmart'**
   String get appTitle;
 
   /// No description provided for @welcome.

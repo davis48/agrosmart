@@ -1,6 +1,6 @@
 /**
  * Middleware de sécurité avancée
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Ce module fournit des fonctionnalités de sécurité supplémentaires:
  * - Protection XSS avancée

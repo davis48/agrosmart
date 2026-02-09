@@ -102,7 +102,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'Agrosmart CI',
+                    'AgroSmart',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

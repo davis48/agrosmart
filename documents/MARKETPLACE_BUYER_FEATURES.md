@@ -2,7 +2,7 @@
 
 ## 📋 Vue d'ensemble
 
-Ce document récapitule les nouvelles fonctionnalités implémentées pour améliorer l'expérience utilisateur (UX) côté acheteur dans le marketplace de l'application AgriSmart CI.
+Ce document récapitule les nouvelles fonctionnalités implémentées pour améliorer l'expérience utilisateur (UX) côté acheteur dans le marketplace de l'application AgroSmart.
 
 ## ✅ Fonctionnalités Implémentées
 
@@ -456,4 +456,4 @@ Toutes les fonctionnalités pour une expérience utilisateur parfaite côté ach
 ---
 
 *Document généré le 15/01/2024*
-*AgriSmart CI - Version Mobile & Backend*
+*AgroSmart - Version Mobile & Backend*

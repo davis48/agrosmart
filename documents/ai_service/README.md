@@ -1,4 +1,4 @@
-# 🧠 AgriSmart CI - AI Service
+# 🧠 AgroSmart - AI Service
 
 Service de détection de maladies des plantes par vision par ordinateur.
 

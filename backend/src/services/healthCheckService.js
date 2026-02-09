@@ -1,6 +1,6 @@
 /**
  * Service de Health Checks Avancés
- * AgriSmart CI - Backend
+ * AgroSmart - Backend
  * 
  * Endpoints de monitoring pour vérifier la santé de tous les services:
  * - Base de données MySQL

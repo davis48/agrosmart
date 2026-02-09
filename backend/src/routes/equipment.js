@@ -1,6 +1,6 @@
 /**
  * Equipment Rental Routes
- * AgriSmart CI - Marketplace Location d'Équipements
+ * AgroSmart - Marketplace Location d'Équipements
  */
 
 const express = require('express');

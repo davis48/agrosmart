@@ -1,5 +1,5 @@
 /// Service de langues locales ivoiriennes
-/// AgriSmart CI - Application Mobile
+/// AgroSmart - Application Mobile
 ///
 /// Support des langues:
 /// - Français (par défaut)

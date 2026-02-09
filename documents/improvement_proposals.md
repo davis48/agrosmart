@@ -1,4 +1,4 @@
-# 🚀 Propositions d'Amélioration pour AgriSmart CI
+# 🚀 Propositions d'Amélioration pour AgroSmart
 
 Suite à l'analyse approfondie de votre projet, voici des axes d'amélioration concrets pour passer au niveau supérieur. Ces propositions visent à augmenter l'engagement utilisateur, la valeur ajoutée des données et l'impact réel sur le terrain.
 

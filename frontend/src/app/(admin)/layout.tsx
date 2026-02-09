@@ -67,9 +67,7 @@ export default function AdminLayout({
   // Vérifier l'authentification et le rôle admin
   useEffect(() => {
     if (mounted) {
-      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-
-      if (!isAuthenticated && !storedToken && !token) {
+      if (!isAuthenticated && !token) {
         router.push('/login')
         return
       }
@@ -124,7 +122,7 @@ export default function AdminLayout({
               <Shield className="h-6 w-6 text-white" />
             </div>
             <div>
-              <span className="text-lg font-bold">AgriTech CI</span>
+              <span className="text-lg font-bold">AgroSmart</span>
               <span className="block text-xs text-slate-400">Administration</span>
             </div>
           </Link>

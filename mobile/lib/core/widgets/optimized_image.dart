@@ -1,5 +1,5 @@
 /// Service d'optimisation des images
-/// AgriSmart CI - Application Mobile
+/// AgroSmart - Application Mobile
 ///
 /// Fonctionnalités:
 /// - Lazy loading d'images

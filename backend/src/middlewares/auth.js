@@ -1,6 +1,6 @@
 /**
  * Middleware d'authentification JWT
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Ce module fournit les fonctions d'authentification et de gestion des tokens JWT.
  * Toutes les fonctions implémentent les meilleures pratiques de sécurité :

@@ -4,8 +4,6 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
-  // Enable preview features for better performance
-  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -261,6 +259,7 @@ model User {
   calendrierActivites CalendrierActivite[]
   wishlist           Wishlist?
   avis               Avis[]
+  userPoints         UserPoint?
 
   @@index([email])
   @@index([telephone])
@@ -738,17 +737,20 @@ model ForumReponse {
 }
 
 model Message {
-  id              String    @id @default(uuid())
-  expediteurId    String    @map("expediteur_id")
-  destinataireId  String    @map("destinataire_id")
-  sujet           String?   @db.VarChar(255)
-  contenu         String    @db.Text
-  lu              Boolean   @default(false)
-  createdAt       DateTime  @default(now()) @map("created_at")
+  id              String        @id @default(uuid())
+  conversationId  String?       @map("conversation_id")
+  expediteurId    String        @map("expediteur_id")
+  destinataireId  String        @map("destinataire_id")
+  sujet           String?       @db.VarChar(255)
+  contenu         String        @db.Text
+  lu              Boolean       @default(false)
+  createdAt       DateTime      @default(now()) @map("created_at")
 
-  expediteur      User      @relation("MessagesSent", fields: [expediteurId], references: [id], onDelete: Cascade)
-  destinataire    User      @relation("MessagesReceived", fields: [destinataireId], references: [id], onDelete: Cascade)
+  conversation    Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  expediteur      User          @relation("MessagesSent", fields: [expediteurId], references: [id], onDelete: Cascade)
+  destinataire    User          @relation("MessagesReceived", fields: [destinataireId], references: [id], onDelete: Cascade)
 
+  @@index([conversationId])
   @@index([expediteurId])
   @@index([destinataireId])
   @@map("messages")
@@ -1451,4 +1453,36 @@ model CalendrierActivite {
   @@index([dateDebut])
   @@index([dateRappel])
   @@map("calendrier_activites")
+}
+
+model UserPoint {
+  id                String    @id @default(uuid())
+  userId            String    @unique @map("user_id")
+  pointsTotal       Int       @default(0) @map("points_total")
+  niveau            Int       @default(1)
+  actionsCompletees Int       @default(0) @map("actions_completees")
+  derniereActivite  DateTime? @map("derniere_activite")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_points")
+}
+
+model Conversation {
+  id                String    @id @default(uuid())
+  type              String    @default("prive") @db.VarChar(20)
+  nom               String?   @db.VarChar(255)
+  participants      Json      // JSON array of user IDs
+  adminId           String?   @map("admin_id")
+  estActif          Boolean   @default(true) @map("est_actif")
+  dernierMessageAt  DateTime? @map("dernier_message_at")
+  nbMessages        Int       @default(0) @map("nb_messages")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  messages          Message[]
+
+  @@map("conversations")
 }

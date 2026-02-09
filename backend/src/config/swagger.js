@@ -1,6 +1,6 @@
 /**
  * Configuration Swagger/OpenAPI
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Documentation interactive de l'API REST
  * Accessible à /api/docs
@@ -15,7 +15,7 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.3',
     info: {
-      title: 'AgriSmart CI API',
+      title: 'AgroSmart API',
       version: '1.0.0',
       description: `
         API REST du système agricole intelligent pour la Côte d'Ivoire.
@@ -43,7 +43,7 @@ const swaggerOptions = {
         - API général: 100 requêtes / minute
       `,
       contact: {
-        name: 'Agrosmart CI Support',
+        name: 'AgroSmart Support',
         email: 'support@agrosmart.ci',
         url: 'https://agrosmart.ci'
       },
@@ -433,7 +433,7 @@ const setupSwagger = (app) => {
       .swagger-ui .info { margin: 20px 0; }
       .swagger-ui .info .title { color: #2e7d32; }
     `,
-    customSiteTitle: 'AgriSmart CI API Documentation',
+    customSiteTitle: 'AgroSmart API Documentation',
     customfavIcon: '/favicon.ico'
   }));
 
@@ -443,7 +443,8 @@ const setupSwagger = (app) => {
     res.send(swaggerSpec);
   });
 
-  console.log(`📚 Swagger docs available at /api/docs`);
+  const logger = require('../utils/logger');
+  logger.info('Swagger docs available at /api/docs');
 };
 
 module.exports = { setupSwagger, swaggerSpec };

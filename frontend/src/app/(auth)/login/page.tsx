@@ -59,7 +59,7 @@ export default function LoginPage() {
           toast.success('Code OTP envoyé par SMS')
         } else {
           setDebugMessage('Connexion réussie! Redirection...')
-          login(response.data.data.user, response.data.data.token)
+          login(response.data.data.user, response.data.data.accessToken)
           toast.success('Connexion réussie!')
 
           // Rediriger vers le dashboard admin si l'utilisateur est admin
@@ -106,7 +106,7 @@ export default function LoginPage() {
       const response = await authApi.verifyOtp({ telephone: getValues('telephone'), otp: otpCode })
 
       if (response.data.success) {
-        login(response.data.data.user, response.data.data.token)
+        login(response.data.data.user, response.data.data.accessToken)
         toast.success('Connexion réussie!')
         router.push('/dashboard')
       } else {
@@ -137,8 +137,8 @@ export default function LoginPage() {
           <Leaf className="h-8 w-8 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AgriTech CI</h1>
-          <p className="text-sm text-gray-500">Surveillance Agricole Intelligente</p>
+          <h1 className="text-2xl font-bold text-gray-900">AgroSmart</h1>
+          <p className="text-sm text-gray-500">Plateforme Agricole Intelligente</p>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 /**
  * Utilitaires de pagination standardisée
- * AgriSmart CI - Backend
+ * AgroSmart - Backend
  * 
  * Format de réponse standard pour toutes les listes paginées:
  * {

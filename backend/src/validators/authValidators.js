@@ -1,6 +1,6 @@
 /**
  * Validateurs pour l'authentification
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const { body, param } = require('express-validator');

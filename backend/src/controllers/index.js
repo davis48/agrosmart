@@ -1,6 +1,6 @@
 /**
  * Index des Contrôleurs
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const authController = require('./authController');

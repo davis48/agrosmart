@@ -1,6 +1,6 @@
 /**
  * Weather Routes - OpenWeather API
- * AgriSmart CI
+ * AgroSmart
  */
 
 const express = require('express');

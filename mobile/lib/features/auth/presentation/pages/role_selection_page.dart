@@ -55,7 +55,7 @@ class RoleSelectionPage extends StatelessWidget {
               const SizedBox(height: 20),
               // Titre
               Text(
-                'Bienvenue sur Agrosmart CI',
+                'Bienvenue sur AgroSmart',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

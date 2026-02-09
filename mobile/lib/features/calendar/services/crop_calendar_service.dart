@@ -1,5 +1,5 @@
 /// Calendrier Cultural Intelligent pour la Côte d'Ivoire
-/// AgriSmart CI - Application Mobile
+/// AgroSmart - Application Mobile
 ///
 /// Fournit les périodes optimales de semis, entretien et récolte
 /// basées sur les régions et le climat ivoirien.

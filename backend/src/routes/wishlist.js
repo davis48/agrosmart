@@ -1,17 +1,28 @@
+/**
+ * Routes pour la wishlist (liste de souhaits)
+ * AgroSmart - Système Agricole Intelligent
+ */
+
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middlewares/auth');
-const { PrismaClient } = require('@prisma/client');
+const { authenticate } = require('../middlewares/auth');
+const prisma = require('../config/prisma');
+const logger = require('../utils/logger');
 
-const prisma = new PrismaClient();
+// Toutes les routes nécessitent l'authentification
+router.use(authenticate);
 
-// Get user's wishlist
-router.get('/wishlist', authenticateToken, async (req, res) => {
+/**
+ * @route   GET /api/v1/wishlist
+ * @desc    Récupérer la wishlist de l'utilisateur
+ * @access  Private
+ */
+router.get('/', async (req, res) => {
   try {
-    const utilisateurId = req.user.id;
+    const userId = req.user.id;
 
-    const wishlist = await prisma.wishlist.findFirst({
-      where: { utilisateur_id: utilisateurId },
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { userId },
       include: {
         items: {
           include: {
@@ -20,232 +31,221 @@ router.get('/wishlist', authenticateToken, async (req, res) => {
                 id: true,
                 nom: true,
                 prix: true,
-                image_url: true,
-                quantite_stock: true,
+                images: true,
+                stock: true,
               },
             },
           },
-          orderBy: { added_at: 'desc' },
+          orderBy: { addedAt: 'desc' },
         },
       },
     });
 
     if (!wishlist) {
-      // Create empty wishlist
       const newWishlist = await prisma.wishlist.create({
-        data: {
-          utilisateur_id: utilisateurId,
-        },
+        data: { userId },
       });
 
       return res.json({
+        success: true,
         data: {
           id: newWishlist.id,
-          utilisateur_id: newWishlist.utilisateur_id,
           items: [],
-          created_at: newWishlist.created_at,
-          updated_at: newWishlist.updated_at,
+          createdAt: newWishlist.createdAt,
         },
       });
     }
 
     const formattedItems = wishlist.items.map(item => ({
       id: item.id,
-      produit_id: item.produit_id,
+      produitId: item.produitId,
       nom: item.produit.nom,
       prix: item.produit.prix,
-      image_url: item.produit.image_url,
-      disponible: item.produit.quantite_stock > 0,
-      added_at: item.added_at,
+      images: item.produit.images,
+      disponible: item.produit.stock > 0,
+      addedAt: item.addedAt,
     }));
 
     res.json({
+      success: true,
       data: {
         id: wishlist.id,
-        utilisateur_id: wishlist.utilisateur_id,
         items: formattedItems,
-        created_at: wishlist.created_at,
-        updated_at: wishlist.updated_at,
+        createdAt: wishlist.createdAt,
+        updatedAt: wishlist.updatedAt,
       },
     });
   } catch (error) {
-    console.error('Error fetching wishlist:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération de la wishlist' });
+    logger.error('Erreur récupération wishlist:', { error: error.message });
+    res.status(500).json({ success: false, message: 'Erreur lors de la récupération de la wishlist' });
   }
 });
 
-// Add product to wishlist
-router.post('/wishlist', authenticateToken, async (req, res) => {
+/**
+ * @route   POST /api/v1/wishlist
+ * @desc    Ajouter un produit à la wishlist
+ * @access  Private
+ */
+router.post('/', async (req, res) => {
   try {
-    const { produit_id } = req.body;
-    const utilisateurId = req.user.id;
+    const { produitId } = req.body;
+    const userId = req.user.id;
 
-    if (!produit_id) {
-      return res.status(400).json({ error: 'produit_id est requis' });
+    if (!produitId) {
+      return res.status(400).json({ success: false, message: 'produitId est requis' });
     }
 
-    // Check if product exists
-    const product = await prisma.produit.findUnique({
-      where: { id: produit_id },
+    // Vérifier que le produit existe
+    const product = await prisma.marketplaceProduit.findUnique({
+      where: { id: produitId },
     });
 
     if (!product) {
-      return res.status(404).json({ error: 'Produit non trouvé' });
+      return res.status(404).json({ success: false, message: 'Produit non trouvé' });
     }
 
-    // Get or create wishlist
-    let wishlist = await prisma.wishlist.findFirst({
-      where: { utilisateur_id: utilisateurId },
+    // Récupérer ou créer la wishlist
+    let wishlist = await prisma.wishlist.findUnique({
+      where: { userId },
     });
 
     if (!wishlist) {
       wishlist = await prisma.wishlist.create({
-        data: { utilisateur_id: utilisateurId },
+        data: { userId },
       });
     }
 
-    // Check if item already in wishlist
-    const existingItem = await prisma.wishlistItem.findFirst({
+    // Vérifier si le produit est déjà dans la wishlist
+    const existingItem = await prisma.wishlistItem.findUnique({
       where: {
-        wishlist_id: wishlist.id,
-        produit_id,
+        wishlistId_produitId: { wishlistId: wishlist.id, produitId },
       },
     });
 
     if (existingItem) {
-      return res.status(409).json({ 
-        error: 'Ce produit est déjà dans vos favoris' 
+      return res.status(409).json({
+        success: false,
+        message: 'Ce produit est déjà dans vos favoris'
       });
     }
 
-    // Add item to wishlist
     const item = await prisma.wishlistItem.create({
       data: {
-        wishlist_id: wishlist.id,
-        produit_id,
+        wishlistId: wishlist.id,
+        produitId,
       },
-    });
-
-    // Update wishlist timestamp
-    await prisma.wishlist.update({
-      where: { id: wishlist.id },
-      data: { updated_at: new Date() },
     });
 
     res.status(201).json({
+      success: true,
       data: {
         id: item.id,
-        produit_id: item.produit_id,
+        produitId: item.produitId,
         nom: product.nom,
         prix: product.prix,
-        image_url: product.image_url,
-        disponible: product.quantite_stock > 0,
-        added_at: item.added_at,
+        images: product.images,
+        disponible: product.stock > 0,
+        addedAt: item.addedAt,
       },
     });
   } catch (error) {
-    console.error('Error adding to wishlist:', error);
-    res.status(500).json({ error: 'Erreur lors de l\'ajout à la wishlist' });
+    logger.error('Erreur ajout wishlist:', { error: error.message });
+    res.status(500).json({ success: false, message: 'Erreur lors de l\'ajout à la wishlist' });
   }
 });
 
-// Remove product from wishlist
-router.delete('/wishlist/:produitId', authenticateToken, async (req, res) => {
+/**
+ * @route   GET /api/v1/wishlist/check/:produitId
+ * @desc    Vérifier si un produit est dans la wishlist
+ * @access  Private
+ */
+router.get('/check/:produitId', async (req, res) => {
   try {
     const { produitId } = req.params;
-    const utilisateurId = req.user.id;
+    const userId = req.user.id;
 
-    const wishlist = await prisma.wishlist.findFirst({
-      where: { utilisateur_id: utilisateurId },
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { userId },
     });
 
     if (!wishlist) {
-      return res.status(404).json({ error: 'Wishlist non trouvée' });
+      return res.json({ success: true, inWishlist: false });
     }
 
-    const item = await prisma.wishlistItem.findFirst({
+    const item = await prisma.wishlistItem.findUnique({
       where: {
-        wishlist_id: wishlist.id,
-        produit_id: produitId,
+        wishlistId_produitId: { wishlistId: wishlist.id, produitId },
+      },
+    });
+
+    res.json({ success: true, inWishlist: !!item });
+  } catch (error) {
+    logger.error('Erreur vérification wishlist:', { error: error.message });
+    res.status(500).json({ success: false, message: 'Erreur lors de la vérification' });
+  }
+});
+
+/**
+ * @route   DELETE /api/v1/wishlist/:produitId
+ * @desc    Retirer un produit de la wishlist
+ * @access  Private
+ */
+router.delete('/:produitId', async (req, res) => {
+  try {
+    const { produitId } = req.params;
+    const userId = req.user.id;
+
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { userId },
+    });
+
+    if (!wishlist) {
+      return res.status(404).json({ success: false, message: 'Wishlist non trouvée' });
+    }
+
+    const item = await prisma.wishlistItem.findUnique({
+      where: {
+        wishlistId_produitId: { wishlistId: wishlist.id, produitId },
       },
     });
 
     if (!item) {
-      return res.status(404).json({ error: 'Produit non trouvé dans la wishlist' });
+      return res.status(404).json({ success: false, message: 'Produit non trouvé dans la wishlist' });
     }
 
-    await prisma.wishlistItem.delete({
-      where: { id: item.id },
-    });
-
-    // Update wishlist timestamp
-    await prisma.wishlist.update({
-      where: { id: wishlist.id },
-      data: { updated_at: new Date() },
-    });
-
+    await prisma.wishlistItem.delete({ where: { id: item.id } });
     res.status(204).send();
   } catch (error) {
-    console.error('Error removing from wishlist:', error);
-    res.status(500).json({ error: 'Erreur lors de la suppression de la wishlist' });
+    logger.error('Erreur suppression wishlist:', { error: error.message });
+    res.status(500).json({ success: false, message: 'Erreur lors de la suppression' });
   }
 });
 
-// Clear wishlist
-router.delete('/wishlist', authenticateToken, async (req, res) => {
+/**
+ * @route   DELETE /api/v1/wishlist
+ * @desc    Vider la wishlist
+ * @access  Private
+ */
+router.delete('/', async (req, res) => {
   try {
-    const utilisateurId = req.user.id;
+    const userId = req.user.id;
 
-    const wishlist = await prisma.wishlist.findFirst({
-      where: { utilisateur_id: utilisateurId },
+    const wishlist = await prisma.wishlist.findUnique({
+      where: { userId },
     });
 
     if (!wishlist) {
-      return res.status(404).json({ error: 'Wishlist non trouvée' });
+      return res.status(404).json({ success: false, message: 'Wishlist non trouvée' });
     }
 
     await prisma.wishlistItem.deleteMany({
-      where: { wishlist_id: wishlist.id },
-    });
-
-    // Update wishlist timestamp
-    await prisma.wishlist.update({
-      where: { id: wishlist.id },
-      data: { updated_at: new Date() },
+      where: { wishlistId: wishlist.id },
     });
 
     res.status(204).send();
   } catch (error) {
-    console.error('Error clearing wishlist:', error);
-    res.status(500).json({ error: 'Erreur lors du vidage de la wishlist' });
-  }
-});
-
-// Check if product is in wishlist
-router.get('/wishlist/check/:produitId', authenticateToken, async (req, res) => {
-  try {
-    const { produitId } = req.params;
-    const utilisateurId = req.user.id;
-
-    const wishlist = await prisma.wishlist.findFirst({
-      where: { utilisateur_id: utilisateurId },
-    });
-
-    if (!wishlist) {
-      return res.json({ inWishlist: false });
-    }
-
-    const item = await prisma.wishlistItem.findFirst({
-      where: {
-        wishlist_id: wishlist.id,
-        produit_id: produitId,
-      },
-    });
-
-    res.json({ inWishlist: !!item });
-  } catch (error) {
-    console.error('Error checking wishlist:', error);
-    res.status(500).json({ error: 'Erreur lors de la vérification' });
+    logger.error('Erreur vidage wishlist:', { error: error.message });
+    res.status(500).json({ success: false, message: 'Erreur lors du vidage de la wishlist' });
   }
 });
 

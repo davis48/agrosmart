@@ -1,6 +1,6 @@
 /**
  * Service Météo
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Intégration avec Open-Meteo (Données agricoles spécialisées)
  */
@@ -97,7 +97,7 @@ class WeatherService {
   }
 
   /**
-   * Formater les données météo actuelles (Open-Meteo -> AgriSmart Model)
+   * Formater les données météo actuelles (Open-Meteo -> AgroSmart Model)
    */
   formatCurrentWeather(data) {
     const current = data.current;
@@ -120,7 +120,7 @@ class WeatherService {
   }
 
   /**
-   * Formater les prévisions (Open-Meteo -> AgriSmart Model)
+   * Formater les prévisions (Open-Meteo -> AgroSmart Model)
    */
   formatForecast(data) {
     const daily = data.daily;

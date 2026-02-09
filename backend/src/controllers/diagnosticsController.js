@@ -1,9 +1,10 @@
 /**
  * Diagnostics Controller
- * AgriSmart CI - Plant disease diagnostics (AI placeholder)
+ * AgroSmart - Plant disease diagnostics (AI placeholder)
  */
 
 const prisma = require('../config/prisma');
+const logger = require('../utils/logger');
 const { errors } = require('../middlewares/errorHandler');
 
 /**
@@ -48,7 +49,7 @@ exports.analyzePlant = async (req, res, next) => {
 
         pythonProcess.on('close', async (code) => {
             if (code !== 0) {
-                console.error(`Python script exited with code ${code}: ${errorString}`);
+                logger.error(`Python script exited with code ${code}: ${errorString}`);
                 // Fallback to mock if script fails
                 const mockDiagnostic = generateMockDiagnostic(crop_type);
                 return saveAndSendResponse(mockDiagnostic, true); // true = fallback
@@ -58,7 +59,7 @@ exports.analyzePlant = async (req, res, next) => {
                 const analysisResult = JSON.parse(dataString);
 
                 if (analysisResult.error) {
-                    console.error('Analysis Error:', analysisResult.error);
+                    logger.error('Analysis Error:', analysisResult.error);
                     const mockDiagnostic = generateMockDiagnostic(crop_type);
                     return saveAndSendResponse(mockDiagnostic, true);
                 }
@@ -66,7 +67,7 @@ exports.analyzePlant = async (req, res, next) => {
                 await saveAndSendResponse(analysisResult, false);
 
             } catch (e) {
-                console.error('Error parsing Python output:', e, dataString);
+                logger.error('Error parsing Python output:', e, dataString);
                 const mockDiagnostic = generateMockDiagnostic(crop_type);
                 await saveAndSendResponse(mockDiagnostic, true);
             }
@@ -100,7 +101,7 @@ exports.analyzePlant = async (req, res, next) => {
         }
 
     } catch (error) {
-        console.error('Error analyzing plant:', error.message);
+        logger.error('Error analyzing plant:', error.message);
         next(error);
     }
 };
@@ -142,7 +143,7 @@ exports.getHistory = async (req, res, next) => {
             offset: skip // Keeping 'offset' key for backward compatibility if frontend expects it
         });
     } catch (error) {
-        console.error('Error fetching diagnostic history:', error.message);
+        logger.error('Error fetching diagnostic history:', error.message);
         next(error);
     }
 };

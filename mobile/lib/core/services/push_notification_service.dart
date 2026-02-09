@@ -1,5 +1,5 @@
 /// Service de notifications push Firebase Cloud Messaging
-/// AgriSmart CI - Application Mobile
+/// AgroSmart - Application Mobile
 ///
 /// Ce service gère:
 /// - L'initialisation de FCM
@@ -212,7 +212,7 @@ class PushNotificationService {
     final androidDetails = AndroidNotificationDetails(
       channelId ?? 'default',
       _getChannelName(channelId ?? 'default'),
-      channelDescription: 'AgriSmart notifications',
+      channelDescription: 'AgroSmart notifications',
       importance: _mapImportance(importance),
       priority: Priority.high,
       showWhen: true,

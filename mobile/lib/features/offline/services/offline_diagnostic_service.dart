@@ -1,5 +1,5 @@
 /// Service de diagnostic hors-ligne avec IA locale
-/// AgriSmart CI - Application Mobile
+/// AgroSmart - Application Mobile
 ///
 /// Permet de diagnostiquer les maladies des plantes même sans connexion internet
 /// en utilisant une base de données locale de symptômes.

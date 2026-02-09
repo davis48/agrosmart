@@ -1,6 +1,6 @@
 /**
  * Contrôleur des alertes
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const prisma = require('../config/prisma');
@@ -371,7 +371,7 @@ exports.sendTest = async (req, res, next) => {
         type: categorie, // Uses 'type'
         niveau: niveau.toUpperCase(),
         titre: 'Alerte de test',
-        message: 'Ceci est une alerte de test du système AgriSmart CI'
+        message: 'Ceci est une alerte de test du système AgroSmart'
       }
     });
 

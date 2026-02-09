@@ -1,9 +1,10 @@
 /**
  * Gamification Controller
- * AgriSmart CI - Points, Badges, Leaderboard
+ * AgroSmart - Points, Badges, Leaderboard
  */
 
 const prisma = require('../config/prisma');
+const logger = require('../utils/logger');
 
 /**
  * Get user points and level
@@ -37,7 +38,7 @@ exports.getUserPoints = async (req, res, next) => {
             data: userPoints
         });
     } catch (error) {
-        console.error('Error fetching user points:', error);
+        logger.error('Error fetching user points:', error);
         next(error);
     }
 };
@@ -86,7 +87,7 @@ exports.awardPoints = async (req, res, next) => {
             data: result
         });
     } catch (error) {
-        console.error('Error awarding points:', error);
+        logger.error('Error awarding points:', error);
         next(error);
     }
 };
@@ -119,7 +120,7 @@ exports.getLeaderboard = async (req, res, next) => {
             data: leaderboard
         });
     } catch (error) {
-        console.error('Error fetching leaderboard:', error);
+        logger.error('Error fetching leaderboard:', error);
         next(error);
     }
 };
@@ -138,15 +139,14 @@ exports.getUserBadges = async (req, res, next) => {
                 badge: true
             },
             orderBy: {
-                dateObtention: 'desc'
+                obtenuLe: 'desc'
             }
         });
 
         // Flatten result to match legacy format if needed, or send as structured
-        // Legacy: select b.*, ub.date_obtention.
         const formatted = userBadges.map(ub => ({
             ...ub.badge,
-            date_obtention: ub.dateObtention
+            date_obtention: ub.obtenuLe
         }));
 
         res.json({
@@ -154,7 +154,7 @@ exports.getUserBadges = async (req, res, next) => {
             data: formatted
         });
     } catch (error) {
-        console.error('Error fetching badges:', error);
+        logger.error('Error fetching badges:', error);
         next(error);
     }
 };

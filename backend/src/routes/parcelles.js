@@ -1,6 +1,6 @@
 /**
  * Routes de gestion des parcelles
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const express = require('express');

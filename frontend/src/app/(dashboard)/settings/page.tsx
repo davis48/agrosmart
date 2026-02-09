@@ -27,6 +27,7 @@ import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import toast from 'react-hot-toast'
+import { useAuthStore } from '@/lib/store'
 
 interface SettingsState {
   // Notifications
@@ -64,6 +65,7 @@ const defaultSettings: SettingsState = {
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(defaultSettings)
+  const { logout } = useAuthStore()
 
   useEffect(() => {
     // Charger les paramètres depuis le localStorage
@@ -87,8 +89,7 @@ export default function SettingsPage() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    logout()
     window.location.href = '/login'
   }
 

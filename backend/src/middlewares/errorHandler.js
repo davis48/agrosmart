@@ -1,6 +1,6 @@
 /**
  * Middleware de gestion globale des erreurs
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Ce module centralise la gestion de toutes les erreurs de l'application.
  * Il transforme les erreurs techniques en réponses utilisateur compréhensibles
@@ -20,11 +20,6 @@
 
 const logger = require('../utils/logger');
 const config = require('../config');
-
-// Debug log only in development
-if (config.isDev) {
-  console.log('[DEV] ERROR_HANDLER: Module loaded');
-}
 
 /**
  * Classe d'erreur personnalisée pour l'application
@@ -96,7 +91,7 @@ const errors = {
  * @returns {AppError} Erreur formatée
  */
 const handlePrismaError = (error) => {
-  console.error('PRISMA_ERROR_DETECTED:', error.code, error.message);
+  logger.error('Prisma error detected', { code: error.code, message: error.message });
   switch (error.code) {
     case 'P2002': { // Contrainte unique
       const target = error.meta?.target || 'donnée';
@@ -181,7 +176,6 @@ const errorHandler = (err, req, res, _next) => {
 
   // Log de l'erreur
   if (statusCode >= 500) {
-    console.error('SERVER_ERROR_STACK:', err.stack || err);
     logger.error('Erreur serveur', {
       error: error.message,
       code,

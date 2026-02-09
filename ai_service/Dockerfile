@@ -1,13 +1,13 @@
 # ========================================
 # Dockerfile - AI Service
-# AgriSmart CI - Service IA
+# AgroSmart - Service IA
 # ========================================
 
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # Informations de build
-LABEL maintainer="AgriSmart CI Team"
-LABEL description="AI Service for AgriSmart CI - Plant Disease Detection"
+LABEL maintainer="AgroSmart Team"
+LABEL description="AI Service for AgroSmart - Plant Disease Detection"
 
 # Installer les dépendances système
 RUN apt-get update && apt-get install -y \

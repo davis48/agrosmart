@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
                     <Leaf className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">AgriTech CI</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">AgroSmart</h1>
                     <p className="text-sm text-gray-500">Surveillance Agricole Intelligente</p>
                 </div>
             </div>

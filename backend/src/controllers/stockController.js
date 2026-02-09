@@ -1,6 +1,6 @@
 /**
  * Contrôleur pour la gestion des stocks agricoles
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const { PrismaClient } = require('@prisma/client');

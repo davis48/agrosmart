@@ -1,6 +1,6 @@
 /**
  * Routes SMS Gateway
- * AgriSmart CI - Backend API
+ * AgroSmart - Backend API
  */
 
 const express = require('express');
@@ -42,7 +42,7 @@ const { body, validationResult } = require('express-validator');
  *                 example: "+2250701234567"
  *               message:
  *                 type: string
- *                 example: "Votre alerte AgriSmart"
+ *                 example: "Votre alerte AgroSmart"
  */
 router.post('/send',
   authenticate,

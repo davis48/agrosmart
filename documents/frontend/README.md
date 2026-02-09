@@ -1,4 +1,4 @@
-# 🌐 AgriSmart CI - Frontend Web
+# 🌐 AgroSmart - Frontend Web
 
 Interface d'administration et dashboard utilisateur.
 

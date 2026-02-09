@@ -1,6 +1,6 @@
 /**
  * Rate Limiting avancé par endpoint
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Ce module fournit des limiteurs de débit spécifiques:
  * - Login: Protection contre les attaques brute-force

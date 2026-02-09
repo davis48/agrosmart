@@ -1,6 +1,6 @@
 /**
  * Middleware de validation des entrées
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const { validationResult } = require('express-validator');

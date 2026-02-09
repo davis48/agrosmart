@@ -1,4 +1,4 @@
-# Certificate Pinning pour AgriSmart CI
+# Certificate Pinning pour AgroSmart
 
 Ce dossier contient les certificats SSL utilisés pour le certificate pinning en production.
 

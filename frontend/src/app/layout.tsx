@@ -17,7 +17,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "AgriTech CI - Plateforme Agricole Intelligente",
+  title: "AgroSmart - Plateforme Agricole Intelligente",
   description: "Système de Surveillance et d'Aide à la Décision Agricole pour la Côte d'Ivoire",
   keywords: ["agriculture", "Côte d'Ivoire", "capteurs", "IA", "météo", "parcelles"],
 };

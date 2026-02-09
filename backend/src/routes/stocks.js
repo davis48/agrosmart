@@ -1,13 +1,13 @@
 /**
  * Routes pour la gestion des stocks agricoles
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const express = require('express');
 const router = express.Router();
 const stockController = require('../controllers/stockController');
 const { authenticate } = require('../middlewares/auth');
-const { validate } = require('../middlewares/validate');
+const { validate } = require('../middlewares/validation');
 const { body, param, query } = require('express-validator');
 
 // Toutes les routes nécessitent l'authentification

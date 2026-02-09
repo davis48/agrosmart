@@ -1,4 +1,4 @@
-# 🌾 AgriSmart CI - Backend API
+# 🌾 AgroSmart - Backend API
 
 API REST et WebSocket pour la plateforme AgriSmart.
 

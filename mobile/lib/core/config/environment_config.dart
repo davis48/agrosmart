@@ -1,4 +1,4 @@
-/// Configuration de l'environnement pour l'application AgriSmart CI
+/// Configuration de l'environnement pour l'application AgroSmart
 ///
 /// Ce fichier centralise toutes les configurations environnementales
 /// pour supporter les environnements de développement, staging et production.

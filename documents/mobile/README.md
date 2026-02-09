@@ -1,4 +1,4 @@
-# 📱 AgriSmart CI - Application Mobile
+# 📱 AgroSmart - Application Mobile
 
 Application mobile pour les producteurs agricoles.
 

@@ -1,6 +1,6 @@
 /**
  * Service de notifications push Firebase Cloud Messaging (FCM)
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Features:
  * - Envoi de notifications push aux appareils mobiles

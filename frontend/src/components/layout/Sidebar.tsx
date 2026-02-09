@@ -75,7 +75,7 @@ export function Sidebar() {
               <Leaf className="h-6 w-6 text-white" />
             </div>
             {sidebarOpen && (
-              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">AgriTech CI</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">AgroSmart</span>
             )}
           </Link>
           <button

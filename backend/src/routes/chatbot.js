@@ -1,6 +1,6 @@
 /**
  * Routes Chatbot IA Assistant Vocal
- * AgriSmart CI - Backend
+ * AgroSmart - Backend
  * 
  * Endpoints pour l'assistant vocal multilingue:
  * - POST /chatbot/message - Envoyer un message et recevoir une réponse IA

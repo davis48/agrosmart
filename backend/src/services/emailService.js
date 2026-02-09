@@ -1,6 +1,6 @@
 /**
  * Service Email via Nodemailer
- * Agrosmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const nodemailer = require('nodemailer');
@@ -46,7 +46,7 @@ exports.sendEmail = async (to, subject, html, text) => {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Agrosmart CI" <${config.email.from}>`,
+      from: `"AgroSmart" <${config.email.from}>`,
       to,
       subject,
       html,
@@ -69,7 +69,7 @@ exports.sendEmail = async (to, subject, html, text) => {
  * Envoyer un code OTP par email
  */
 exports.sendOtp = async (to, otp, nom) => {
-  const subject = 'Votre code de vérification Agrosmart CI';
+  const subject = 'Votre code de vérification AgroSmart';
   const html = `
     <!DOCTYPE html>
     <html>
@@ -89,7 +89,7 @@ exports.sendOtp = async (to, otp, nom) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🌱 AgriSmart CI</h1>
+          <h1>🌱 AgroSmart</h1>
         </div>
         <div class="content">
           <p>Bonjour ${nom || 'Utilisateur'},</p>
@@ -99,7 +99,7 @@ exports.sendOtp = async (to, otp, nom) => {
           <p>Si vous n'avez pas demandé ce code, vous pouvez ignorer cet email.</p>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} AgriSmart CI - Système Agricole Intelligent</p>
+          <p>© ${new Date().getFullYear()} AgroSmart - Système Agricole Intelligent</p>
         </div>
       </div>
     </body>
@@ -113,7 +113,7 @@ exports.sendOtp = async (to, otp, nom) => {
  * Envoyer un email de réinitialisation de mot de passe
  */
 exports.sendPasswordReset = async (to, otp, nom) => {
-  const subject = 'Réinitialisation de votre mot de passe AgriSmart CI';
+  const subject = 'Réinitialisation de votre mot de passe AgroSmart';
   const html = `
     <!DOCTYPE html>
     <html>
@@ -134,7 +134,7 @@ exports.sendPasswordReset = async (to, otp, nom) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🔐 AgriSmart CI</h1>
+          <h1>🔐 AgroSmart</h1>
         </div>
         <div class="content">
           <p>Bonjour ${nom || 'Utilisateur'},</p>
@@ -148,7 +148,7 @@ exports.sendPasswordReset = async (to, otp, nom) => {
           </div>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} AgriSmart CI - Système Agricole Intelligent</p>
+          <p>© ${new Date().getFullYear()} AgroSmart - Système Agricole Intelligent</p>
         </div>
       </div>
     </body>
@@ -190,7 +190,7 @@ exports.sendAlert = async (to, alerte, nom) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>${info.emoji} Alerte AgriSmart CI</h1>
+          <h1>${info.emoji} Alerte AgroSmart</h1>
         </div>
         <div class="content">
           <p>Bonjour ${nom || 'Utilisateur'},</p>
@@ -207,7 +207,7 @@ exports.sendAlert = async (to, alerte, nom) => {
           </p>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} Agrosmart CI - Système Agricole Intelligent</p>
+          <p>© ${new Date().getFullYear()} AgroSmart - Système Agricole Intelligent</p>
         </div>
       </div>
     </body>
@@ -221,7 +221,7 @@ exports.sendAlert = async (to, alerte, nom) => {
  * Envoyer un email de bienvenue
  */
 exports.sendWelcome = async (to, nom) => {
-  const subject = 'Bienvenue sur Agrosmart CI ! 🌱';
+  const subject = 'Bienvenue sur AgroSmart ! 🌱';
   const html = `
     <!DOCTYPE html>
     <html>
@@ -242,12 +242,12 @@ exports.sendWelcome = async (to, nom) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🌱 Bienvenue sur Agrosmart CI</h1>
+          <h1>🌱 Bienvenue sur AgroSmart</h1>
           <p>L'agriculture intelligente à votre portée</p>
         </div>
         <div class="content">
           <p>Bonjour ${nom},</p>
-          <p>Félicitations ! Votre compte Agrosmart CI a été créé avec succès.</p>
+          <p>Félicitations ! Votre compte AgroSmart a été créé avec succès.</p>
           
           <h3>Voici ce que vous pouvez faire :</h3>
           <div class="feature">
@@ -278,7 +278,7 @@ exports.sendWelcome = async (to, nom) => {
           </p>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} Agrosmart CI - Système Agricole Intelligent</p>
+          <p>© ${new Date().getFullYear()} AgroSmart - Système Agricole Intelligent</p>
           <p>Développé pour les agriculteurs de Côte d'Ivoire 🇨🇮</p>
         </div>
       </div>

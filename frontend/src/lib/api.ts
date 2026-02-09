@@ -2,6 +2,27 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'
 
+/**
+ * Récupère le token depuis le store Zustand persisté (auth-storage dans localStorage).
+ * Centralise l'accès au token pour faciliter une migration future (ex: HttpOnly cookies).
+ */
+function getPersistedToken(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('auth-storage')
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed?.state?.token ?? null
+  } catch {
+    return null
+  }
+}
+
+function clearPersistedAuth(): void {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('auth-storage')
+}
+
 // Créer l'instance axios
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -19,8 +40,8 @@ api.interceptors.request.use(
       config.url?.includes('/auth/register') ||
       config.url?.includes('/auth/verify-otp');
 
-    if (!isAuthRequest && typeof window !== 'undefined') {
-      const token = localStorage.getItem('token')
+    if (!isAuthRequest) {
+      const token = getPersistedToken()
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`
       }
@@ -43,8 +64,7 @@ api.interceptors.response.use(
 
       // Token expiré ou invalide (seulement pour les autres requêtes)
       if (!isAuthRequest && typeof window !== 'undefined') {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+        clearPersistedAuth()
         window.location.href = '/login'
       }
     }

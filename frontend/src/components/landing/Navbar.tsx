@@ -26,7 +26,7 @@ export function Navbar() {
                             <Leaf className="h-6 w-6 text-white" />
                         </div>
                         <span className={`text-xl font-bold tracking-tight ${scrolled ? 'text-gray-900' : 'text-gray-900'}`}>
-                            Agrosmart CI
+                            AgroSmart
                         </span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 font-medium">

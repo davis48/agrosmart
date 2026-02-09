@@ -25,7 +25,7 @@ const healthServer = http.createServer((req, res) => {
         res.end(JSON.stringify({
             service: 'agrismart-iot',
             version: '1.0.0',
-            description: 'IoT Gateway Service for AgriSmart'
+            description: 'IoT Gateway Service for AgroSmart'
         }));
     } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });

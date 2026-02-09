@@ -1,6 +1,6 @@
 /**
  * Contrôleur des capteurs et stations
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const prisma = require('../config/prisma');
@@ -223,9 +223,6 @@ exports.getAll = async (req, res, next) => {
         where.station = { parcelleId: parcelle_id };
       }
     }
-
-    console.log('DEBUG CAPTEURS: User ID:', req.user.id, 'Role:', req.user.role);
-    console.log('DEBUG CAPTEURS: WHERE clause:', JSON.stringify(where, null, 2));
 
     const capteurs = await prisma.capteur.findMany({
       where,

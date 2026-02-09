@@ -293,7 +293,7 @@ export default function SettingsPage() {
                         <Settings className="w-8 h-8 mr-3 text-green-600" />
                         Paramètres Système
                     </h1>
-                    <p className="text-gray-500 mt-1">Configuration de la plateforme AgriSmart CI</p>
+                    <p className="text-gray-500 mt-1">Configuration de la plateforme AgroSmart</p>
                 </div>
                 <div className="flex gap-3">
                     <button

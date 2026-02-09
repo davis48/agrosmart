@@ -14,7 +14,7 @@ export function Footer() {
                             <div className="h-10 w-10 bg-green-600 rounded-xl flex items-center justify-center">
                                 <Leaf className="h-6 w-6 text-white" />
                             </div>
-                            <span className="text-xl font-bold text-white tracking-tight">Agrosmart CI</span>
+                            <span className="text-xl font-bold text-white tracking-tight">AgroSmart</span>
                         </div>
                         <p className="mb-6 leading-relaxed">
                             La première plateforme d&apos;agriculture de précision en Côte d&apos;Ivoire.
@@ -67,7 +67,7 @@ export function Footer() {
                         <ul className="space-y-4">
                             <li className="flex items-start gap-3">
                                 <Mail className="h-5 w-5 text-green-500 mt-1" />
-                                <span>contact@agrismart.ci</span>
+                                <span>contact@agrosmart.ci</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <Phone className="h-5 w-5 text-green-500 mt-1" />
@@ -82,7 +82,7 @@ export function Footer() {
                 </div>
 
                 <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-                    <p>© 2024 Agrosmart CI. Tous droits réservés.</p>
+                    <p>© 2024 AgroSmart. Tous droits réservés.</p>
                     <div className="flex gap-8">
                         <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
                         <a href="#" className="hover:text-white transition-colors">Conditions</a>

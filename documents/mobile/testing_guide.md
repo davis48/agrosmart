@@ -1,4 +1,4 @@
-# AgriSmart CI - Test Configuration
+# AgroSmart - Test Configuration
 
 ## Structure des tests
 

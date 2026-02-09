@@ -42,7 +42,7 @@ class AboutPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Agrosmart CI',
+                    'AgroSmart',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -91,7 +91,7 @@ class AboutPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Agrosmart CI combine les capteurs IoT, l\'intelligence artificielle et les données météorologiques pour aider les agriculteurs ivoiriens à optimiser leurs rendements et réduire les pertes.',
+                    'AgroSmart combine les capteurs IoT, l\'intelligence artificielle et les données météorologiques pour aider les agriculteurs ivoiriens à optimiser leurs rendements et réduire les pertes.',
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color,
                       height: 1.5,
@@ -193,7 +193,7 @@ class AboutPage extends StatelessWidget {
                   onTap: () {
                     showLicensePage(
                       context: context,
-                      applicationName: 'Agrosmart CI',
+                      applicationName: 'AgroSmart',
                       applicationVersion: '1.2.0',
                       applicationIcon: Icon(
                         Icons.eco,
@@ -222,7 +222,7 @@ class AboutPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '© 2024 Agrosmart CI. Tous droits réservés.',
+                  '© 2024 AgroSmart. Tous droits réservés.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).textTheme.bodySmall?.color,

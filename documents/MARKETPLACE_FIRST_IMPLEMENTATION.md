@@ -3,7 +3,7 @@
 ## 📋 Résumé des Changements
 
 ### Objectif
-Transformer AgriSmart CI en une application **marketplace-first** (style Jumia) avec deux types d'utilisateurs distincts :
+Transformer AgroSmart en une application **marketplace-first** (style Jumia) avec deux types d'utilisateurs distincts :
 - **Acheteur** : Accès simplifié, peut naviguer sans compte, dashboard acheteur
 - **Producteur** : Parcours complet avec infos production, dashboard producteur (existant)
 

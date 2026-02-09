@@ -1,6 +1,6 @@
 /**
  * Configuration de la base de données MySQL
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const mysql = require('mysql2/promise');
@@ -48,14 +48,14 @@ const poolConfig = {
   charset: 'utf8mb4'
 };
 
-// Log de config DB seulement en développement, sans données sensibles
+// Log de config DB en développement
 if (process.env.NODE_ENV === 'development') {
-  console.log('🔌 DB Config:', {
+  const logger = require('../utils/logger');
+  logger.debug('DB Config', {
     host: poolConfig.host,
     port: poolConfig.port,
     database: poolConfig.database,
     user: poolConfig.user
-    // password et autres infos sensibles non loguées
   });
 }
 

@@ -1,6 +1,6 @@
 /**
  * Utilitaire de logging sécurisé
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Ce module fournit des fonctions de logging qui:
  * - Ne loguent qu'en mode développement

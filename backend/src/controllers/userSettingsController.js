@@ -1,6 +1,6 @@
 /**
  * Contrôleur pour les paramètres utilisateur
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const { PrismaClient } = require('@prisma/client');

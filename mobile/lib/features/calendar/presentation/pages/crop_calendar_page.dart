@@ -1,5 +1,5 @@
 /// Page du Calendrier Cultural
-/// AgriSmart CI - Application Mobile
+/// AgroSmart - Application Mobile
 library;
 
 import 'package:flutter/material.dart';

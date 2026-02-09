@@ -1,4 +1,4 @@
-# 📦 Analyse des Dépendances Flutter - AgriSmart CI Mobile
+# 📦 Analyse des Dépendances Flutter - AgroSmart Mobile
 
 > **Date de l'analyse** : 1 février 2026  
 > **Dernière mise à jour** : Automatique
@@ -213,4 +213,4 @@ Pour toute question sur les mises à jour :
 
 ---
 
-**Généré automatiquement par AgriSmart CI - Système de Gestion des Dépendances**
+**Généré automatiquement par AgroSmart - Système de Gestion des Dépendances**

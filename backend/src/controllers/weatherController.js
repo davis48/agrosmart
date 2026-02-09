@@ -1,9 +1,10 @@
 /**
  * Weather Controller - OpenWeather API Integration
- * AgriSmart CI - Prévisions Météo 10 Jours
+ * AgroSmart - Prévisions Météo 10 Jours
  */
 
 const weatherService = require('../services/weatherService');
+const logger = require('../utils/logger');
 
 /**
  * Obtenir les prévisions météo (Délègue au WeatherService)
@@ -25,7 +26,7 @@ exports.getForecast = async (req, res, next) => {
         });
 
     } catch (error) {
-        console.error('Error fetching weather forecast:', error.message);
+        logger.error('Error fetching weather forecast:', error.message);
         next(error);
     }
 };
@@ -63,7 +64,7 @@ exports.getCurrentWeather = async (req, res, next) => {
         });
 
     } catch (error) {
-        console.error('Error fetching current weather:', error.message);
+        logger.error('Error fetching current weather:', error.message);
         next(error);
     }
 };
@@ -87,7 +88,7 @@ exports.getWeatherAlerts = async (req, res, next) => {
         });
 
     } catch (error) {
-        console.error('Error fetching weather alerts:', error.message);
+        logger.error('Error fetching weather alerts:', error.message);
         res.json({
             success: true,
             data: [],

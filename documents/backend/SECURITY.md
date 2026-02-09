@@ -1,8 +1,8 @@
-# Politique de Sécurité - AgriSmart CI
+# Politique de Sécurité - AgroSmart
 
 ## 🔒 Aperçu de la Sécurité
 
-AgriSmart CI implémente un système de sécurité multi-couches conforme aux standards internationaux (OWASP Top 10, ISO 27001). Ce document détaille notre architecture de sécurité, les processus de signalement de vulnérabilités, et les bonnes pratiques pour les contributeurs.
+AgroSmart implémente un système de sécurité multi-couches conforme aux standards internationaux (OWASP Top 10, ISO 27001). Ce document détaille notre architecture de sécurité, les processus de signalement de vulnérabilités, et les bonnes pratiques pour les contributeurs.
 
 ### 6. Protection CORS
 

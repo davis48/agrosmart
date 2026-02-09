@@ -1,6 +1,6 @@
 /**
  * Contrôleur des maladies et détection IA
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const prisma = require('../config/prisma');

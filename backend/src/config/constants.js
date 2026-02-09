@@ -1,6 +1,6 @@
 /**
  * Backend Constants
- * AgriSmart CI - Centralized constants for better maintainability
+ * AgroSmart - Centralized constants for better maintainability
  */
 
 module.exports = {

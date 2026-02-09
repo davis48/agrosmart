@@ -19,7 +19,9 @@ class CertificatePinningManager {
   /// Initialise le certificate pinning en production
   Future<void> init() async {
     if (_isInitialized || !EnvironmentConfig.isProduction) {
-      debugPrint('[SECURITY] 📋 Certificate pinning skipped (not in production)');
+      debugPrint(
+        '[SECURITY] 📋 Certificate pinning skipped (not in production)',
+      );
       return;
     }
 

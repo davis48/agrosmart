@@ -4,6 +4,7 @@
  */
 
 const prisma = require('../config/prisma');
+const logger = require('../utils/logger');
 const crypto = require('crypto');
 
 // Mock payment integration (replace with actual provider SDKs)
@@ -41,7 +42,7 @@ exports.initiatePayment = async (req, res, next) => {
             }
         });
     } catch (error) {
-        console.error('Error initiating payment:', error);
+        logger.error('Error initiating payment:', error);
         next(error);
     }
 };
@@ -60,7 +61,7 @@ exports.getTransactions = async (req, res, next) => {
             data: transactions
         });
     } catch (error) {
-        console.error('Error fetching transactions:', error);
+        logger.error('Error fetching transactions:', error);
         next(error);
     }
 };

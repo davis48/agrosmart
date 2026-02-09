@@ -1,5 +1,5 @@
 /// Mixin et widgets pour la pagination infinie
-/// AgriSmart CI - Application Mobile
+/// AgroSmart - Application Mobile
 ///
 /// Fonctionnalités:
 /// - Chargement automatique au scroll

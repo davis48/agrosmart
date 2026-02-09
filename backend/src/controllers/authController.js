@@ -1,6 +1,6 @@
 /**
  * Contrôleur d'authentification
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  */
 
 const bcrypt = require('bcryptjs');

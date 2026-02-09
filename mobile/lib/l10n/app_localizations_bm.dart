@@ -9,7 +9,7 @@ class AppLocalizationsBm extends AppLocalizations {
   AppLocalizationsBm([String locale = 'bm']) : super(locale);
 
   @override
-  String get appTitle => 'Agrosmart CI';
+  String get appTitle => 'AgroSmart';
 
   @override
   String get welcome => 'Aw ni ce';

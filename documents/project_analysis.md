@@ -1,6 +1,6 @@
-# Analyse Complète du Projet AgriSmart CI
+# Analyse Complète du Projet AgroSmart
 
-Ce document consigne l'analyse technique et fonctionnelle du projet AgriSmart CI.
+Ce document consigne l'analyse technique et fonctionnelle du projet AgroSmart.
 
 ## 1. Architecture Globale
 

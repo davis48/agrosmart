@@ -1,6 +1,6 @@
 /**
  * Configuration du logger Winston amélioré
- * AgriSmart CI - Système Agricole Intelligent
+ * AgroSmart - Système Agricole Intelligent
  * 
  * Features:
  * - Rotation quotidienne automatique des fichiers de logs

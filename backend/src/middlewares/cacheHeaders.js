@@ -1,5 +1,5 @@
 /**
- * Response Caching Middleware for AgriSmart CI
+ * Response Caching Middleware for AgroSmart
  * Implements HTTP caching headers for performance optimization
  */
 

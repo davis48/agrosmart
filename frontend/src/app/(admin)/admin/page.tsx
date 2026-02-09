@@ -186,7 +186,7 @@ export default function AdminDashboard() {
           Tableau de bord administrateur
         </h2>
         <p className="text-gray-500 dark:text-gray-400">
-          Vue d&apos;ensemble de la plateforme AgriTech CI
+          Vue d&apos;ensemble de la plateforme AgroSmart
         </p>
       </div>
 

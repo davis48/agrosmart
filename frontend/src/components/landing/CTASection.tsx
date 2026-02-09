@@ -29,7 +29,7 @@ export function CTASection() {
                     {...fadeInUp}
                     transition={{ delay: 0.1 }}
                 >
-                    Rejoignez les milliers d&apos;agriculteurs ivoiriens qui utilisent Agrosmart CI
+                    Rejoignez les milliers d&apos;agriculteurs ivoiriens qui utilisent AgroSmart
                     pour une agriculture plus rentable et durable.
                 </motion.p>
                 <motion.div

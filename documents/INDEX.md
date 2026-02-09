@@ -1,6 +1,6 @@
-# 📚 Documentation AgriSmart CI
+# 📚 Documentation AgroSmart
 
-Bienvenue dans le dossier de documentation centralisée du projet AgriSmart CI.
+Bienvenue dans le dossier de documentation centralisée du projet AgroSmart.
 
 ## 📋 Structure
 
@@ -386,5 +386,5 @@ Service d'intelligence artificielle:
 
 ---
 
-*Documentation maintenue par l'équipe AgriSmart CI*
+*Documentation maintenue par l'équipe AgroSmart*
 *Dernière mise à jour: 25 janvier 2026*

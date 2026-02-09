@@ -1,5 +1,5 @@
 /**
- * Centralized Error Codes for AgriSmart CI
+ * Centralized Error Codes for AgroSmart
  * Provides consistent error codes and messages across the application
  */
 

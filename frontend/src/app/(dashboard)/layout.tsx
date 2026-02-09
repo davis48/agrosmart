@@ -34,10 +34,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (mounted && !isLoading) {
-      // Check if user has token in localStorage
-      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      
-      if (!isAuthenticated && !storedToken && !token) {
+      if (!isAuthenticated && !token) {
         router.push('/login')
       }
     }
