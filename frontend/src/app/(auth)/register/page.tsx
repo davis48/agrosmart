@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Leaf, User, Phone, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, MapPin, CheckCircle, Home } from 'lucide-react'
+import { User, Phone, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, MapPin, CheckCircle, Home } from 'lucide-react'
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, CardDescription, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
 import { authApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
@@ -159,13 +160,19 @@ export default function RegisterPage() {
       </Link>
 
       {/* Logo */}
-      <div className="flex items-center gap-2 mb-8">
-        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-green-600 shadow-lg">
-          <Leaf className="h-8 w-8 text-white" />
+      <div className="flex flex-col items-center gap-2 mb-8">
+        <div className="flex h-24 items-center justify-center overflow-hidden">
+          <Image 
+            src="/logo.png" 
+            alt="AgroSmart" 
+            width={240} 
+            height={96} 
+            className="object-contain h-full w-auto" 
+            priority 
+          />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AgroSmart</h1>
-          <p className="text-sm text-gray-500">Surveillance Agricole Intelligente</p>
+          <p className="text-sm font-medium text-gray-500 text-center uppercase tracking-wider">Surveillance Agricole Intelligente</p>
         </div>
       </div>
 

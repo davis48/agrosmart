@@ -219,7 +219,7 @@ export default function MesuresPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Spinner className="h-8 w-8" />
       </div>
     )
@@ -349,7 +349,7 @@ export default function MesuresPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[400px]">
+          <div className="h-100">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
@@ -410,7 +410,7 @@ export default function MesuresPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[350px]">
+              <div className="h-87.5">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -462,7 +462,7 @@ export default function MesuresPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[350px]">
+              <div className="h-87.5">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -525,7 +525,7 @@ export default function MesuresPage() {
                     </div>
                   </div>
                 </div>
-                <div className="h-[300px]">
+                <div className="h-75">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

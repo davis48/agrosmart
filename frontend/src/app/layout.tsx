@@ -20,6 +20,14 @@ export const metadata: Metadata = {
   title: "AgroSmart - Plateforme Agricole Intelligente",
   description: "Système de Surveillance et d'Aide à la Décision Agricole pour la Côte d'Ivoire",
   keywords: ["agriculture", "Côte d'Ivoire", "capteurs", "IA", "météo", "parcelles"],
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/logo-192.png", sizes: "192x192" }],
+  },
 };
 
 export default function RootLayout({

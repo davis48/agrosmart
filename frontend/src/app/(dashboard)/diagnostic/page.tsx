@@ -327,9 +327,9 @@ export default function DiagnosticPage() {
                     <div className={`p-4 rounded-lg ${currentResult.maladie ? 'bg-red-50' : 'bg-green-50'}`}>
                       <div className="flex items-start gap-3">
                         {currentResult.maladie ? (
-                          <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                          <AlertTriangle className="h-6 w-6 text-red-600 shrink-0" />
                         ) : (
-                          <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0" />
+                          <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0" />
                         )}
                         <div className="flex-1">
                           <h3 className={`font-semibold ${currentResult.maladie ? 'text-red-900' : 'text-green-900'}`}>
@@ -371,7 +371,7 @@ export default function DiagnosticPage() {
                               key={index}
                               className="flex items-start gap-2 text-sm text-gray-700"
                             >
-                              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
                               {rec}
                             </li>
                           ))}
@@ -448,7 +448,7 @@ export default function DiagnosticPage() {
                 >
                   <CardContent className="p-4">
                     <div className="flex gap-4">
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                      <div className="w-20 h-20 bg-gray-100 rounded-lg shrink-0 overflow-hidden">
                         {diagnostic.image.startsWith('data:') ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img

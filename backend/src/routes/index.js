@@ -81,6 +81,18 @@ router.use('/chatbot', chatbotRoutes);
 router.use('/communaute', communauteRoutes);
 router.use('/sms', smsRoutes);
 
+// Équipement & Location
+const equipmentRoutes = require('./equipment');
+router.use('/equipment', equipmentRoutes);
+
+// IA & Prédictions
+const aiRoutes = require('./ai');
+router.use('/ai', aiRoutes);
+
+// Fiches Pratiques (Bibliothèque Agricole)
+const fichesPratiquesRoutes = require('./fichesPratiques');
+router.use('/fiches-pratiques', fichesPratiquesRoutes);
+
 // Outils & Services
 router.use('/formations', formationsRoutes);
 router.use('/weather', weatherRoutes);

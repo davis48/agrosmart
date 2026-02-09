@@ -13,6 +13,9 @@ import {
   Phone,
   Video,
   ArrowLeft,
+  Plus,
+  UserPlus,
+  X,
 } from 'lucide-react'
 import { 
   Card, 
@@ -66,6 +69,10 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [showMobileChat, setShowMobileChat] = useState(false)
+  const [showNewConversation, setShowNewConversation] = useState(false)
+  const [contacts, setContacts] = useState<Array<{ id: string; nom: string; prenoms: string; telephone: string; avatar?: string }>>([])
+  const [contactSearch, setContactSearch] = useState('')
+  const [loadingContacts, setLoadingContacts] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -105,6 +112,64 @@ export default function MessagesPage() {
     fetchConversations()
   }, [fetchConversations])
 
+  const fetchContacts = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setContacts([])
+      return
+    }
+    setLoadingContacts(true)
+    try {
+      const response = await api.get(`/messages/contacts/search?q=${encodeURIComponent(query)}`)
+      if (response.data.success) {
+        setContacts(response.data.data || [])
+      }
+    } catch (error) {
+      console.error('Error searching contacts:', error)
+      // Fallback: try users endpoint
+      try {
+        const response = await api.get(`/users?search=${encodeURIComponent(query)}&limit=10`)
+        if (response.data.success) {
+          setContacts(response.data.data || [])
+        }
+      } catch {
+        setContacts([])
+      }
+    } finally {
+      setLoadingContacts(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (contactSearch.trim()) {
+        fetchContacts(contactSearch)
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [contactSearch, fetchContacts])
+
+  const handleStartConversation = async (contact: { id: string; nom: string; prenoms?: string }) => {
+    // Check if conversation already exists
+    const existing = conversations.find(c => c.participant_id === contact.id)
+    if (existing) {
+      handleSelectConversation(existing)
+      setShowNewConversation(false)
+      return
+    }
+
+    // Create a new conversation placeholder
+    const newConv: Conversation = {
+      id: contact.id,
+      participant_id: contact.id,
+      participant_nom: `${contact.prenoms || ''} ${contact.nom}`.trim(),
+      non_lus: 0,
+    }
+    setSelectedConversation(newConv)
+    setMessages([])
+    setShowNewConversation(false)
+    setShowMobileChat(true)
+  }
+
   useEffect(() => {
     if (selectedConversation) {
       fetchMessages(selectedConversation.id)
@@ -138,10 +203,13 @@ export default function MessagesPage() {
     setNewMessage('')
 
     try {
-      await api.post(`/messages/conversations/${selectedConversation.id}`, {
+      await api.post(`/messages`, {
+        destinataire_id: selectedConversation.participant_id || selectedConversation.id,
         contenu: newMessage,
         type: 'texte',
       })
+      // Refresh conversations to get the new one
+      fetchConversations()
     } catch (error) {
       console.error('Error sending message:', error)
       // Keep the message in UI even if API fails
@@ -184,7 +252,69 @@ export default function MessagesPage() {
             Communiquez avec d&apos;autres agriculteurs
           </p>
         </div>
+        <Button onClick={() => setShowNewConversation(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nouveau message
+        </Button>
       </div>
+
+      {/* New Conversation Modal */}
+      {showNewConversation && (
+        <Card className="mb-4 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                <UserPlus className="h-4 w-4 text-green-600" />
+                Nouvelle conversation
+              </h3>
+              <button onClick={() => setShowNewConversation(false)} className="p-1 hover:bg-gray-100 rounded" aria-label="Fermer">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Rechercher un utilisateur par nom ou téléphone..."
+                value={contactSearch}
+                onChange={(e) => setContactSearch(e.target.value)}
+                className="pl-10"
+                autoFocus
+              />
+            </div>
+            {loadingContacts ? (
+              <div className="py-4 text-center text-gray-500">Recherche...</div>
+            ) : contacts.length > 0 ? (
+              <div className="max-h-48 overflow-y-auto space-y-1">
+                {contacts.map((contact) => (
+                  <button
+                    key={contact.id}
+                    onClick={() => handleStartConversation(contact)}
+                    className="w-full flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg text-left transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-medium text-sm">
+                      {contact.nom?.charAt(0) || '?'}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {contact.prenoms} {contact.nom}
+                      </p>
+                      <p className="text-xs text-gray-500">{contact.telephone}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : contactSearch.trim() ? (
+              <div className="py-4 text-center text-gray-500 text-sm">
+                Aucun utilisateur trouvé
+              </div>
+            ) : (
+              <div className="py-4 text-center text-gray-500 text-sm">
+                Tapez un nom ou un numéro pour rechercher
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main content */}
       <div className="flex-1 flex gap-4 overflow-hidden">

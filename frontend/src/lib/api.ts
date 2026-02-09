@@ -333,4 +333,99 @@ export const statsApi = {
     api.get('/stats/roi', { params }),
 }
 
+// ============ FICHES PRATIQUES (Bibliothèque Agricole) ============
+export const fichesPratiquesApi = {
+  getAll: (params?: { page?: number; limit?: number; categorie?: string }) =>
+    api.get('/fiches-pratiques', { params }),
+
+  getById: (id: string) => api.get(`/fiches-pratiques/${id}`),
+
+  search: (params: { q: string; categorie?: string }) =>
+    api.get('/fiches-pratiques/search', { params }),
+
+  getCategories: () => api.get('/fiches-pratiques/categories'),
+
+  create: (data: { titre: string; categorie?: string; contenu: string; fichierUrl?: string }) =>
+    api.post('/fiches-pratiques', data),
+
+  update: (id: string, data: { titre?: string; categorie?: string; contenu?: string; fichierUrl?: string }) =>
+    api.put(`/fiches-pratiques/${id}`, data),
+
+  delete: (id: string) => api.delete(`/fiches-pratiques/${id}`),
+}
+
+// ============ STOCKS ============
+export const stocksApi = {
+  getAll: (params?: { page?: number; limit?: number }) =>
+    api.get('/stocks', { params }),
+
+  getById: (id: string) => api.get(`/stocks/${id}`),
+
+  create: (data: { nom: string; categorie?: string; quantite: number; parcelleId?: string; seuilAlerte?: number }) =>
+    api.post('/stocks', data),
+
+  update: (id: string, data: Record<string, unknown>) =>
+    api.put(`/stocks/${id}`, data),
+
+  delete: (id: string) => api.delete(`/stocks/${id}`),
+
+  getStats: () => api.get('/stocks/statistiques'),
+
+  addMouvement: (id: string, data: { typeMouvement: string; quantite: number; motif?: string }) =>
+    api.post(`/stocks/${id}/mouvements`, data),
+
+  getMouvements: (id: string) => api.get(`/stocks/${id}/mouvements`),
+}
+
+// ============ CALENDRIER ============
+export const calendrierApi = {
+  getAll: (params?: { month?: number; year?: number }) =>
+    api.get('/calendrier', { params }),
+
+  getById: (id: string) => api.get(`/calendrier/${id}`),
+
+  create: (data: { titre: string; typeActivite: string; dateDebut: string; dateFin?: string; parcelleId?: string; priorite?: string }) =>
+    api.post('/calendrier', data),
+
+  update: (id: string, data: Record<string, unknown>) =>
+    api.put(`/calendrier/${id}`, data),
+
+  delete: (id: string) => api.delete(`/calendrier/${id}`),
+
+  getProchaines: () => api.get('/calendrier/prochaines'),
+
+  markComplete: (id: string) => api.patch(`/calendrier/${id}/terminer`),
+
+  getStats: () => api.get('/calendrier/statistiques'),
+}
+
+// ============ EQUIPMENT ============
+export const equipmentApi = {
+  getAll: (params?: { page?: number; limit?: number }) =>
+    api.get('/equipment/equipment', { params }),
+
+  getById: (id: string) => api.get(`/equipment/equipment/${id}`),
+
+  create: (data: FormData) => api.post('/equipment/equipment', data),
+
+  rent: (id: string, data: { dateDebut: string; dateFin: string }) =>
+    api.post(`/equipment/equipment/${id}/rent`, data),
+
+  getMyRentals: () => api.get('/equipment/rentals/my-rentals'),
+
+  getRentalRequests: () => api.get('/equipment/rentals/requests'),
+
+  updateRentalStatus: (id: string, data: { statut: string }) =>
+    api.put(`/equipment/rentals/${id}/status`, data),
+}
+
+// ============ ANALYTICS (Comparaison saisonnière) ============
+export const analyticsApi = {
+  getSeasonalComparison: (params?: { annee1?: number; annee2?: number; parcelleId?: string }) =>
+    api.get('/analytics/seasonal-comparison', { params }),
+
+  exportData: (params: { format?: string; type?: string }) =>
+    api.get('/analytics/export', { params, responseType: params.format === 'csv' ? 'blob' : 'json' }),
+}
+
 export default api

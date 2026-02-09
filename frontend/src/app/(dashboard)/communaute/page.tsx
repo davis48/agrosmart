@@ -282,15 +282,17 @@ export default function CommunautePage() {
             Échangez, apprenez et progressez avec d'autres agriculteurs
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle discussion
-        </Button>
+        <Link href="/communaute/nouvelle-discussion">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle discussion
+          </Button>
+        </Link>
       </div>
 
       {/* Stats utilisateur avec gamification */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="col-span-2 md:col-span-1 bg-gradient-to-br from-green-500 to-green-600 text-white">
+        <Card className="col-span-2 md:col-span-1 bg-linear-to-br from-green-500 to-green-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -460,7 +462,7 @@ export default function CommunautePage() {
                     <div className="flex gap-4">
                       {/* Avatar */}
                       <div className="hidden sm:block">
-                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg">
+                        <div className="h-12 w-12 rounded-full bg-linear-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg">
                           {post.auteur.nom.charAt(0)}
                         </div>
                       </div>
@@ -544,7 +546,7 @@ export default function CommunautePage() {
               <div className="flex justify-center items-end gap-4 sm:gap-8">
                 {/* 2ème place */}
                 <div className="flex flex-col items-center">
-                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white text-xl font-bold mb-2">
+                  <div className="h-16 w-16 rounded-full bg-linear-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white text-xl font-bold mb-2">
                     {leaderboard[1]?.nom.charAt(0)}
                   </div>
                   <Medal className="h-6 w-6 text-gray-400 mb-1" />
@@ -558,7 +560,7 @@ export default function CommunautePage() {
                 {/* 1ère place */}
                 <div className="flex flex-col items-center -mt-8">
                   <Crown className="h-8 w-8 text-yellow-500 mb-1" />
-                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-white text-2xl font-bold mb-2 ring-4 ring-yellow-300">
+                  <div className="h-20 w-20 rounded-full bg-linear-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-white text-2xl font-bold mb-2 ring-4 ring-yellow-300">
                     {leaderboard[0]?.nom.charAt(0)}
                   </div>
                   <p className="font-bold text-center">{leaderboard[0]?.nom}</p>
@@ -570,7 +572,7 @@ export default function CommunautePage() {
 
                 {/* 3ème place */}
                 <div className="flex flex-col items-center">
-                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-orange-300 to-orange-400 flex items-center justify-center text-white text-xl font-bold mb-2">
+                  <div className="h-16 w-16 rounded-full bg-linear-to-br from-orange-300 to-orange-400 flex items-center justify-center text-white text-xl font-bold mb-2">
                     {leaderboard[2]?.nom.charAt(0)}
                   </div>
                   <Medal className="h-6 w-6 text-orange-400 mb-1" />
@@ -604,7 +606,7 @@ export default function CommunautePage() {
                         <span className="text-lg font-bold text-gray-500">{entry.rang}</span>
                       )}
                     </div>
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold">
+                    <div className="h-10 w-10 rounded-full bg-linear-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold">
                       {entry.nom.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -642,7 +644,7 @@ export default function CommunautePage() {
                   <span className="font-medium">250 pts</span>
                 </div>
                 <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500" style={{ width: '72%' }} />
+                  <div className="h-full bg-green-500 w-[72%]" />
                 </div>
                 <p className="text-xs text-center text-gray-500">
                   Encore 250 points pour atteindre le niveau {userStats.niveau + 1}
@@ -727,6 +729,7 @@ export default function CommunautePage() {
                     <p className="text-xs text-gray-500 mt-1">{badge.description}</p>
                     <div className="mt-2">
                       <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        {/* eslint-disable-next-line */}
                         <div
                           className="h-full bg-green-500"
                           style={{ width: `${badge.progress}%` }}

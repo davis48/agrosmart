@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/chat_bloc.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../injection_container.dart';
 
-// Mock User Model for UI dev
 class CommunityUser {
   final String id;
   final String name;
@@ -33,33 +34,40 @@ class _UserSearchPageState extends State<UserSearchPage> {
 
     setState(() => _isLoading = true);
 
-    // Simulate Backend API call
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    // Mock Results
-    setState(() {
-      _isLoading = false;
-      _searchResults =
-          [
-                CommunityUser(
-                  id: '101',
-                  name: 'Kouassi Yves',
-                  bio: 'Producteur de Cacao - Soubré',
+    try {
+      final apiClient = sl<ApiClient>();
+      final response = await apiClient.get(
+        '/communaute/members',
+        queryParameters: {'search': query},
+      );
+      if (response.data['success'] == true && response.data['data'] != null) {
+        final List<dynamic> data = response.data['data'];
+        setState(() {
+          _isLoading = false;
+          _searchResults = data
+              .map(
+                (u) => CommunityUser(
+                  id: u['id']?.toString() ?? '',
+                  name: '${u['prenom'] ?? ''} ${u['nom'] ?? ''}'.trim(),
+                  bio: u['bio'] ?? u['role'] ?? '',
+                  avatar: u['photo_profil'],
                 ),
-                CommunityUser(
-                  id: '102',
-                  name: 'Awa Diallo',
-                  bio: 'Commerçante - Abidjan',
-                ),
-                CommunityUser(
-                  id: '103',
-                  name: 'Jean Pierre',
-                  bio: 'Transporteur',
-                ),
-              ]
-              .where((u) => u.name.toLowerCase().contains(query.toLowerCase()))
+              )
               .toList();
-    });
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _searchResults = [];
+        });
+      }
+    } catch (e) {
+      debugPrint('Erreur recherche utilisateurs: $e');
+      setState(() {
+        _isLoading = false;
+        _searchResults = [];
+      });
+    }
   }
 
   void _startChat(CommunityUser user) {

@@ -415,3 +415,161 @@ exports.getPublicStats = async (req, res, next) => {
         });
     }
 };
+
+/**
+ * Comparaison saisonnière des rendements et performances
+ */
+exports.getSeasonalComparison = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { annee1, annee2, parcelleId } = req.query;
+        const currentYear = new Date().getFullYear();
+        const year1 = parseInt(annee1) || currentYear - 1;
+        const year2 = parseInt(annee2) || currentYear;
+
+        const where = { parcelle: { userId } };
+        if (parcelleId) where.parcelleId = parcelleId;
+
+        // Rendements par culture pour les deux années
+        const [rendements1, rendements2] = await Promise.all([
+            prisma.rendementParCulture.findMany({
+                where: { ...where, annee: year1 },
+                include: { culture: { select: { nom: true, categorie: true } }, parcelle: { select: { nom: true } } }
+            }),
+            prisma.rendementParCulture.findMany({
+                where: { ...where, annee: year2 },
+                include: { culture: { select: { nom: true, categorie: true } }, parcelle: { select: { nom: true } } }
+            })
+        ]);
+
+        // Performance parcelles
+        const [perf1, perf2] = await Promise.all([
+            prisma.performanceParcelle.findMany({
+                where: { userId, annee: year1 },
+                include: { parcelle: { select: { nom: true } } }
+            }),
+            prisma.performanceParcelle.findMany({
+                where: { userId, annee: year2 },
+                include: { parcelle: { select: { nom: true } } }
+            })
+        ]);
+
+        // Economies
+        const economies = await prisma.economies.findFirst({
+            where: { userId },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Calcul des totaux
+        const totalRendement1 = rendements1.reduce((sum, r) => sum + (r.rendementKgHa || 0), 0);
+        const totalRendement2 = rendements2.reduce((sum, r) => sum + (r.rendementKgHa || 0), 0);
+        const evolution = totalRendement1 > 0
+            ? ((totalRendement2 - totalRendement1) / totalRendement1 * 100).toFixed(1)
+            : 0;
+
+        res.json({
+            success: true,
+            data: {
+                saison1: { annee: year1, rendements: rendements1, performances: perf1, totalRendement: totalRendement1 },
+                saison2: { annee: year2, rendements: rendements2, performances: perf2, totalRendement: totalRendement2 },
+                evolution: parseFloat(evolution),
+                economies,
+                comparaison: {
+                    rendementProgression: `${evolution}%`,
+                    nombreCultures1: rendements1.length,
+                    nombreCultures2: rendements2.length
+                }
+            }
+        });
+    } catch (error) {
+        logger.error('Erreur comparaison saisonnière:', error);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+};
+
+/**
+ * Exporter les données analytiques (CSV ou JSON)
+ */
+exports.exportAnalytics = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { format = 'csv', type = 'all' } = req.query;
+
+        const data = {};
+
+        if (type === 'all' || type === 'parcelles') {
+            data.parcelles = await prisma.parcelle.findMany({
+                where: { userId, isActive: true },
+                include: { cultures: { select: { nom: true } } }
+            });
+        }
+
+        if (type === 'all' || type === 'rendements') {
+            data.rendements = await prisma.rendementParCulture.findMany({
+                where: { parcelle: { userId } },
+                include: { culture: { select: { nom: true } }, parcelle: { select: { nom: true } } },
+                orderBy: { annee: 'desc' }
+            });
+        }
+
+        if (type === 'all' || type === 'mesures') {
+            data.mesures = await prisma.mesure.findMany({
+                where: { capteur: { parcelle: { userId } } },
+                include: { capteur: { select: { nom: true, type: true } } },
+                orderBy: { timestamp: 'desc' },
+                take: 1000
+            });
+        }
+
+        if (type === 'all' || type === 'alertes') {
+            data.alertes = await prisma.alerte.findMany({
+                where: { userId },
+                orderBy: { createdAt: 'desc' },
+                take: 500
+            });
+        }
+
+        if (format === 'csv') {
+            // Générer CSV pour le type demandé
+            const items = data[type] || data.parcelles || [];
+            if (items.length === 0) {
+                return res.status(200).send('Aucune donnée à exporter');
+            }
+
+            const flattenObject = (obj, prefix = '') => {
+                const result = {};
+                for (const [key, value] of Object.entries(obj)) {
+                    if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+                        Object.assign(result, flattenObject(value, `${prefix}${key}_`));
+                    } else {
+                        result[`${prefix}${key}`] = value;
+                    }
+                }
+                return result;
+            };
+
+            const flatItems = items.map(item => flattenObject(JSON.parse(JSON.stringify(item))));
+            const headers = [...new Set(flatItems.flatMap(item => Object.keys(item)))];
+            const csvRows = [headers.join(',')];
+
+            for (const item of flatItems) {
+                csvRows.push(headers.map(h => {
+                    const val = item[h] ?? '';
+                    return typeof val === 'string' && val.includes(',') ? `"${val}"` : val;
+                }).join(','));
+            }
+
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename=agrosmart_${type}_${new Date().toISOString().slice(0, 10)}.csv`);
+            return res.send(csvRows.join('\n'));
+        }
+
+        // JSON export
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename=agrosmart_${type}_${new Date().toISOString().slice(0, 10)}.json`);
+        return res.json({ success: true, data, exportDate: new Date().toISOString() });
+    } catch (error) {
+        logger.error('Erreur export analytics:', error);
+        res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+};

@@ -69,9 +69,6 @@ interface Recommendation {
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
-// Données simulées eliminées
-const mockRecommandations: Recommendation[] = [];
-
 const categorieIcons = {
   irrigation: Droplets,
   fertilisation: Leaf,

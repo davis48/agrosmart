@@ -47,9 +47,10 @@ class PushNotificationService {
     // Initialiser les notifications locales
     await _initializeLocalNotifications();
 
-    // Simuler l'initialisation FCM (le vrai FCM nécessite firebase_messaging)
-    // Dans une implémentation réelle, utilisez firebase_messaging
-    _fcmToken = 'simulated_fcm_token_${DateTime.now().millisecondsSinceEpoch}';
+    // FCM token: firebase_messaging n'est pas encore dans les dépendances.
+    // Ce token local permet aux notifications locales de fonctionner.
+    // TODO: Ajouter firebase_messaging et utiliser FirebaseMessaging.instance.getToken()
+    _fcmToken = 'local_device_${DateTime.now().millisecondsSinceEpoch}';
 
     _isInitialized = true;
     developer.log('[PushNotification] Service initialized', name: 'FCM');

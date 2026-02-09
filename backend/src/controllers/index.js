@@ -15,6 +15,24 @@ const recommandationsController = require('./recommandationsController');
 const marketplaceController = require('./marketplaceController');
 const formationsController = require('./formationsController');
 const messagesController = require('./messagesController');
+const weatherController = require('./weatherController');
+const analyticsController = require('./analyticsController');
+const diagnosticsController = require('./diagnosticsController');
+const adminController = require('./adminController');
+const dashboardController = require('./dashboardController');
+const communauteController = require('./communauteController');
+const chatController = require('./chatController');
+const chatbotController = require('./chatbotController');
+const gamificationController = require('./gamificationController');
+const stockController = require('./stockController');
+const calendrierController = require('./calendrierController');
+const equipmentController = require('./equipmentController');
+const aiController = require('./aiController');
+const fichesPratiquesController = require('./fichesPratiquesController');
+const cartController = require('./cartController');
+const favoritesController = require('./favoritesController');
+const paymentController = require('./paymentController');
+const groupPurchasesController = require('./groupPurchasesController');
 
 module.exports = {
   authController,
@@ -28,5 +46,25 @@ module.exports = {
   recommandationsController,
   marketplaceController,
   formationsController,
+  messagesController,
+  weatherController,
+  analyticsController,
+  diagnosticsController,
+  adminController,
+  dashboardController,
+  communauteController,
+  chatController,
+  chatbotController,
+  gamificationController,
+  stockController,
+  calendrierController,
+  equipmentController,
+  aiController,
+  fichesPratiquesController,
+  cartController,
+  favoritesController,
+  paymentController,
+  groupPurchasesController
+};
   messagesController
 };

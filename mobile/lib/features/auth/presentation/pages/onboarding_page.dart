@@ -94,10 +94,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       color: Colors.green.shade100,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      Icons.eco,
-                      size: 28,
-                      color: Colors.green.shade700,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/logo_small.png',
+                        width: 28,
+                        height: 28,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),

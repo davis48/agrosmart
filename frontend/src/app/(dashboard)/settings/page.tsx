@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '@/lib/store'
+import api from '@/lib/api'
 
 interface SettingsState {
   // Notifications
@@ -68,21 +69,34 @@ export default function SettingsPage() {
   const { logout } = useAuthStore()
 
   useEffect(() => {
-    // Charger les paramètres depuis le localStorage
-    const savedSettings = localStorage.getItem('agrismart_settings')
-    if (savedSettings) {
+    // Charger les paramètres depuis l'API, avec fallback localStorage
+    const loadSettings = async () => {
       try {
-        setSettings(JSON.parse(savedSettings))
+        const res = await api.get('/users/settings')
+        if (res.data?.success && res.data.data) {
+          setSettings(prev => ({ ...prev, ...res.data.data }))
+          localStorage.setItem('agrismart_settings', JSON.stringify(res.data.data))
+        }
       } catch {
-        console.error('Erreur lors du chargement des paramètres')
+        // Fallback: charger depuis localStorage (offline)
+        const savedSettings = localStorage.getItem('agrismart_settings')
+        if (savedSettings) {
+          try { setSettings(JSON.parse(savedSettings)) } catch { /* ignore */ }
+        }
       }
     }
+    loadSettings()
   }, [])
 
   const updateSetting = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => {
       const newSettings = { ...prev, [key]: value }
+      // Sauvegarder en local immédiatement
       localStorage.setItem('agrismart_settings', JSON.stringify(newSettings))
+      // Persister vers l'API en arrière-plan
+      api.patch('/users/settings', newSettings).catch(() => {
+        // Offline: les données sont déjà en localStorage
+      })
       return newSettings
     })
     toast.success('Paramètre mis à jour')

@@ -41,32 +41,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Skeleton } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/lib/store'
-import api from '@/lib/api'
+import api, { analyticsApi } from '@/lib/api'
 
 // Types
-interface ROIData {
-  investissement: number
-  revenus: number
-  benefice: number
-  roi: number
-  variation: number
-}
-
-interface SeasonComparison {
-  metric: string
-  saisonActuelle: number
-  saisonPrecedente: number
-  variation: number
-}
-
-interface ProductionTrend {
-  mois: string
-  production: number
-  objectif: number
-  saisonPrecedente: number
-}
-
-// Types pour les données réelles
 interface ROIData {
   investissement: number
   revenus: number
@@ -244,7 +221,18 @@ export default function PerformancePage() {
             <option value="annee">Cette année</option>
             <option value="saison">Cette saison</option>
           </select>
-          <Button variant="outline">
+          <Button variant="outline" onClick={async () => {
+            try {
+              const res = await analyticsApi.exportData({ format: 'csv', type: 'rendements' })
+              const blob = new Blob([res.data], { type: 'text/csv' })
+              const url = window.URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `performance_${new Date().toISOString().slice(0,10)}.csv`
+              a.click()
+              window.URL.revokeObjectURL(url)
+            } catch { console.error('Erreur export') }
+          }}>
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
@@ -253,7 +241,7 @@ export default function PerformancePage() {
 
       {/* ROI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+        <Card className="bg-linear-to-br from-green-500 to-green-600 text-white">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -406,9 +394,9 @@ export default function PerformancePage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <Skeleton className="h-[300px] w-full" />
+              <Skeleton className="h-75 w-full" />
             ) : (
-              <div className="h-[300px]">
+              <div className="h-75">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={moisComparaison}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -460,9 +448,9 @@ export default function PerformancePage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <Skeleton className="h-[300px] w-full" />
+              <Skeleton className="h-75 w-full" />
             ) : (
-              <div className="h-[300px]">
+              <div className="h-75">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
                     <PolarGrid stroke="#E5E7EB" />
@@ -516,9 +504,9 @@ export default function PerformancePage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <Skeleton className="h-[300px] w-full" />
+            <Skeleton className="h-75 w-full" />
           ) : (
-            <div className="h-[300px]">
+            <div className="h-75">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={productionTrends}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -653,7 +641,7 @@ export default function PerformancePage() {
       </Card>
 
       {/* Conseils d'amélioration */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
+      <Card className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">

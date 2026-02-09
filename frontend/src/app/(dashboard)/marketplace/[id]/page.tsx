@@ -77,6 +77,14 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
     useEffect(() => {
         const fetchProduct = async () => {
+            // Vérification que l'ID est valide avant l'appel API
+            if (!params.id || params.id === 'undefined') {
+                toast.error('ID produit invalide')
+                router.push('/marketplace')
+                setLoading(false)
+                return
+            }
+
             try {
                 const res = await api.get(`/marketplace/produits/${params.id}`)
                 if (res.data.success) {

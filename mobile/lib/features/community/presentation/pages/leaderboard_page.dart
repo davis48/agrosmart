@@ -1,64 +1,110 @@
 import 'package:flutter/material.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../injection_container.dart';
 
-class LeaderboardPage extends StatelessWidget {
+class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data for demonstration
-    final leaderboard = List.generate(
-      20,
-      (index) => {
-        'rank': index + 1,
-        'nom': 'Agriculteur ${index + 1}',
-        'points': 10000 - (index * 500),
-        'niveau': 10 - (index ~/ 3),
-        'badges': 5 - (index ~/ 5),
-      },
-    );
+  State<LeaderboardPage> createState() => _LeaderboardPageState();
+}
 
+class _LeaderboardPageState extends State<LeaderboardPage> {
+  List<Map<String, dynamic>> leaderboard = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLeaderboard();
+  }
+
+  Future<void> _fetchLeaderboard() async {
+    try {
+      final apiClient = sl<ApiClient>();
+      final response = await apiClient.get('/gamification/leaderboard');
+      if (response.data['success'] == true && response.data['data'] != null) {
+        final List<dynamic> data = response.data['data'];
+        setState(() {
+          leaderboard = data
+              .asMap()
+              .entries
+              .map(
+                (e) => {
+                  'rank': e.key + 1,
+                  'nom': e.value['nom'] ?? e.value['prenom'] ?? 'Agriculteur',
+                  'points': e.value['points'] ?? 0,
+                  'niveau': e.value['niveau'] ?? 1,
+                  'badges': e.value['badges_count'] ?? e.value['badges'] ?? 0,
+                },
+              )
+              .toList();
+          loading = false;
+        });
+      } else {
+        setState(() {
+          loading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Erreur chargement leaderboard: $e');
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Classement'),
         backgroundColor: Colors.amber.shade700,
         foregroundColor: Colors.white,
       ),
-      body: Column(
-        children: [
-          // Top 3 podium
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.amber.shade700, Colors.amber.shade50],
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.end,
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : leaderboard.isEmpty
+          ? const Center(child: Text('Aucune donnée de classement'))
+          : Column(
               children: [
-                _buildPodiumCard(leaderboard[1], 2, 100),
-                _buildPodiumCard(leaderboard[0], 1, 120),
-                _buildPodiumCard(leaderboard[2], 3, 80),
+                // Top 3 podium
+                if (leaderboard.length >= 3)
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.amber.shade700, Colors.amber.shade50],
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        _buildPodiumCard(leaderboard[1], 2, 100),
+                        _buildPodiumCard(leaderboard[0], 1, 120),
+                        _buildPodiumCard(leaderboard[2], 3, 80),
+                      ],
+                    ),
+                  ),
+
+                // Rest of leaderboard
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: leaderboard.length > 3
+                        ? leaderboard.length - 3
+                        : 0,
+                    itemBuilder: (context, index) {
+                      final entry = leaderboard[index + 3];
+                      return _buildLeaderboardTile(entry);
+                    },
+                  ),
+                ),
               ],
             ),
-          ),
-
-          // Rest of leaderboard
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: leaderboard.length - 3,
-              itemBuilder: (context, index) {
-                final entry = leaderboard[index + 3];
-                return _buildLeaderboardTile(entry);
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -66,8 +112,10 @@ class LeaderboardPage extends StatelessWidget {
     Color medalColor;
     if (rank == 1) {
       medalColor = Colors.amber;
-    } else if (rank == 2) medalColor = Colors.grey.shade400;
-    else medalColor = Colors.brown.shade300;
+    } else if (rank == 2)
+      medalColor = Colors.grey.shade400;
+    else
+      medalColor = Colors.brown.shade300;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

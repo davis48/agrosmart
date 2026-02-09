@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuthStore, useUIStore } from '@/lib/store'
 import { LoadingOverlay } from '@/components/ui'
@@ -12,7 +13,6 @@ import {
   Users,
   Settings,
   LogOut,
-  Shield,
   Menu,
   X,
   Moon,
@@ -73,7 +73,7 @@ export default function AdminLayout({
       }
 
       // Vérifier si l'utilisateur est admin
-      if (user && !['admin', 'super_admin'].includes(user.role)) {
+      if (user && !['admin', 'super_admin', 'ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
         router.push('/dashboard')
       }
     }
@@ -89,7 +89,7 @@ export default function AdminLayout({
   }
 
   // Vérifier le rôle
-  if (user && !['admin', 'super_admin'].includes(user.role)) {
+  if (user && !['admin', 'super_admin', 'ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
     return <LoadingOverlay message="Accès non autorisé..." />
   }
 
@@ -118,12 +118,14 @@ export default function AdminLayout({
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-slate-700">
           <Link href="/admin" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600">
-              <Shield className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <span className="text-lg font-bold">AgroSmart</span>
-              <span className="block text-xs text-slate-400">Administration</span>
+            <div className="flex h-12 w-32 items-center justify-start overflow-hidden">
+              <Image 
+                src="/logo.png" 
+                alt="AgroSmart" 
+                width={128} 
+                height={48} 
+                className="object-contain object-left h-full w-auto" 
+              />
             </div>
           </Link>
           <button

@@ -75,6 +75,7 @@ exports.getAllProduits = async (req, res, next) => {
     const data = produits.map(p => ({
       ...p,
       quantite_disponible: p.stock,
+      est_actif: p.actif,
       vendeur_id: p.vendeurId,
       created_at: p.createdAt,
       vendeur_nom: p.vendeur.nom,

@@ -2,18 +2,19 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Leaf, Phone, Lock, Eye, EyeOff, ArrowRight, Home } from 'lucide-react'
+import { Phone, Lock, Eye, EyeOff, ArrowRight, Home } from 'lucide-react'
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui'
 import { authApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import toast from 'react-hot-toast'
 
 const loginSchema = z.object({
-  telephone: z.string().min(10, 'Numéro de téléphone invalide'),
+  identifier: z.string().min(3, 'Email ou numéro de téléphone requis'),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 })
 
@@ -51,7 +52,7 @@ export default function LoginPage() {
     setLoginError(null)
     setIsLoading(true)
     try {
-      const response = await authApi.login({ telephone: data.telephone, password: data.password })
+      const response = await authApi.login({ telephone: data.identifier, password: data.password })
 
       if (response.data.success) {
         if (response.data.data.requiresOtp) {
@@ -63,25 +64,25 @@ export default function LoginPage() {
           toast.success('Connexion réussie!')
 
           // Rediriger vers le dashboard admin si l'utilisateur est admin
-          const userRole = response.data.data.user.role
-          if (userRole === 'admin' || userRole === 'super_admin') {
+          const userRole = response.data.data.user.role?.toUpperCase()
+          if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
             router.push('/admin')
           } else {
             router.push('/dashboard')
           }
         }
       } else {
-        const errorMsg = response.data.message || 'Numéro de téléphone ou mot de passe incorrect'
+        const errorMsg = response.data.message || 'Identifiants incorrects'
         setLoginError(errorMsg)
         setDebugMessage('Échec: ' + errorMsg)
         toast.error(errorMsg)
       }
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string }, status?: number } }
-      let errorMessage = 'Numéro de téléphone ou mot de passe incorrect'
+      let errorMessage = 'Identifiants incorrects'
 
       if (err.response?.status === 401 || err.response?.status === 404) {
-        errorMessage = 'Numéro de téléphone ou mot de passe incorrect'
+        errorMessage = 'Identifiants incorrects'
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message
       }
@@ -103,7 +104,7 @@ export default function LoginPage() {
 
     setIsLoading(true)
     try {
-      const response = await authApi.verifyOtp({ telephone: getValues('telephone'), otp: otpCode })
+      const response = await authApi.verifyOtp({ telephone: getValues('identifier'), otp: otpCode })
 
       if (response.data.success) {
         login(response.data.data.user, response.data.data.accessToken)
@@ -121,7 +122,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-green-100 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-green-50 to-green-100 px-4">
       {/* Bouton retour accueil */}
       <Link
         href="/"
@@ -132,13 +133,19 @@ export default function LoginPage() {
       </Link>
 
       {/* Logo */}
-      <div className="flex items-center gap-2 mb-8">
-        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-green-600 shadow-lg">
-          <Leaf className="h-8 w-8 text-white" />
+      <div className="flex flex-col items-center gap-2 mb-8">
+        <div className="flex h-24 items-center justify-center overflow-hidden">
+          <Image 
+            src="/logo.png" 
+            alt="AgroSmart" 
+            width={240} 
+            height={96} 
+            className="object-contain h-full w-auto" 
+            priority 
+          />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AgroSmart</h1>
-          <p className="text-sm text-gray-500">Plateforme Agricole Intelligente</p>
+          <p className="text-sm font-medium text-gray-500 text-center uppercase tracking-wider">Plateforme Agricole Intelligente</p>
         </div>
       </div>
 
@@ -160,12 +167,12 @@ export default function LoginPage() {
               <div className="relative">
                 <Phone className="absolute left-3 top-9 h-5 w-5 text-gray-400" />
                 <Input
-                  label="Numéro de téléphone"
-                  type="tel"
-                  placeholder="+225 XX XX XX XX XX"
+                  label="Email ou Numéro de téléphone"
+                  type="text"
+                  placeholder="email@exemple.com ou +225 XX XX XX XX XX"
                   className="pl-10"
-                  error={errors.telephone?.message}
-                  {...register('telephone')}
+                  error={errors.identifier?.message}
+                  {...register('identifier')}
                 />
               </div>
 
@@ -208,7 +215,7 @@ export default function LoginPage() {
               {/* Afficher l'erreur de connexion */}
               {loginError && (
                 <div className="bg-red-50 border border-red-300 rounded-lg p-3 text-red-700 text-sm flex items-center gap-2">
-                  <svg className="h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                   <span>{loginError}</span>
@@ -218,7 +225,7 @@ export default function LoginPage() {
               {/* Afficher les erreurs de validation */}
               {Object.keys(errors).length > 0 && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
-                  {errors.telephone && <p>• {errors.telephone.message}</p>}
+                  {errors.identifier && <p>• {errors.identifier.message}</p>}
                   {errors.password && <p>• {errors.password.message}</p>}
                 </div>
               )}
@@ -247,7 +254,7 @@ export default function LoginPage() {
             <form onSubmit={handleOtpSubmit} className="space-y-4">
               <div className="text-center mb-4">
                 <p className="text-sm text-gray-600">
-                  Code envoyé au <strong>{getValues('telephone')}</strong>
+                  Code envoyé au <strong>{getValues('identifier')}</strong>
                 </p>
               </div>
 

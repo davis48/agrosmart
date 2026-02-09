@@ -34,10 +34,13 @@ class AboutPage extends StatelessWidget {
                       color: Colors.green.shade100,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      Icons.eco,
-                      size: 50,
-                      color: Colors.green.shade700,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -195,10 +198,14 @@ class AboutPage extends StatelessWidget {
                       context: context,
                       applicationName: 'AgroSmart',
                       applicationVersion: '1.2.0',
-                      applicationIcon: Icon(
-                        Icons.eco,
-                        size: 48,
-                        color: Colors.green.shade700,
+                      applicationIcon: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     );
                   },

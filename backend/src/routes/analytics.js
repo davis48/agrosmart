@@ -28,4 +28,18 @@ router.get('/stats', isProducteur, analyticsController.getStats);
  */
 router.get('/parcelles/:parcelleId', isProducteur, analyticsController.getParcelleAnalytics);
 
+/**
+ * @route   GET /api/analytics/seasonal-comparison
+ * @desc    Comparaison saisonnière des rendements et performances
+ * @access  Producteur, Conseiller, Admin
+ */
+router.get('/seasonal-comparison', isProducteur, analyticsController.getSeasonalComparison);
+
+/**
+ * @route   GET /api/analytics/export
+ * @desc    Exporter les données analytiques en Excel ou CSV
+ * @access  Producteur, Conseiller, Admin
+ */
+router.get('/export', isProducteur, analyticsController.exportAnalytics);
+
 module.exports = router;

@@ -12,12 +12,12 @@ const { authenticate } = require('../middlewares/auth');
 router.use(authenticate);
 
 // Equipment routes
-router.get('/equipment', equipmentController.getEquipments);
-router.get('/equipment/:id', equipmentController.getEquipmentById);
-router.post('/equipment', equipmentController.createEquipment);
+router.get('/', equipmentController.getEquipments);
+router.get('/:id', equipmentController.getEquipmentById);
+router.post('/', equipmentController.createEquipment);
 
 // Rental routes
-router.post('/equipment/:id/rent', equipmentController.createRentalRequest);
+router.post('/:id/rent', equipmentController.createRentalRequest);
 router.get('/rentals/my-rentals', equipmentController.getMyRentals);
 router.get('/rentals/requests', equipmentController.getRentalRequests);
 router.put('/rentals/:id/status', equipmentController.updateRentalStatus);

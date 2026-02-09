@@ -266,7 +266,7 @@ export default function AgriculteurDetailPage() {
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="flex items-start gap-4">
-              <div className="h-20 w-20 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
+              <div className="h-20 w-20 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
                 <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                   {agriculteur.nom.charAt(0)}
                 </span>

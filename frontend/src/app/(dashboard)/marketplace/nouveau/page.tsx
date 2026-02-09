@@ -60,8 +60,7 @@ export default function NewProductPage() {
         caution: ''
     })
 
-    // Mock handling images for now or implement real upload if component available
-    // Using simple file input for logic
+    // Gestion des images
     const [images, setImages] = useState<File[]>([])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -99,10 +98,7 @@ export default function NewProductPage() {
             }
 
             // Add images
-            // images.forEach(img => payload.append('images', img))
-            // Mocking images since we don't have file Input ready-styled, or assume text for now if API supports URLs? 
-            // API expects multipart/form-data 'images' field.
-            // I will skip images for now or just let user create without them.
+            images.forEach(img => payload.append('images', img))
 
             const res = await api.post('/marketplace/produits', payload, {
                 headers: { 'Content-Type': 'multipart/form-data' }

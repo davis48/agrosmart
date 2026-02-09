@@ -198,7 +198,7 @@ export default function AdminRapportsPage() {
       </div>
 
       {/* Score global */}
-      <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+      <Card className="bg-linear-to-r from-green-500 to-emerald-600 text-white">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>

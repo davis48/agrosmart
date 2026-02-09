@@ -184,7 +184,7 @@ export default function MeteoPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Spinner className="h-8 w-8" />
       </div>
     )
@@ -192,7 +192,7 @@ export default function MeteoPage() {
 
   if (!meteo) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
+      <div className="flex flex-col items-center justify-center min-h-100 p-4 text-center">
         <Cloud className="h-16 w-16 text-gray-300 mb-4" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Impossible de charger la météo</h2>
         <p className="text-gray-500 mb-6">Vérifiez votre connexion internet ou réessayez plus tard.</p>
@@ -220,7 +220,7 @@ export default function MeteoPage() {
         </div>
         <div className="flex gap-3">
           <Select value={selectedParcelle} onValueChange={setSelectedParcelle}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-50">
               <SelectValue placeholder="Toutes les parcelles" />
             </SelectTrigger>
             <SelectContent>
@@ -388,7 +388,7 @@ export default function MeteoPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-full bg-green-200 flex items-center justify-center flex-shrink-0">
+            <div className="h-8 w-8 rounded-full bg-green-200 flex items-center justify-center shrink-0">
               <Droplets className="h-4 w-4 text-green-700" />
             </div>
             <div>
@@ -399,7 +399,7 @@ export default function MeteoPage() {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-full bg-green-200 flex items-center justify-center flex-shrink-0">
+            <div className="h-8 w-8 rounded-full bg-green-200 flex items-center justify-center shrink-0">
               <Thermometer className="h-4 w-4 text-green-700" />
             </div>
             <div>
@@ -410,7 +410,7 @@ export default function MeteoPage() {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-full bg-green-200 flex items-center justify-center flex-shrink-0">
+            <div className="h-8 w-8 rounded-full bg-green-200 flex items-center justify-center shrink-0">
               <CloudRain className="h-4 w-4 text-green-700" />
             </div>
             <div>

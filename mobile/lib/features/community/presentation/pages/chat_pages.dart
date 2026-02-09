@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../bloc/chat_bloc.dart';
 import 'user_search_page.dart';
 import '../../domain/entities/chat_gamification.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class ConversationsListPage extends StatelessWidget {
   const ConversationsListPage({super.key});
@@ -20,8 +21,8 @@ class ConversationsListPage extends StatelessWidget {
             icon: const Icon(Icons.add_comment),
             onPressed: () {
               Navigator.push(
-                context, 
-                MaterialPageRoute(builder: (_) => const UserSearchPage())
+                context,
+                MaterialPageRoute(builder: (_) => const UserSearchPage()),
               );
             },
           ),
@@ -33,7 +34,7 @@ class ConversationsListPage extends StatelessWidget {
             context.read<ChatBloc>().add(LoadConversations());
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (state is ChatLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -64,13 +65,16 @@ class ConversationsListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildConversationTile(BuildContext context, Conversation conversation) {
+  Widget _buildConversationTile(
+    BuildContext context,
+    Conversation conversation,
+  ) {
     // Format date
     String dateText = '';
     if (conversation.dernierMessageAt != null) {
       final now = DateTime.now();
       final diff = now.difference(conversation.dernierMessageAt!);
-      
+
       if (diff.inDays == 0) {
         dateText = DateFormat('HH:mm').format(conversation.dernierMessageAt!);
       } else if (diff.inDays == 1) {
@@ -84,7 +88,7 @@ class ConversationsListPage extends StatelessWidget {
       leading: CircleAvatar(
         backgroundColor: Colors.blue.shade100,
         child: Text(
-          conversation.nom != null 
+          conversation.nom != null
               ? conversation.nom![0].toUpperCase()
               : 'U', // Default initial
           style: TextStyle(color: Colors.blue.shade800),
@@ -102,8 +106,12 @@ class ConversationsListPage extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: conversation.unreadCount > 0 ? Colors.black87 : Colors.grey,
-                fontWeight: conversation.unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
+                color: conversation.unreadCount > 0
+                    ? Colors.black87
+                    : Colors.grey,
+                fontWeight: conversation.unreadCount > 0
+                    ? FontWeight.w600
+                    : FontWeight.normal,
               ),
             ),
           ),
@@ -118,7 +126,9 @@ class ConversationsListPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               color: conversation.unreadCount > 0 ? Colors.blue : Colors.grey,
-              fontWeight: conversation.unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
+              fontWeight: conversation.unreadCount > 0
+                  ? FontWeight.bold
+                  : FontWeight.normal,
             ),
           ),
           if (conversation.unreadCount > 0)
@@ -177,7 +187,9 @@ class _ChatPageState extends State<ChatPage> {
 
   void _sendMessage() {
     if (_controller.text.trim().isEmpty) return;
-    context.read<ChatBloc>().add(SendMessage(widget.conversation.id, _controller.text));
+    context.read<ChatBloc>().add(
+      SendMessage(widget.conversation.id, _controller.text),
+    );
     _controller.clear();
   }
 
@@ -197,7 +209,7 @@ class _ChatPageState extends State<ChatPage> {
                 if (state is ChatLoading && (state is! MessagesLoaded)) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                
+
                 if (state is ChatError) {
                   return Center(child: Text('Erreur: ${state.message}'));
                 }
@@ -205,9 +217,9 @@ class _ChatPageState extends State<ChatPage> {
                 if (state is MessagesLoaded) {
                   // Only show messages for this conversation
                   if (state.conversationId != widget.conversation.id) {
-                     return const Center(child: CircularProgressIndicator()); 
+                    return const Center(child: CircularProgressIndicator());
                   }
-                  
+
                   final messages = state.messages;
                   if (messages.isEmpty) {
                     return const Center(child: Text('Aucun message'));
@@ -234,7 +246,10 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageBubble(Message message) {
-    const currentUserId = 'current_user'; // Mock ID
+    final authState = context.read<AuthBloc>().state;
+    final currentUserId = authState is AuthAuthenticated
+        ? authState.user.id
+        : '';
     final isMe = message.expediteurId == currentUserId;
 
     return Align(
@@ -251,7 +266,9 @@ class _ChatPageState extends State<ChatPage> {
             bottomRight: isMe ? Radius.zero : const Radius.circular(16),
           ),
         ),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -292,10 +309,7 @@ class _ChatPageState extends State<ChatPage> {
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.attach_file),
-              onPressed: () {},
-            ),
+            IconButton(icon: const Icon(Icons.attach_file), onPressed: () {}),
             Expanded(
               child: TextField(
                 controller: _controller,
@@ -307,7 +321,10 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   filled: true,
                   fillColor: Colors.grey.shade100,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                 ),
                 textCapitalization: TextCapitalization.sentences,
               ),

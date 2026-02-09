@@ -120,18 +120,33 @@ export default function DashboardPage() {
 
         // Fetch weather
         try {
-          const weatherRes = await api.get('/meteo/current')
+          const weatherRes = await api.get('/weather/current')
           let weatherData = null
 
           if (weatherRes.data.success) {
-            weatherData = weatherRes.data.data
+            const wd = weatherRes.data.data
+            weatherData = {
+              temperature: Math.round(wd.temperature || 0),
+              humidite: wd.humidity || wd.humidite || 0,
+              vent: Math.round(wd.wind_speed || wd.vent || 0),
+              condition: wd.condition || wd.description || 'Ensoleillé',
+              previsions: [] as WeatherData['previsions']
+            }
           }
 
           // Fetch forecast
           try {
-            const forecastRes = await api.get('/meteo/forecast')
+            const forecastRes = await api.get('/weather/forecast')
             if (forecastRes.data.success && weatherData) {
-              weatherData.previsions = forecastRes.data.data
+              const forecastData = forecastRes.data.data
+              if (Array.isArray(forecastData)) {
+                weatherData.previsions = forecastData.slice(0, 5).map((d: any) => ({
+                  jour: d.jour || new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short' }),
+                  temp_min: Math.round(d.temp_min || d.temperature_min || 0),
+                  temp_max: Math.round(d.temp_max || d.temperature_max || 0),
+                  condition: d.condition || d.description || 'Nuageux'
+                }))
+              }
             }
           } catch (e) {
             console.warn('Forecast API failed', e)
@@ -144,7 +159,7 @@ export default function DashboardPage() {
             setWeather(weatherData)
           }
         } catch (e) {
-          console.warn('Meteo API not ready yet')
+          console.warn('Weather API not ready yet')
         }
 
         // Fetch recent measures
@@ -325,7 +340,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                   {/* Current weather */}
                   <div className="flex items-center gap-4">
-                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                    <div className="h-20 w-20 rounded-full bg-linear-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
                       <Sun className="h-10 w-10 text-white" />
                     </div>
                     <div>
@@ -437,8 +452,8 @@ export default function DashboardPage() {
             <CardTitle className="text-lg font-semibold">Paramètres du sol (7 jours)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-75">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 {mesures.length > 0 ? (
                   <LineChart data={mesures}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -492,9 +507,9 @@ export default function DashboardPage() {
             <CardTitle className="text-lg font-semibold">Répartition des cultures</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] flex items-center">
+            <div className="h-75 flex items-center">
               <div className="w-1/2 h-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                   <PieChart>
                     <Pie
                       data={cultureData}
@@ -518,6 +533,7 @@ export default function DashboardPage() {
                 {cultureData.length > 0 ? cultureData.map((culture, index) => (
                   <div key={culture.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      {/* eslint-disable-next-line */}
                       <div
                         className="h-3 w-3 rounded-full"
                         style={{ backgroundColor: culture.color || COLORS[index % COLORS.length] }}

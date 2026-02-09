@@ -25,7 +25,7 @@ export function BenefitsSection() {
                                 { val: "300%", title: "Retour sur investissement", desc: "En moyenne dès la première année" }
                             ].map((item, idx) => (
                                 <div key={idx} className="flex gap-6 group">
-                                    <div className="h-20 w-20 bg-green-50 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-green-100 transition-colors">
+                                    <div className="h-20 w-20 bg-green-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-green-100 transition-colors">
                                         <span className="text-green-600 font-bold text-xl">{item.val}</span>
                                     </div>
                                     <div>
@@ -42,7 +42,7 @@ export function BenefitsSection() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                     >
-                        <div className="bg-gradient-to-br from-green-100 to-emerald-100 rounded-[2.5rem] p-10 relative overflow-hidden">
+                        <div className="bg-linear-to-br from-green-100 to-emerald-100 rounded-[2.5rem] p-10 relative overflow-hidden">
                             <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 bg-green-200/50 rounded-full blur-3xl"></div>
                             <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-64 w-64 bg-emerald-200/50 rounded-full blur-3xl"></div>
 

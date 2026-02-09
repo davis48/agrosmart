@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/lib/store'
@@ -16,13 +17,15 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Leaf,
   BarChart3,
   Camera,
   Cloud,
   Lightbulb,
   TrendingUp,
   Users,
+  Package,
+  CalendarDays,
+  BookOpen,
 } from 'lucide-react'
 
 const navigation = [
@@ -37,6 +40,9 @@ const navigation = [
   { name: 'Diagnostic IA', href: '/diagnostic', icon: Camera },
   { name: 'Marketplace', href: '/marketplace', icon: ShoppingCart },
   { name: 'Formations', href: '/formations', icon: GraduationCap },
+  { name: 'Stocks', href: '/stocks', icon: Package },
+  { name: 'Calendrier', href: '/calendrier', icon: CalendarDays },
+  { name: 'Fiches Pratiques', href: '/fiches-pratiques', icon: BookOpen },
   { name: 'Communauté', href: '/communaute', icon: Users },
   { name: 'Messages', href: '/messages', icon: MessageSquare },
 ]
@@ -71,12 +77,17 @@ export function Sidebar() {
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600">
-              <Leaf className="h-6 w-6 text-white" />
+             <div className={`flex items-center overflow-hidden transition-all duration-300 ${sidebarOpen ? 'w-48 justify-start' : 'w-10 justify-center'}`}>
+              <div className={`relative ${sidebarOpen ? 'h-12 w-full' : 'h-10 w-10'}`}>
+                 <Image 
+                   src="/logo.png" 
+                   alt="AgroSmart" 
+                   width={160} 
+                   height={48} 
+                   className={`object-contain h-full w-auto ${sidebarOpen ? 'object-left' : 'object-center'}`} 
+                 />
+              </div>
             </div>
-            {sidebarOpen && (
-              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">AgroSmart</span>
-            )}
           </Link>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

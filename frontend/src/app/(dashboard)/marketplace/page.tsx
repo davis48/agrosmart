@@ -101,7 +101,7 @@ const ProductGrid = ({
           />
         </div>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full md:w-[200px]">
+          <SelectTrigger className="w-full md:w-50">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Catégorie" />
           </SelectTrigger>
@@ -348,7 +348,8 @@ export default function MarketplacePage() {
     const matchesSearch = p.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.description?.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = selectedCategory === 'all' || p.categorie === selectedCategory
-    return matchesSearch && matchesCategory && p.est_actif
+    const isActive = p.est_actif !== undefined ? p.est_actif : (p as any).actif !== undefined ? (p as any).actif : true
+    return matchesSearch && matchesCategory && isActive
   })
 
   const formatPrice = (prix: number, devise: string) => {

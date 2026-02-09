@@ -2,7 +2,8 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Leaf, Twitter, Facebook, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
+import Image from 'next/image'
+import { Twitter, Facebook, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 
 export function Footer() {
     return (
@@ -11,10 +12,15 @@ export function Footer() {
                 <div className="grid md:grid-cols-4 gap-12 mb-16">
                     <div className="col-span-1 md:col-span-1">
                         <div className="flex items-center gap-2 mb-6">
-                            <div className="h-10 w-10 bg-green-600 rounded-xl flex items-center justify-center">
-                                <Leaf className="h-6 w-6 text-white" />
+                            <div className="h-16 flex items-center justify-start overflow-hidden">
+                                <Image 
+                                    src="/logo.png" 
+                                    alt="AgroSmart" 
+                                    width={180} 
+                                    height={64} 
+                                    className="object-contain object-left h-full w-auto" 
+                                />
                             </div>
-                            <span className="text-xl font-bold text-white tracking-tight">AgroSmart</span>
                         </div>
                         <p className="mb-6 leading-relaxed">
                             La première plateforme d&apos;agriculture de précision en Côte d&apos;Ivoire.
