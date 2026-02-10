@@ -109,14 +109,14 @@ Tous les comptes utilisent le mot de passe: `password123`
 
 | Rôle | Téléphone | Email |
 |------|-----------|-------|
-| Admin | +2250101010101 | admin@agrosmart.ci |
-| Agronome | +2250102020200 | ibrahim.kone@agrosmart.ci |
-| Agronome | +2250102020201 | mariam.diabate@agrosmart.ci |
-| Conseiller | +2250103030300 | fanta.toure@agrosmart.ci |
-| Conseiller | +2250103030301 | yacouba.soro@agrosmart.ci |
-| Producteur | +2250700000001 à +2250700000020 | producteur1@agrosmart.ci à producteur20@agrosmart.ci |
-| Acheteur | +2250800000001 à +2250800000010 | acheteur1@agrosmart.ci à acheteur10@agrosmart.ci |
-| Fournisseur | +2250900000001 à +2250900000005 | fournisseur1@agrosmart.ci à fournisseur5@agrosmart.ci |
+| Admin | +2250101010101 | `admin@agrosmart.ci` |
+| Agronome | +2250102020200 | `ibrahim.kone@agrosmart.ci` |
+| Agronome | +2250102020201 | `mariam.diabate@agrosmart.ci` |
+| Conseiller | +2250103030300 | `fanta.toure@agrosmart.ci` |
+| Conseiller | +2250103030301 | `yacouba.soro@agrosmart.ci` |
+| Producteur | +2250700000001 à +2250700000020 | `producteur1@agrosmart.ci` à `producteur20@agrosmart.ci` |
+| Acheteur | +2250800000001 à +2250800000010 | `acheteur1@agrosmart.ci` à `acheteur10@agrosmart.ci` |
+| Fournisseur | +2250900000001 à +2250900000005 | `fournisseur1@agrosmart.ci` à `fournisseur5@agrosmart.ci` |
 
 ## Fonctionnalités Testables
 

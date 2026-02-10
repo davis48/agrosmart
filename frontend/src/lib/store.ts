@@ -212,7 +212,7 @@ export const useAlertesStore = create<AlertesState>((set) => ({
   markAsRead: (id) =>
     set((state) => ({
       alertes: state.alertes.map((a) =>
-        a.id === id ? { ...a, status: 'lue' } : a
+        a.id === id ? { ...a, status: 'LUE', lu_at: new Date().toISOString() } : a
       ),
       unreadCount: Math.max(0, state.unreadCount - 1),
     })),

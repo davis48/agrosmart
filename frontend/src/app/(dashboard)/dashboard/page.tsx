@@ -536,10 +536,9 @@ export default function DashboardPage() {
                 {cultureData.length > 0 ? cultureData.map((culture, index) => (
                   <div key={culture.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {/* eslint-disable-next-line */}
                       <div
+                        ref={(el) => { if (el) el.style.backgroundColor = culture.color || COLORS[index % COLORS.length] }}
                         className="h-3 w-3 rounded-full"
-                        style={{ backgroundColor: culture.color || COLORS[index % COLORS.length] }}
                       />
                       <span className="text-sm text-gray-600">{culture.name}</span>
                     </div>

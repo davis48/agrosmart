@@ -131,13 +131,13 @@ export default function PerformancePage() {
 
           // Mapper les données de rendement par culture
           if (data.rendements_cultures && Array.isArray(data.rendements_cultures)) {
-            const cultureData = data.rendements_cultures.map((c: { culture: string; rendement_actuel: number; rendement_objectif: number }) => ({
+            const cultureData = data.rendements_cultures.map((c: { culture: string; rendement_actuel: number; rendement_objectif: number; superficie?: number; revenus?: number }) => ({
               culture: c.culture,
-              superficie: 0, // À calculer depuis parcelles
+              superficie: c.superficie || 0,
               rendement: c.rendement_actuel || 0,
-              revenus: 0,
+              revenus: c.revenus || 0,
               couts: 0,
-              benefice: 0,
+              benefice: (c.revenus || 0),
               roi: c.rendement_objectif > 0 ? (c.rendement_actuel / c.rendement_objectif * 100) : 0
             }))
             setCulturePerformance(cultureData)

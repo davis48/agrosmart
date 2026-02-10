@@ -280,6 +280,39 @@ export const marketplaceApi = {
 
   updateCommandeStatus: (id: string, data: { statut: string }) =>
     api.put(`/marketplace/commandes/${id}/status`, data),
+
+  cancelCommande: (id: string) =>
+    api.put(`/marketplace/commandes/${id}/cancel`),
+
+  getCommandeById: (id: string) =>
+    api.get(`/marketplace/commandes/${id}`),
+
+  getMyProduits: () =>
+    api.get('/marketplace/produits/mes-produits'),
+
+  getVendeurStats: () =>
+    api.get('/marketplace/stats/vendeur'),
+}
+
+// ============ FAVORIS ============
+export const favoritesApi = {
+  getAll: (params?: { page?: number; limit?: number }) =>
+    api.get('/favorites', { params }),
+
+  add: (produitId: string) =>
+    api.post('/favorites', { produitId }),
+
+  remove: (produitId: string) =>
+    api.delete(`/favorites/${produitId}`),
+
+  toggle: (produitId: string) =>
+    api.post('/favorites/toggle', { produitId }),
+
+  check: (produitId: string) =>
+    api.get(`/favorites/check/${produitId}`),
+
+  count: () =>
+    api.get('/favorites/count'),
 }
 
 // ============ FORMATIONS ============
@@ -372,7 +405,7 @@ export const stocksApi = {
   getStats: () => api.get('/stocks/statistiques'),
 
   addMouvement: (id: string, data: { typeMouvement: string; quantite: number; motif?: string }) =>
-    api.post(`/stocks/${id}/mouvements`, data),
+    api.post(`/stocks/${id}/mouvement`, data),
 
   getMouvements: (id: string) => api.get(`/stocks/${id}/mouvements`),
 }

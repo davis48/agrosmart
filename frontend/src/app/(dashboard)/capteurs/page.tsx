@@ -32,6 +32,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Spinner } from '@/components/ui/spinner'
 import toast from 'react-hot-toast'
 import api from '@/lib/api'
+import SensorDetailDialog from '@/components/capteurs/SensorDetailDialog'
 
 interface Capteur {
   id: string
@@ -64,6 +65,7 @@ export default function CapteursPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [selectedCapteur, setSelectedCapteur] = useState<Capteur | null>(null)
+  const [detailCapteur, setDetailCapteur] = useState<Capteur | null>(null)
   const [parcelles, setParcelles] = useState<any[]>([])
   const [creating, setCreating] = useState(false)
   const [newSensorData, setNewSensorData] = useState({
@@ -126,7 +128,7 @@ export default function CapteursPage() {
 
   const handleToggleStatus = async (capteur: Capteur) => {
     try {
-      const newStatus = capteur.statut === 'actif' ? 'inactif' : 'actif'
+      const newStatus = capteur.statut?.toLowerCase() === 'actif' ? 'inactif' : 'actif'
       await api.patch(`/capteurs/${capteur.id}/toggle`, { status: newStatus })
       toast.success(`Capteur ${newStatus === 'actif' ? 'activé' : 'désactivé'} avec succès`)
       await fetchCapteurs()
@@ -161,7 +163,7 @@ export default function CapteursPage() {
   }
 
   const getStatusBadge = (statut: string) => {
-    switch (statut) {
+    switch (statut?.toLowerCase()) {
       case 'actif':
         return <Badge className="bg-green-100 text-green-800">Actif</Badge>
       case 'inactif':
@@ -201,20 +203,21 @@ export default function CapteursPage() {
     const matchesSearch = (capteur.nom?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       (capteur.parcelleNom?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     const matchesType = filterType === 'all' || capteur.type === filterType
-    const matchesStatus = filterStatus === 'all' || capteur.statut === filterStatus
+    const matchesStatus = filterStatus === 'all' || capteur.statut?.toLowerCase() === filterStatus
     return matchesSearch && matchesType && matchesStatus
   })
 
+  const normalize = (s: string) => s?.toLowerCase() || ''
   const stats = {
     total: capteurs.length,
-    actifs: capteurs.filter(c => c.statut === 'actif').length,
-    alertes: capteurs.filter(c => c.statut === 'erreur' || c.batterie < 20).length,
-    maintenance: capteurs.filter(c => c.statut === 'maintenance').length,
+    actifs: capteurs.filter(c => normalize(c.statut) === 'actif').length,
+    alertes: capteurs.filter(c => normalize(c.statut) === 'erreur' || c.batterie < 20).length,
+    maintenance: capteurs.filter(c => normalize(c.statut) === 'maintenance').length,
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Spinner className="h-8 w-8" />
       </div>
     )
@@ -356,15 +359,16 @@ export default function CapteursPage() {
           {filteredCapteurs.map((capteur) => (
             <Card
               key={capteur.id}
-              className={`hover:shadow-lg transition-shadow ${capteur.statut === 'erreur' ? 'border-red-200 bg-red-50/50' :
-                capteur.statut === 'maintenance' ? 'border-orange-200 bg-orange-50/50' : ''
+              className={`hover:shadow-lg transition-shadow cursor-pointer ${capteur.statut?.toLowerCase() === 'erreur' ? 'border-red-200 bg-red-50/50' :
+                capteur.statut?.toLowerCase() === 'maintenance' ? 'border-orange-200 bg-orange-50/50' : ''
                 }`}
+              onClick={() => setDetailCapteur(capteur)}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${capteur.statut === 'actif' ? 'bg-primary/10 text-primary' :
-                      capteur.statut === 'erreur' ? 'bg-red-100 text-red-600' :
+                    <div className={`p-2 rounded-lg ${capteur.statut?.toLowerCase() === 'actif' ? 'bg-primary/10 text-primary' :
+                      capteur.statut?.toLowerCase() === 'erreur' ? 'bg-red-100 text-red-600' :
                         'bg-gray-100 text-gray-600'
                       }`}>
                       {getTypeIcon(capteur.type)}
@@ -379,7 +383,7 @@ export default function CapteursPage() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="p-1 hover:bg-gray-100 rounded" aria-label="Options">
+                      <button className="p-1 hover:bg-gray-100 rounded" aria-label="Options" onClick={(e) => e.stopPropagation()}>
                         <MoreVertical className="h-4 w-4 text-gray-500" />
                       </button>
                     </DropdownMenuTrigger>
@@ -394,7 +398,7 @@ export default function CapteursPage() {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleToggleStatus(capteur)}>
                         <Power className="h-4 w-4 mr-2" />
-                        {capteur.statut === 'actif' ? 'Désactiver' : 'Activer'}
+                        {capteur.statut?.toLowerCase() === 'actif' ? 'Désactiver' : 'Activer'}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600">
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -460,6 +464,13 @@ export default function CapteursPage() {
           ))}
         </div>
       )}
+
+      {/* Sensor Detail Dialog */}
+      <SensorDetailDialog
+        capteur={detailCapteur}
+        open={!!detailCapteur}
+        onClose={() => setDetailCapteur(null)}
+      />
 
       {/* Add Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>

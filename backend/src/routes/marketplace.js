@@ -50,6 +50,14 @@ router.get('/produits', schemas.pagination, marketplaceController.getAllProduits
 router.get('/produits/search', marketplaceController.searchProduits);
 
 /**
+ * @route   GET /api/marketplace/produits/mes-produits
+ * @desc    Lister mes produits en vente
+ * @access  Producteur, Partenaire
+ * NOTE: Must be BEFORE /produits/:id to avoid :id capturing 'mes-produits'
+ */
+router.get('/produits/mes-produits', authenticate, isProducteur, schemas.pagination, marketplaceController.getMyProduits);
+
+/**
  * @route   GET /api/marketplace/produits/:id
  * @desc    Obtenir un produit par son ID
  * @access  Public (consultation sans authentification)
@@ -58,15 +66,6 @@ router.get('/produits/:id', schemas.paramUuid('id'), marketplaceController.getPr
 
 /* ========== ROUTES PROTÉGÉES (authentification requise) ========== */
 router.use(authenticate);
-
-/* ========== MES PRODUITS ========== */
-
-/**
- * @route   GET /api/marketplace/produits/mes-produits
- * @desc    Lister mes produits en vente
- * @access  Producteur, Partenaire
- */
-router.get('/produits/mes-produits', isProducteur, schemas.pagination, marketplaceController.getMyProduits);
 
 /**
  * @route   POST /api/marketplace/produits

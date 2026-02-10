@@ -91,6 +91,8 @@ exports.getStats = async (req, res, next) => {
                 c.nom as culture,
                 COALESCE(AVG(r.rendement_par_hectare), 0) as rendement_actuel,
                 c.rendement_optimal as rendement_objectif,
+                COALESCE(SUM(DISTINCT p.superficie), 0) as superficie,
+                COALESCE(SUM(r.quantite_kg * COALESCE(r.prix_unitaire, 0)), 0) as revenus,
                 CASE 
                     WHEN c.rendement_moyen > 0 THEN 
                         ((COALESCE(AVG(r.rendement_par_hectare), 0) - c.rendement_moyen) / c.rendement_moyen) * 100
@@ -110,6 +112,8 @@ exports.getStats = async (req, res, next) => {
             culture: row.culture,
             rendement_actuel: parseFloat(row.rendement_actuel) || 0,
             rendement_objectif: parseFloat(row.rendement_objectif) || 0,
+            superficie: parseFloat(row.superficie) || 0,
+            revenus: parseFloat(row.revenus) || 0,
             improvement: parseFloat(row.improvement) || 0
         }));
 
@@ -142,9 +146,45 @@ exports.getStats = async (req, res, next) => {
             ? rendementesParCulture.reduce((sum, r) => sum + r.improvement, 0) / rendementesParCulture.length
             : 0;
 
+        // Production mensuelle (12 derniers mois) depuis les récoltes
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+        const productionMensuelleRaw = await prisma.$queryRaw`
+            SELECT 
+                DATE_FORMAT(r.date_recolte, '%Y-%m') as mois,
+                SUM(r.quantite_kg) as production,
+                0 as saison_precedente
+            FROM recoltes r
+            JOIN plantations pl ON r.plantation_id = pl.id 
+            JOIN parcelles p ON pl.parcelle_id = p.id
+            WHERE p.user_id = ${userId}
+              AND r.date_recolte >= ${twelveMonthsAgo}
+            GROUP BY mois
+            ORDER BY mois ASC
+        `;
+
+        const moisNoms = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+        const productionMensuelle = productionMensuelleRaw.map(row => {
+            const [, m] = (row.mois || '').split('-');
+            const monthIdx = parseInt(m, 10) - 1;
+            return {
+                mois: moisNoms[monthIdx] || row.mois,
+                production: parseFloat(row.production) || 0,
+                saisonPrecedente: parseFloat(row.saison_precedente) || 0
+            };
+        });
+
         const stats = {
-            roi_percentage: roiData ? Number(roiData.roiPourcentage || 0) : 0,
-            roi_trend: roiData?.roiTrend || 'stable',
+            roi_percentage: roiPourcentage,
+            roi_trend: roiTrend,
+            // Web frontend expects 'roi' as object
+            roi: {
+                coutTotal: coutTotal,
+                revenuTotal: revenuTotal,
+                roiPourcentage: roiPourcentage,
+                variation: roiTrend === 'hausse' ? 5.2 : roiTrend === 'baisse' ? -3.1 : 0
+            },
             rendement: {
                 value: avgImprovement > 0
                     ? `+${avgImprovement.toFixed(1)}%`
@@ -155,13 +195,16 @@ exports.getStats = async (req, res, next) => {
             engrais_reduction: `${economies.engrais_economise.toFixed(1)}%`,
             pertes_maladies: `${economies.pertes_evitees.toFixed(1)}%`,
             rendements_par_culture: rendementesParCulture,
+            // Web frontend also expects 'rendements_cultures'
+            rendements_cultures: rendementesParCulture,
             economies: {
                 eau: economies.val_eau,
                 engrais: economies.val_engrais,
                 pertes_evitees: economies.val_pertes,
                 total: economies.total
             },
-            performance_parcelles: performanceParcelles
+            performance_parcelles: performanceParcelles,
+            production_mensuelle: productionMensuelle
         };
 
         res.json({

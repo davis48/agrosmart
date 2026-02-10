@@ -148,7 +148,7 @@ export default function StocksPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input placeholder="Nom du stock" value={newStock.nom} onChange={e => setNewStock({ ...newStock, nom: e.target.value })} />
-              <select className="border rounded-md px-3 py-2" value={newStock.categorie} onChange={e => setNewStock({ ...newStock, categorie: e.target.value })}>
+              <select title="Catégorie" className="border rounded-md px-3 py-2" value={newStock.categorie} onChange={e => setNewStock({ ...newStock, categorie: e.target.value })}>
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               <Input type="number" placeholder="Quantité" value={newStock.quantite} onChange={e => setNewStock({ ...newStock, quantite: parseInt(e.target.value) || 0 })} />

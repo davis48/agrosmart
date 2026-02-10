@@ -214,7 +214,7 @@ export default function FormationsPage() {
               />
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-37.5">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>

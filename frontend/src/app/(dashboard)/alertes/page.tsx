@@ -44,7 +44,11 @@ export default function AlertesPage() {
       const response = await api.get('/alertes')
       if (response.data.success) {
         setAlertes(response.data.data)
-        setUnreadCount(response.data.data.filter((a: Alerte) => !a.lu_at).length)
+        const isAlertUnread = (a: Alerte) => {
+          const s = (a.status || '').toUpperCase()
+          return s !== 'LUE' && s !== 'TRAITEE' && !a.lu_at
+        }
+        setUnreadCount(response.data.data.filter(isAlertUnread).length)
       }
     } catch (error) {
       console.error('Error fetching alertes:', error)
@@ -77,7 +81,11 @@ export default function AlertesPage() {
   const handleMarkAllAsRead = async () => {
     try {
       // Mark all unread alerts as read
-      const unreadAlertes = alertes.filter(a => !a.lu_at)
+      const isUnread = (a: Alerte) => {
+        const s = (a.status || '').toUpperCase()
+        return s !== 'LUE' && s !== 'TRAITEE' && !a.lu_at
+      }
+      const unreadAlertes = alertes.filter(isUnread)
       for (const alerte of unreadAlertes) {
         await api.put(`/alertes/${alerte.id}/read`)
         markAsRead(alerte.id)
@@ -92,12 +100,17 @@ export default function AlertesPage() {
   const filteredAlertes = alertes.filter(a => {
     const matchesSearch = a.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.message.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = filter === 'all' || a.status === filter
+    
+    // Filter by read status using statut field (NOUVELLE = unread, LUE/TRAITEE = read)
+    const isRead = a.status === 'lue' || a.status === 'LUE' || a.status === 'TRAITEE' || a.lu_at
+    const matchesFilter = filter === 'all' || 
+      (filter === 'unread' && !isRead) || 
+      (filter === 'read' && isRead)
     return matchesSearch && matchesFilter
   })
 
   const getAlertIcon = (niveau: string) => {
-    switch (niveau) {
+    switch (niveau?.toLowerCase()) {
       case 'critique':
         return <AlertCircle className="h-5 w-5 text-red-500" />
       case 'important':
@@ -108,10 +121,11 @@ export default function AlertesPage() {
   }
 
   const getAlertBgColor = (niveau: string, status: string) => {
-    if (status === 'lue') {
+    const isRead = status === 'lue' || status === 'LUE' || status === 'TRAITEE'
+    if (isRead) {
       return 'bg-gray-50 border-gray-200'
     }
-    switch (niveau) {
+    switch (niveau?.toLowerCase()) {
       case 'critique':
         return 'bg-red-50 border-red-200'
       case 'important':
@@ -122,7 +136,7 @@ export default function AlertesPage() {
   }
 
   const getNiveauBadge = (niveau: string) => {
-    switch (niveau) {
+    switch (niveau?.toLowerCase()) {
       case 'critique':
         return <Badge variant="danger">Critique</Badge>
       case 'important':
@@ -132,7 +146,10 @@ export default function AlertesPage() {
     }
   }
 
-  const unreadCount = alertes.filter(a => !a.lu_at).length
+  const unreadCount = alertes.filter(a => {
+    const isRead = a.status === 'lue' || a.status === 'LUE' || a.status === 'TRAITEE' || a.lu_at
+    return !isRead
+  }).length
 
   return (
     <div className="space-y-6">
@@ -164,7 +181,7 @@ export default function AlertesPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {alertes.filter(a => a.niveau === 'critique').length}
+                {alertes.filter(a => a.niveau?.toLowerCase() === 'critique').length}
               </p>
               <p className="text-sm text-gray-500">Critiques</p>
             </div>
@@ -177,7 +194,7 @@ export default function AlertesPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {alertes.filter(a => a.niveau === 'important').length}
+                {alertes.filter(a => a.niveau?.toLowerCase() === 'important').length}
               </p>
               <p className="text-sm text-gray-500">Importantes</p>
             </div>
@@ -190,7 +207,7 @@ export default function AlertesPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {alertes.filter(a => a.niveau === 'info').length}
+                {alertes.filter(a => a.niveau?.toLowerCase() === 'info').length}
               </p>
               <p className="text-sm text-gray-500">Informations</p>
             </div>
@@ -265,9 +282,11 @@ export default function AlertesPage() {
                         {alerte.titre}
                       </h3>
                       {getNiveauBadge(alerte.niveau)}
-                      {!alerte.lu_at && (
-                        <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />
-                      )}
+                      {(() => {
+                        const s = (alerte.status || '').toUpperCase()
+                        const isUnread = s !== 'LUE' && s !== 'TRAITEE' && !alerte.lu_at
+                        return isUnread ? <span className="inline-flex h-2 w-2 rounded-full bg-green-500" /> : null
+                      })()}
                     </div>
 
                     <p className={cn(
@@ -299,7 +318,10 @@ export default function AlertesPage() {
                     </div>
                   </div>
 
-                  {!alerte.lu_at && (
+                  {(() => {
+                    const s = (alerte.status || '').toUpperCase()
+                    return s !== 'LUE' && s !== 'TRAITEE' && !alerte.lu_at
+                  })() && (
                     <Button
                       variant="ghost"
                       size="sm"

@@ -235,7 +235,7 @@ exports.getAll = async (req, res, next) => {
         mesures: {
           orderBy: { timestamp: 'desc' },
           take: 1,
-          select: { valeur: true }
+          select: { valeur: true, unite: true, timestamp: true }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -250,6 +250,11 @@ exports.getAll = async (req, res, next) => {
       parcelle_id: c.parcelleId, // Already exists in capteur directly
       user_id: c.station?.parcelle?.userId,
       derniere_valeur: c.mesures[0]?.valeur,
+      derniereMesure: c.mesures[0] ? {
+        valeur: c.mesures[0].valeur,
+        unite: c.mesures[0].unite || c.unite,
+        date: c.mesures[0].timestamp
+      } : null,
       // Add explicit field mapping for mobile compatibility
       code: c.id, // If mobile expects 'code' field
       statut: c.statut  // Ensure status field is present

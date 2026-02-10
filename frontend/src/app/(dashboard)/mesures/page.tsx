@@ -67,29 +67,111 @@ export default function MesuresPage() {
   const [chartData, setChartData] = useState<MesureData[]>([])
   const [activeMetric, setActiveMetric] = useState<'temperature' | 'humidite_sol' | 'luminosite' | 'ph'>('temperature')
 
+  const [parcelles, setParcelles] = useState<{ id: string; nom: string }[]>([])
+
+  // Fetch parcelles for the dropdown
+  useEffect(() => {
+    const fetchParcelles = async () => {
+      try {
+        const response = await api.get('/parcelles')
+        const data = response.data?.data || response.data
+        if (Array.isArray(data)) {
+          setParcelles(data.map((p: { id: string; nom: string }) => ({ id: p.id, nom: p.nom })))
+        }
+      } catch (e) {
+        console.error('Erreur chargement parcelles:', e)
+      }
+    }
+    fetchParcelles()
+  }, [])
+
+  // Calculate date range from period
+  const getDateRange = useCallback((period: string) => {
+    const fin = new Date()
+    const debut = new Date()
+    switch (period) {
+      case '24h': debut.setHours(debut.getHours() - 24); break
+      case '7j': debut.setDate(debut.getDate() - 7); break
+      case '30j': debut.setDate(debut.getDate() - 30); break
+      case '90j': debut.setDate(debut.getDate() - 90); break
+    }
+    return { debut: debut.toISOString(), fin: fin.toISOString() }
+  }, [])
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await api.get('/mesures', {
-        params: { periode: selectedPeriod, parcelleId: selectedParcelle }
-      })
+      const { debut, fin } = getDateRange(selectedPeriod)
+      const params: Record<string, string | number> = { debut, fin, limit: 500 }
+      if (selectedParcelle !== 'all') {
+        params.parcelle_id = selectedParcelle
+      }
+      const response = await api.get('/mesures', { params })
       // Handle API response structure: {success: true, data: [...]}
       const data = response.data?.data || response.data
       if (Array.isArray(data) && data.length > 0) {
-        // Formater les données pour les graphiques
-        const formattedData = data.map((m: { createdAt?: string; timestamp?: string; temperature?: number; humiditeSol?: number; humiditeAir?: number; luminosite?: number; ph?: number; precipitation?: number }) => ({
-          date: new Date(m.createdAt || m.timestamp || '').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
-          dateComplete: m.createdAt || m.timestamp,
-          temperature: m.temperature || 0,
-          humidite_sol: m.humiditeSol || 0,
-          humidite_air: m.humiditeAir || 0,
-          luminosite: m.luminosite || 0,
-          ph: m.ph || 0,
-          precipitation: m.precipitation || 0
-        }))
+        // Backend returns individual sensor readings with valeur + capteur_type
+        // Group by date and aggregate by sensor type
+        const groupedByDate: Record<string, {
+          temperature: number[]; humidite_sol: number[]; luminosite: number[];
+          ph: number[]; precipitation: number[]; humidite_air: number[];
+          timestamp: string;
+        }> = {}
+
+        for (const m of data) {
+          const ts = m.timestamp || m.createdAt
+          const dateKey = selectedPeriod === '24h'
+            ? new Date(ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            : new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+
+          if (!groupedByDate[dateKey]) {
+            groupedByDate[dateKey] = {
+              temperature: [], humidite_sol: [], luminosite: [],
+              ph: [], precipitation: [], humidite_air: [], timestamp: ts
+            }
+          }
+
+          const val = parseFloat(m.valeur) || 0
+          const capteurType = (m.capteur_type || m.capteur?.type || '').toLowerCase()
+
+          if (capteurType.includes('humidite_temperature') || capteurType.includes('temperature')) {
+            // Temperature/humidity combo sensor - value could be temp or humidity
+            if (m.unite === '°C' || m.unite === 'C') {
+              groupedByDate[dateKey].temperature.push(val)
+            } else if (m.unite === '%') {
+              groupedByDate[dateKey].humidite_air.push(val)
+            } else {
+              groupedByDate[dateKey].temperature.push(val)
+            }
+          } else if (capteurType.includes('humidite_sol')) {
+            groupedByDate[dateKey].humidite_sol.push(val)
+          } else if (capteurType.includes('uv') || capteurType.includes('luminosite')) {
+            groupedByDate[dateKey].luminosite.push(val)
+          } else if (capteurType.includes('npk') || capteurType.includes('ph')) {
+            groupedByDate[dateKey].ph.push(val)
+          } else if (capteurType.includes('pluie') || capteurType.includes('pluvio')) {
+            groupedByDate[dateKey].precipitation.push(val)
+          }
+        }
+
+        const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+
+        const formattedData = Object.entries(groupedByDate)
+          .sort((a, b) => new Date(a[1].timestamp).getTime() - new Date(b[1].timestamp).getTime())
+          .map(([dateKey, values]) => ({
+            date: dateKey,
+            heure: dateKey,
+            dateComplete: values.timestamp,
+            temperature: Math.round(avg(values.temperature) * 10) / 10,
+            humidite_sol: Math.round(avg(values.humidite_sol) * 10) / 10,
+            humidite_air: Math.round(avg(values.humidite_air) * 10) / 10,
+            luminosite: Math.round(avg(values.luminosite)),
+            ph: Math.round(avg(values.ph) * 10) / 10,
+            precipitation: Math.round(avg(values.precipitation) * 10) / 10,
+          }))
+
         setChartData(formattedData)
       } else {
-        // Pas de données - afficher un message
         setChartData([])
       }
     } catch (error) {
@@ -99,7 +181,7 @@ export default function MesuresPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [selectedPeriod, selectedParcelle])
+  }, [selectedPeriod, selectedParcelle, getDateRange])
 
   useEffect(() => {
     fetchData()
@@ -284,9 +366,9 @@ export default function MesuresPage() {
             title="Sélectionner une parcelle"
           >
             <option value="all">Toutes les parcelles</option>
-            <option value="1">Parcelle Cacao Nord</option>
-            <option value="2">Parcelle Café Est</option>
-            <option value="3">Parcelle Hévéa Sud</option>
+            {parcelles.map((p) => (
+              <option key={p.id} value={p.id}>{p.nom}</option>
+            ))}
           </select>
         </div>
       </div>

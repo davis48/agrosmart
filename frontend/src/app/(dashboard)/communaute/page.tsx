@@ -460,8 +460,9 @@ export default function CommunautePage() {
               </Card>
             ) : (
               filteredPosts.map((post) => (
-                <Card key={post.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-4">
+                <Link key={post.id} href={`/communaute/${post.id}`}>
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardContent className="p-4">
                     <div className="flex gap-4">
                       {/* Avatar */}
                       <div className="hidden sm:block">
@@ -529,6 +530,7 @@ export default function CommunautePage() {
                     </div>
                   </CardContent>
                 </Card>
+                </Link>
               ))
             )}
           </div>
@@ -732,10 +734,9 @@ export default function CommunautePage() {
                     <p className="text-xs text-gray-500 mt-1">{badge.description}</p>
                     <div className="mt-2">
                       <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        {/* eslint-disable-next-line */}
                         <div
+                          ref={(el) => { if (el) el.style.width = `${badge.progress}%` }}
                           className="h-full bg-green-500"
-                          style={{ width: `${badge.progress}%` }}
                         />
                       </div>
                       <p className="text-xs text-gray-500 mt-1">{badge.progress}%</p>

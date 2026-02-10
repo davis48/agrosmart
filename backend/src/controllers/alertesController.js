@@ -39,10 +39,13 @@ exports.getAll = async (req, res, next) => {
       prisma.alerte.count({ where })
     ]);
 
-    // Map 'type' to 'categorie' for mobile app compatibility
+    // Map 'type' to 'categorie' and 'statut' to 'status' for frontend compatibility
     const mappedAlertes = alertes.map(alerte => ({
       ...alerte,
-      categorie: alerte.type
+      categorie: alerte.type,
+      status: alerte.statut,
+      lu_at: alerte.statut === 'LUE' || alerte.statut === 'TRAITEE' ? alerte.createdAt : null,
+      created_at: alerte.createdAt
     }));
 
     res.json({
@@ -81,10 +84,13 @@ exports.getUnread = async (req, res, next) => {
       ]
     });
 
-    // Map 'type' to 'categorie' for mobile app compatibility
+    // Map 'type' to 'categorie' and 'statut' to 'status' for frontend compatibility
     const mappedAlertes = alertes.map(alerte => ({
       ...alerte,
-      categorie: alerte.type
+      categorie: alerte.type,
+      status: alerte.statut,
+      lu_at: null,
+      created_at: alerte.createdAt
     }));
 
     res.json({

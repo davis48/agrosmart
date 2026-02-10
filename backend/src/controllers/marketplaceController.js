@@ -575,7 +575,7 @@ exports.updateCommandeStatus = async (req, res, next) => {
 exports.cancelCommande = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { raison } = req.body;
+    const { raison } = req.body || {};
 
     await prisma.$transaction(async (tx) => {
       // 1. Récupérer la commande
@@ -604,9 +604,13 @@ exports.cancelCommande = async (req, res, next) => {
       });
     });
 
-    // Invalidate cache
-    const cache = require('../utils/cache');
-    await cache.clearPattern('marketplace:products:*');
+    // Invalidate cache (non-blocking, don't fail if Redis is down)
+    try {
+      const cache = require('../utils/cache');
+      await cache.clearPattern('marketplace:products:*');
+    } catch (cacheError) {
+      logger.warn('Cache clear failed after cancel commande', { error: cacheError.message });
+    }
 
     logger.audit('Annulation commande', { userId: req.user.id, commandeId: id });
 

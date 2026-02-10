@@ -27,7 +27,7 @@ class _AddProductPageState extends State<AddProductPage> {
 
   bool _isLocation = false;
 
-  String _selectedCategory = 'test';
+  String _selectedCategory = 'cereale';
   final List<String> _categories = [
     'cereale',
     'legume',
@@ -36,7 +36,7 @@ class _AddProductPageState extends State<AddProductPage> {
     'oleagineux',
     'intrant',
     'equipement',
-    'location',
+    'service',
     'autre',
   ];
   String? _selectedUnit = 'kg';

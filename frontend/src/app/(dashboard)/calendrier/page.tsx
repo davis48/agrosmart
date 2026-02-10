@@ -124,12 +124,12 @@ export default function CalendrierPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input placeholder="Titre de l'activité" value={newActivite.titre} onChange={e => setNewActivite({ ...newActivite, titre: e.target.value })} />
-              <select className="border rounded-md px-3 py-2" value={newActivite.typeActivite} onChange={e => setNewActivite({ ...newActivite, typeActivite: e.target.value })}>
+              <select title="Type d'activité" className="border rounded-md px-3 py-2" value={newActivite.typeActivite} onChange={e => setNewActivite({ ...newActivite, typeActivite: e.target.value })}>
                 {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
               <Input type="date" value={newActivite.dateDebut} onChange={e => setNewActivite({ ...newActivite, dateDebut: e.target.value })} />
               <Input type="date" placeholder="Date fin (optionnel)" value={newActivite.dateFin} onChange={e => setNewActivite({ ...newActivite, dateFin: e.target.value })} />
-              <select className="border rounded-md px-3 py-2" value={newActivite.priorite} onChange={e => setNewActivite({ ...newActivite, priorite: e.target.value })}>
+              <select title="Priorité" className="border rounded-md px-3 py-2" value={newActivite.priorite} onChange={e => setNewActivite({ ...newActivite, priorite: e.target.value })}>
                 {PRIORITES.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
               <Input placeholder="Description (optionnel)" value={newActivite.description} onChange={e => setNewActivite({ ...newActivite, description: e.target.value })} />
@@ -170,7 +170,7 @@ export default function CalendrierPage() {
                   const dayActivites = getActivitesForDay(day)
                   const isToday = day === new Date().getDate() && currentMonth.getMonth() === new Date().getMonth() && currentMonth.getFullYear() === new Date().getFullYear()
                   return (
-                    <div key={day} className={`min-h-[60px] border rounded-md p-1 text-xs ${isToday ? 'bg-green-50 border-green-300' : 'border-gray-100'}`}>
+                    <div key={day} className={`min-h-15 border rounded-md p-1 text-xs ${isToday ? 'bg-green-50 border-green-300' : 'border-gray-100'}`}>
                       <span className={`font-medium ${isToday ? 'text-green-700' : 'text-gray-700'}`}>{day}</span>
                       {dayActivites.slice(0, 2).map(a => (
                         <div key={a.id} className={`mt-0.5 truncate rounded px-1 text-[10px] ${a.statut === 'TERMINE' ? 'bg-green-100 text-green-600 line-through' : 'bg-blue-100 text-blue-600'}`}>
