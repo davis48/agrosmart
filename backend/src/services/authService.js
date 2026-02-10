@@ -13,6 +13,7 @@ const {
     revokeRefreshToken
 } = require('../middlewares/auth');
 const logger = require('../utils/logger');
+const { normalizePhoneNumber, getPhoneVariants } = require('../utils/phoneFormatter');
 
 class AuthService {
     /**
@@ -27,6 +28,9 @@ class AuthService {
 
         logger.info('Registration attempt', { telephone, email: email || 'none', role });
 
+        // Normalisation du numéro de téléphone
+        const normalizedPhone = normalizePhoneNumber(telephone);
+        
         // Normalisation prenoms
         const userPrenoms = prenoms || prenom || '';
         const userEmail = email || null;
@@ -35,12 +39,13 @@ class AuthService {
         const validRoles = ['ACHETEUR', 'PRODUCTEUR'];
         const userRole = validRoles.includes(role) ? role : 'PRODUCTEUR';
 
-        // Vérification existence
+        // Vérification existence avec variantes de téléphone
+        const phoneVariants = getPhoneVariants(normalizedPhone);
         const existingUser = await prisma.user.findFirst({
             where: {
                 OR: [
                     ...(userEmail ? [{ email: userEmail }] : []),
-                    { telephone }
+                    ...phoneVariants.map(variant => ({ telephone: variant }))
                 ]
             }
         });
@@ -60,7 +65,7 @@ class AuthService {
         const user = await prisma.user.create({
             data: {
                 email: userEmail,
-                telephone,
+                telephone: normalizedPhone, // Utiliser le numéro normalisé
                 passwordHash: hashedPassword,
                 nom,
                 prenoms: userPrenoms,
@@ -173,12 +178,18 @@ class AuthService {
     async loginUser(credentials) {
         const { login, password } = credentials;
 
-        // Recherche utilisateur (email ou téléphone)
+        // Normaliser le numéro de téléphone si c'est un numéro
+        // Accepte: 0701000001, +2250701000001, 2250701000001
+        const phoneVariants = getPhoneVariants(login);
+        
+        // Recherche utilisateur (email ou téléphone avec variantes)
         const user = await prisma.user.findFirst({
             where: {
                 OR: [
                     { email: login },
-                    { telephone: login }
+                    { telephone: login },
+                    // Recherche avec toutes les variantes du numéro
+                    ...phoneVariants.map(variant => ({ telephone: variant }))
                 ]
             },
             select: {

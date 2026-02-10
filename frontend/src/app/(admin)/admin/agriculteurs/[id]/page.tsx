@@ -294,12 +294,19 @@ export default function AgriculteurDetailPage() {
                   )}
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                     <Calendar className="h-4 w-4" />
-                    Inscrit le {new Date(agriculteur.created_at).toLocaleDateString('fr-FR')}
+                    Inscrit le {(() => {
+                      if (!agriculteur.created_at) return 'Date inconnue';
+                      const date = new Date(agriculteur.created_at);
+                      return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleDateString('fr-FR');
+                    })()}
                   </div>
                   {agriculteur.derniere_connexion && (
                     <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                       <Activity className="h-4 w-4" />
-                      Dernière connexion: {new Date(agriculteur.derniere_connexion).toLocaleDateString('fr-FR')}
+                      Dernière connexion: {(() => {
+                        const date = new Date(agriculteur.derniere_connexion);
+                        return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleDateString('fr-FR');
+                      })()}
                     </div>
                   )}
                 </div>
@@ -428,7 +435,10 @@ export default function AgriculteurDetailPage() {
                     </div>
                     {capteur.derniere_mesure && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        Dernière mesure: {new Date(capteur.derniere_mesure).toLocaleString('fr-FR')}
+                        Dernière mesure: {(() => {
+                          const date = new Date(capteur.derniere_mesure);
+                          return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleString('fr-FR');
+                        })()}
                       </p>
                     )}
                   </CardContent>
@@ -507,7 +517,11 @@ export default function AgriculteurDetailPage() {
                           </div>
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{alerte.message}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                            {new Date(alerte.created_at).toLocaleString('fr-FR')}
+                            {(() => {
+                              if (!alerte.created_at) return 'Date inconnue';
+                              const date = new Date(alerte.created_at);
+                              return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleString('fr-FR');
+                            })()}
                           </p>
                         </div>
                       </div>

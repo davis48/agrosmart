@@ -192,6 +192,8 @@ export default function AdminCapteursPage() {
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Jamais'
     const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Date invalide'
+    
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const minutes = Math.floor(diff / 60000)

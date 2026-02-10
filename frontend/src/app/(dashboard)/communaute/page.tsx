@@ -243,8 +243,11 @@ export default function CommunautePage() {
     fetchData();
   }, []);
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return 'N/A'
     const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return 'Date invalide'
+    
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const heures = Math.floor(diff / (1000 * 60 * 60))

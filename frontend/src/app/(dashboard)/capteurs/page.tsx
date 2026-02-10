@@ -449,7 +449,10 @@ export default function CapteursPage() {
                 {capteur.derniereMesure?.date && (
                   <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t">
                     <Clock className="h-3 w-3" />
-                    Dernière mesure: {new Date(capteur.derniereMesure.date).toLocaleString('fr-FR')}
+                    Dernière mesure: {(() => {
+                      const date = new Date(capteur.derniereMesure.date);
+                      return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleString('fr-FR');
+                    })()}
                   </div>
                 )}
               </CardContent>

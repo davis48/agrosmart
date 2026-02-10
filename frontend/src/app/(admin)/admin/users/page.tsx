@@ -54,9 +54,11 @@ export default function UsersPage() {
                     role: (u.role?.toUpperCase() || 'PRODUCTEUR') as 'ADMIN' | 'PRODUCTEUR' | 'CONSEILLER',
                     status: (u.status === 'actif' ? 'ACTIF' : 'INACTIF') as 'ACTIF' | 'INACTIF',
                     cooperative: u.cooperative?.nom || u.village || '-',
-                    lastLogin: u.derniere_connexion
-                        ? new Date(u.derniere_connexion).toLocaleString('fr-FR')
-                        : 'Jamais'
+                    lastLogin: (() => {
+                        if (!u.derniere_connexion) return 'Jamais'
+                        const date = new Date(u.derniere_connexion)
+                        return isNaN(date.getTime()) ? 'Jamais' : date.toLocaleString('fr-FR')
+                    })()
                 }))
 
                 setUsers(transformedUsers);

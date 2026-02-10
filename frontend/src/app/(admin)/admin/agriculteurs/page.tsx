@@ -205,7 +205,11 @@ export default function AgriculteursPage() {
                         )}
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          Inscrit le {new Date(agriculteur.created_at).toLocaleDateString('fr-FR')}
+                          Inscrit le {(() => {
+                            if (!agriculteur.created_at) return 'Date inconnue'
+                            const date = new Date(agriculteur.created_at)
+                            return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleDateString('fr-FR')
+                          })()}
                         </span>
                       </div>
                       <div className="flex items-center gap-4 mt-3">

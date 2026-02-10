@@ -140,12 +140,15 @@ export default function DashboardPage() {
             if (forecastRes.data.success && weatherData) {
               const forecastData = forecastRes.data.data
               if (Array.isArray(forecastData)) {
-                weatherData.previsions = forecastData.slice(0, 5).map((d: any) => ({
-                  jour: d.jour || new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short' }),
-                  temp_min: Math.round(d.temp_min || d.temperature_min || 0),
-                  temp_max: Math.round(d.temp_max || d.temperature_max || 0),
-                  condition: d.condition || d.description || 'Nuageux'
-                }))
+                weatherData.previsions = forecastData.slice(0, 5).map((d: any) => {
+                  const date = d.date ? new Date(d.date) : null;
+                  return {
+                    jour: d.jour || (date && !isNaN(date.getTime()) ? date.toLocaleDateString('fr-FR', { weekday: 'short' }) : '-'),
+                    temp_min: Math.round(d.temp_min || d.temperature_min || 0),
+                    temp_max: Math.round(d.temp_max || d.temperature_max || 0),
+                    condition: d.condition || d.description || 'Nuageux'
+                  };
+                });
               }
             }
           } catch (e) {

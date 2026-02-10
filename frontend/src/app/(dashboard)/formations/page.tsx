@@ -70,7 +70,7 @@ export default function FormationsPage() {
     try {
       const response = await api.get('/formations')
       if (response.data.success) {
-        setFormations(response.data.data)
+        setFormations(response.data.data || [])
       }
     } catch (error) {
       console.error('Error fetching formations:', error)

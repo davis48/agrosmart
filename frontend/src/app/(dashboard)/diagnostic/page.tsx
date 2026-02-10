@@ -359,14 +359,14 @@ export default function DiagnosticPage() {
                     </div>
 
                     {/* Recommandations */}
-                    {currentResult.recommandations.length > 0 && (
+                    {(currentResult.recommandations?.length ?? 0) > 0 && (
                       <div>
                         <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                           <Lightbulb className="h-4 w-4 text-yellow-500" />
                           Recommandations
                         </h4>
                         <ul className="space-y-2">
-                          {currentResult.recommandations.map((rec, index) => (
+                          {(currentResult.recommandations || []).map((rec, index) => (
                             <li
                               key={index}
                               className="flex items-start gap-2 text-sm text-gray-700"
@@ -380,13 +380,13 @@ export default function DiagnosticPage() {
                     )}
 
                     {/* Traitements */}
-                    {currentResult.traitements.length > 0 && (
+                    {(currentResult.traitements?.length ?? 0) > 0 && (
                       <div>
                         <h4 className="font-medium text-gray-900 mb-3">
                           Traitements recommandés
                         </h4>
                         <div className="space-y-3">
-                          {currentResult.traitements.map((traitement, index) => (
+                          {(currentResult.traitements || []).map((traitement, index) => (
                             <div
                               key={index}
                               className="border rounded-lg p-3 hover:border-primary/50 transition-colors"
@@ -449,7 +449,7 @@ export default function DiagnosticPage() {
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       <div className="w-20 h-20 bg-gray-100 rounded-lg shrink-0 overflow-hidden">
-                        {diagnostic.image.startsWith('data:') ? (
+                        {diagnostic.image?.startsWith('data:') ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={diagnostic.image}
@@ -478,7 +478,7 @@ export default function DiagnosticPage() {
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-gray-400">
-                            {new Date(diagnostic.date).toLocaleDateString('fr-FR')}
+                            {diagnostic.date ? new Date(diagnostic.date).toLocaleDateString('fr-FR') : 'N/A'}
                           </span>
                           <span className="text-xs font-medium text-primary">
                             {diagnostic.confiance}% confiance
@@ -488,7 +488,7 @@ export default function DiagnosticPage() {
                     </div>
                     <div className="flex items-center justify-between mt-4 pt-3 border-t">
                       <span className="text-sm text-gray-600">
-                        {diagnostic.traitements.length} traitement(s)
+                        {diagnostic.traitements?.length ?? 0} traitement(s)
                       </span>
                       <ChevronRight className="h-4 w-4 text-gray-400" />
                     </div>

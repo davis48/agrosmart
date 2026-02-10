@@ -24,7 +24,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { cn, safeDate } from '@/lib/utils'
 import { useAlertesStore, Alerte } from '@/lib/store'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -280,7 +280,12 @@ export default function AlertesPage() {
                     <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {format(new Date(alerte.created_at), 'dd MMM yyyy à HH:mm', { locale: fr })}
+                        {(() => {
+                          const date = safeDate(alerte.created_at)
+                          return date 
+                            ? format(date, 'dd MMM yyyy à HH:mm', { locale: fr })
+                            : 'Date non disponible'
+                        })()}
                       </div>
                       {alerte.parcelle_nom && (
                         <div className="flex items-center gap-1">

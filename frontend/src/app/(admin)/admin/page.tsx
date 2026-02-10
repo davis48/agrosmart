@@ -261,7 +261,11 @@ export default function AdminDashboard() {
                         {agriculteur.parcelles_count} parcelles
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(agriculteur.created_at).toLocaleDateString('fr-FR')}
+                        {(() => {
+                          if (!agriculteur.created_at) return 'Date inconnue'
+                          const date = new Date(agriculteur.created_at)
+                          return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleDateString('fr-FR')
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -308,7 +312,11 @@ export default function AdminDashboard() {
                         {alerte.message}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {alerte.agriculteur_nom} • {new Date(alerte.created_at).toLocaleDateString('fr-FR')}
+                        {alerte.agriculteur_nom} • {(() => {
+                          if (!alerte.created_at) return 'Date inconnue'
+                          const date = new Date(alerte.created_at)
+                          return isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleDateString('fr-FR')
+                        })()}
                       </p>
                     </div>
                   </div>

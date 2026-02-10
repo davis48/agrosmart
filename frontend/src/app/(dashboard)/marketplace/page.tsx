@@ -330,7 +330,7 @@ export default function MarketplacePage() {
     try {
       const response = await api.get('/marketplace/produits')
       if (response.data.success) {
-        setProduits(response.data.data)
+        setProduits(response.data.data || [])
       }
     } catch (error) {
       console.error('Error fetching produits:', error)

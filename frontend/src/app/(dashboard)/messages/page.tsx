@@ -32,7 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { cn, safeDate } from '@/lib/utils'
 import { useAuthStore } from '@/lib/store'
 import api from '@/lib/api'
 import { format, isToday, isYesterday } from 'date-fns'
@@ -217,13 +217,19 @@ export default function MessagesPage() {
   }
 
   const formatMessageDate = (dateString: string) => {
-    const date = new Date(dateString)
-    if (isToday(date)) {
-      return format(date, 'HH:mm', { locale: fr })
-    } else if (isYesterday(date)) {
-      return 'Hier ' + format(date, 'HH:mm', { locale: fr })
+    const date = safeDate(dateString)
+    if (!date) return 'N/A'
+    
+    try {
+      if (isToday(date)) {
+        return format(date, 'HH:mm', { locale: fr })
+      } else if (isYesterday(date)) {
+        return 'Hier ' + format(date, 'HH:mm', { locale: fr })
+      }
+      return format(date, 'dd/MM HH:mm', { locale: fr })
+    } catch {
+      return 'N/A'
     }
-    return format(date, 'dd/MM HH:mm', { locale: fr })
   }
 
   const getInitials = (name: string) => {
@@ -476,7 +482,10 @@ export default function MessagesPage() {
                             isMe ? "text-green-100" : "text-gray-400"
                           )}>
                             <span className="text-xs">
-                              {format(new Date(message.created_at), 'HH:mm')}
+                              {(() => {
+                                const date = safeDate(message.created_at);
+                                return date ? format(date, 'HH:mm') : 'N/A';
+                              })()}
                             </span>
                             {isMe && (
                               message.lu 

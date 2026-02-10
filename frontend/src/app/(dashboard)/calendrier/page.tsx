@@ -206,7 +206,7 @@ export default function CalendrierPage() {
                     {statutIcons[a.statut] || <Clock className="h-4 w-4 text-gray-400" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{a.titre}</p>
-                      <p className="text-xs text-gray-500">{a.typeActivite} • {new Date(a.dateDebut).toLocaleDateString('fr-FR')}</p>
+                      <p className="text-xs text-gray-500">{a.typeActivite} • {a.dateDebut ? new Date(a.dateDebut).toLocaleDateString('fr-FR') : 'Date non définie'}</p>
                       {a.parcelle && <p className="text-xs text-gray-400">{a.parcelle.nom}</p>}
                     </div>
                     <div className="flex items-center gap-2">

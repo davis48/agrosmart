@@ -5,22 +5,49 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatDate(date: string | Date): string {
-  return new Date(date).toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A'
+  try {
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return 'Date invalide'
+    return d.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  } catch {
+    return 'Date invalide'
+  }
 }
 
-export function formatDateTime(date: string | Date): string {
-  return new Date(date).toLocaleString('fr-FR', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return 'N/A'
+  try {
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return 'Date invalide'
+    return d.toLocaleString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return 'Date invalide'
+  }
+}
+
+/**
+ * Safe date handling - returns valid Date or null
+ */
+export function safeDate(date: string | Date | null | undefined): Date | null {
+  if (!date) return null
+  try {
+    const d = new Date(date)
+    return isNaN(d.getTime()) ? null : d
+  } catch {
+    return null
+  }
 }
 
 export function formatCurrency(amount: number): string {

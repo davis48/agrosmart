@@ -59,12 +59,13 @@ interface Product {
     localisation?: string
 }
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
     const [product, setProduct] = useState<Product | null>(null)
     const [loading, setLoading] = useState(true)
     const [orderOpen, setOrderOpen] = useState(false)
     const [orderLoading, setOrderLoading] = useState(false)
+    const [productId, setProductId] = useState<string | null>(null)
 
     // Order Form State
     const [quantity, setQuantity] = useState(1)
@@ -77,16 +78,22 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
     useEffect(() => {
         const fetchProduct = async () => {
+            // Await params dans Next.js 16+
+            const resolvedParams = await params
+            const id = resolvedParams.id
+
             // Vérification que l'ID est valide avant l'appel API
-            if (!params.id || params.id === 'undefined') {
+            if (!id || id === 'undefined') {
                 toast.error('ID produit invalide')
                 router.push('/marketplace')
                 setLoading(false)
                 return
             }
 
+            setProductId(id)
+
             try {
-                const res = await api.get(`/marketplace/produits/${params.id}`)
+                const res = await api.get(`/marketplace/produits/${id}`)
                 if (res.data.success) {
                     setProduct(res.data.data)
                 }
@@ -99,7 +106,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             }
         }
         fetchProduct()
-    }, [params.id, router])
+    }, [params, router])
 
     // Calculate total price when inputs change
     useEffect(() => {

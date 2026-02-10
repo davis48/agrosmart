@@ -127,9 +127,10 @@ export default function MeteoPage() {
         if (daily && daily.length > 0) {
           const newPrevisions = daily.map((d: any) => {
             const wmo = getWmoDescription(d.weather_code);
+            const date = d.date ? new Date(d.date) : null;
             return {
               date: d.date,
-              jour: new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short' }),
+              jour: date && !isNaN(date.getTime()) ? date.toLocaleDateString('fr-FR', { weekday: 'short' }) : '-',
               tempMin: Math.round(d.temp_min),
               tempMax: Math.round(d.temp_max),
               description: wmo.label,

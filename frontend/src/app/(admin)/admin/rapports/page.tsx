@@ -90,15 +90,22 @@ export default function AdminRapportsPage() {
       // const stats = statsRes.data?.data || {}
 
       // Map Alertes to Anomalies interface for compatibility
-      const anomaliesData = alertes.map((a: any) => ({
-        id: a.id,
-        type: a.type,
-        capteur: a.parcelle_nom || 'Système',
-        date: new Date(a.date_creation).toLocaleString('fr-FR'),
-        valeur: 0, // Pas toujours pertinent pour une alerte générique
-        valeur_attendue: '-',
-        status: a.statut === 'resolue' ? 'resolue' : 'nouvelle'
-      }))
+      const anomaliesData = alertes.map((a: any) => {
+        let dateStr = 'Date invalide';
+        if (a.date_creation) {
+          const date = new Date(a.date_creation);
+          dateStr = isNaN(date.getTime()) ? 'Date invalide' : date.toLocaleString('fr-FR');
+        }
+        return {
+          id: a.id,
+          type: a.type,
+          capteur: a.parcelle_nom || 'Système',
+          date: dateStr,
+          valeur: 0, // Pas toujours pertinent pour une alerte générique
+          valeur_attendue: '-',
+          status: a.statut === 'resolue' ? 'resolue' : 'nouvelle'
+        };
+      });
       setAnomalies(anomaliesData)
 
       // Quality Metrics - Placeholder ou calcul réel si possible (ici vide pour respecter "Real Data")

@@ -162,7 +162,7 @@ export default function FichesPratiquesPage() {
                         )}
                         <p className="text-xs text-gray-500 mt-2 line-clamp-3">{fiche.contenu}</p>
                         <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs text-gray-400">{new Date(fiche.createdAt).toLocaleDateString('fr-FR')}</span>
+                          <span className="text-xs text-gray-400">{fiche.createdAt ? new Date(fiche.createdAt).toLocaleDateString('fr-FR') : ''}</span>
                           {fiche.fichierUrl && <Badge variant="outline" className="text-xs"><Download className="h-3 w-3 mr-1" /> PDF</Badge>}
                         </div>
                       </div>
