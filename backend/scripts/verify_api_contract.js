@@ -23,8 +23,8 @@ async function login() {
     console.log(`Attempting login on ${API_URL}...`);
     try {
         const response = await axios.post(`${API_URL}/auth/login`, {
-            identifier: '+2250100000000',
-            password: 'StrongPassword123!'
+            identifier: process.env.TEST_USER_PHONE || '+2250100000000',
+            password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
         });
 
         TOKEN = response.data.data.token;
@@ -42,8 +42,8 @@ async function login() {
                 const regResponse = await axios.post(`${API_URL}/auth/register`, {
                     nom: 'Test',
                     prenoms: 'API Check',
-                    telephone: '+2250100000000',
-                    password: 'StrongPassword123!',
+                    telephone: process.env.TEST_USER_PHONE || '+2250100000000',
+                    password: process.env.TEST_USER_PASSWORD || 'TestPassword123!',
                     email: 'api_check@test.com'
                 });
                 TOKEN = regResponse.data.data.token;

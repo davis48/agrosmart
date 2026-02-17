@@ -11,6 +11,9 @@
 .env.*.local
 *.env
 
+# Fichier de credentials auto-généré
+.credentials-backup
+
 # Clés et secrets
 *.pem
 *.key

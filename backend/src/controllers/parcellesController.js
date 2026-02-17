@@ -7,6 +7,7 @@ const prisma = require('../config/prisma');
 const { errors } = require('../middlewares/errorHandler');
 const { ROLES } = require('../middlewares/rbac');
 const logger = require('../utils/logger');
+const parcelleHealthService = require('../services/parcelleHealthService');
 // const { Parser } = require('json2csv'); // Ensure json2csv is available or mock it
 
 /**
@@ -104,6 +105,20 @@ exports.getAll = async (req, res, next) => {
         },
         stations: {
           select: { id: true }
+        },
+        capteurs: {
+          where: {
+            type: { in: ['HUMIDITE_SOL', 'HUMIDITE_TEMPERATURE_AMBIANTE'] }
+          },
+          select: {
+            id: true,
+            type: true,
+            mesures: {
+              take: 1,
+              orderBy: { timestamp: 'desc' },
+              select: { valeur: true, timestamp: true }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -112,25 +127,44 @@ exports.getAll = async (req, res, next) => {
     });
 
     // Transform data to match expected format
-    const data = parcelles.map(p => ({
-      id: p.id,
-      nom: p.nom,
-      superficie: p.superficie,
-      latitude: p.latitude,
-      longitude: p.longitude,
-      // description: p.description, // Schema might not have description? Check schema. It DOES have description.
-      type_sol: p.typeSol,
-      status: p.statut, // Schema uses 'statut'
-      created_at: p.createdAt,
-      updated_at: p.updatedAt,
-      proprietaire_nom: p.user?.nom,
-      proprietaire_prenom: p.user?.prenoms,
-      culture: p.cultureActuelle || 'Aucune', // Schema has cultureActuelle field directly
-      temperature: 0,
-      humidite: 0,
-      nb_stations: p.stations.length,
-      nb_plantations: 0 // Relationship might not exist in Prisma schema yet or removed from this query
-    }));
+    const data = parcelles.map(p => {
+      // Extraire la dernière température et humidité des capteurs
+      let temperature = 0;
+      let humidite = 0;
+
+      if (p.capteurs) {
+        for (const capteur of p.capteurs) {
+          if (capteur.mesures && capteur.mesures.length > 0) {
+            const valeur = parseFloat(capteur.mesures[0].valeur);
+            if (capteur.type === 'HUMIDITE_TEMPERATURE_AMBIANTE') {
+              temperature = Math.round(valeur * 10) / 10;
+            } else if (capteur.type === 'HUMIDITE_SOL') {
+              humidite = Math.round(valeur * 10) / 10;
+            }
+          }
+        }
+      }
+
+      return {
+        id: p.id,
+        nom: p.nom,
+        superficie: p.superficie,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        type_sol: p.typeSol,
+        status: p.statut,
+        sante: p.sante || 'OPTIMAL',
+        created_at: p.createdAt,
+        updated_at: p.updatedAt,
+        proprietaire_nom: p.user?.nom,
+        proprietaire_prenom: p.user?.prenoms,
+        culture: p.cultureActuelle || 'Aucune',
+        temperature,
+        humidite,
+        nb_stations: p.stations.length,
+        nb_plantations: 0
+      };
+    });
 
     res.json({
       success: true,
@@ -243,7 +277,7 @@ exports.getMapData = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { nom, superficie, latitude, longitude, description, type_sol, culture, status } = req.body;
+    const { nom, superficie, latitude, longitude, description, type_sol, culture, status, date_plantation } = req.body;
     const userId = req.body.user_id || req.user.id;
 
     // Permissions check
@@ -251,6 +285,20 @@ exports.create = async (req, res, next) => {
       if (req.body.user_id !== req.user.id) {
         throw errors.forbidden('Vous ne pouvez créer que vos propres parcelles');
       }
+    }
+
+    // Déterminer le statut en fonction des informations fournies
+    let finalStatut = 'ACTIVE'; // Statut par défaut
+    
+    if (status) {
+      // Si un statut est explicitement fourni, on l'utilise
+      finalStatut = status.toUpperCase();
+    } else if (culture && date_plantation) {
+      // Si une culture et date de plantation sont fournies, la parcelle est ensemencée
+      finalStatut = 'ENSEMENCEE';
+    } else if (culture) {
+      // Si seulement une culture est mentionnée, on considère qu'elle est préparée
+      finalStatut = 'PREPAREE';
     }
 
     const parcelle = await prisma.parcelle.create({
@@ -262,7 +310,8 @@ exports.create = async (req, res, next) => {
         typeSol: type_sol,
         userId,
         cultureActuelle: culture,
-        statut: status ? status.toUpperCase() : undefined
+        datePlantation: date_plantation ? new Date(date_plantation) : null,
+        statut: finalStatut
       }
     });
 
@@ -435,32 +484,41 @@ exports.getStations = async (req, res, next) => {
 };
 
 /**
- * Obtenir les dernières mesures d'une parcelle
+ * Obtenir les dernières mesures d'une parcelle (historique)
  */
 exports.getMesures = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const limit = parseInt(req.query.limit) || 100;
 
     const mesures = await prisma.mesure.findMany({
       where: {
         capteur: {
-          station: { parcelleId: id }
+          parcelleId: id
         }
       },
       include: {
         capteur: {
-          include: {
+          select: {
+            type: true,
+            nom: true,
+            unite: true,
             station: { select: { nom: true } }
           }
         }
       },
       orderBy: { timestamp: 'desc' },
-      take: 100
+      take: limit
     });
 
     const data = mesures.map(m => ({
-      ...m,
+      id: m.id,
+      valeur: Number(m.valeur),
+      unite: m.unite,
+      timestamp: m.timestamp,
+      capteur_id: m.capteurId,
       capteur_type: m.capteur?.type,
+      capteur_nom: m.capteur?.nom,
       station_nom: m.capteur?.station?.nom
     }));
 
@@ -469,6 +527,93 @@ exports.getMesures = async (req, res, next) => {
       data
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Obtenir les métriques IoT actuelles d'une parcelle (dernières valeurs par type de capteur)
+ */
+exports.getIotMetrics = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Récupérer tous les capteurs de la parcelle (inclure tous les statuts)
+    const capteurs = await prisma.capteur.findMany({
+      where: {
+        parcelleId: id
+      },
+      select: {
+        id: true,
+        type: true,
+        nom: true,
+        unite: true,
+        seuilMin: true,
+        seuilMax: true,
+        signal: true,
+        batterie: true,
+        statut: true
+      }
+    });
+
+    if (capteurs.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          metrics: [],
+          message: 'Aucun capteur actif trouvé pour cette parcelle'
+        }
+      });
+    }
+
+    // Pour chaque capteur, récupérer la dernière mesure
+    const metricsPromises = capteurs.map(async (capteur) => {
+      const derniereMesure = await prisma.mesure.findFirst({
+        where: { capteurId: capteur.id },
+        orderBy: { timestamp: 'desc' }
+      });
+
+      return {
+        capteur_id: capteur.id,
+        type: capteur.type,
+        nom: capteur.nom,
+        unite: capteur.unite,
+        statut: capteur.statut,
+        valeur: derniereMesure ? Number(derniereMesure.valeur) : null,
+        timestamp: derniereMesure?.timestamp || null,
+        seuil_min: Number(capteur.seuilMin),
+        seuil_max: Number(capteur.seuilMax),
+        signal: capteur.signal,
+        batterie: capteur.batterie,
+        hors_seuils: derniereMesure ? (
+          Number(derniereMesure.valeur) < Number(capteur.seuilMin) ||
+          Number(derniereMesure.valeur) > Number(capteur.seuilMax)
+        ) : false
+      };
+    });
+
+    const metrics = await Promise.all(metricsPromises);
+
+    // Grouper par type de capteur pour un affichage plus clair
+    const groupedMetrics = {};
+    metrics.forEach(metric => {
+      if (!groupedMetrics[metric.type]) {
+        groupedMetrics[metric.type] = [];
+      }
+      groupedMetrics[metric.type].push(metric);
+    });
+
+    res.json({
+      success: true,
+      data: {
+        metrics: metrics,
+        grouped_by_type: groupedMetrics,
+        total_capteurs: capteurs.length,
+        capteurs_avec_donnees: metrics.filter(m => m.valeur !== null).length
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching IoT metrics:', error);
     next(error);
   }
 };
@@ -612,6 +757,62 @@ exports.getHistorique = async (req, res, next) => {
     res.json({
       success: true,
       data
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Recalculer la santé d'une parcelle à partir des dernières mesures capteurs
+ */
+exports.recalculateHealth = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const parcelle = await prisma.parcelle.findUnique({
+      where: { id },
+      select: { id: true, nom: true }
+    });
+
+    if (!parcelle) {
+      throw errors.notFound('Parcelle non trouvée');
+    }
+
+    const newHealth = await parcelleHealthService.recalculateParcelleHealth(id);
+
+    res.json({
+      success: true,
+      message: `Santé de la parcelle "${parcelle.nom}" recalculée`,
+      data: {
+        parcelle_id: id,
+        sante: newHealth
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Recalculer la santé de toutes les parcelles (admin)
+ */
+exports.recalculateAllHealth = async (req, res, next) => {
+  try {
+    const parcelles = await prisma.parcelle.findMany({
+      select: { id: true, nom: true }
+    });
+
+    const results = [];
+    for (const p of parcelles) {
+      const health = await parcelleHealthService.recalculateParcelleHealth(p.id);
+      results.push({ id: p.id, nom: p.nom, sante: health });
+    }
+
+    res.json({
+      success: true,
+      message: `Santé recalculée pour ${results.length} parcelles`,
+      data: results
     });
   } catch (error) {
     next(error);

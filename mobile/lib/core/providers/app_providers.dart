@@ -21,7 +21,9 @@ import '../../injection_container.dart' as di;
 /// Fournit la liste de tous les BlocProviders de l'application
 class AppProviders {
   static List<BlocProvider> get providers => [
-    BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>()),
+    BlocProvider<AuthBloc>(
+      create: (_) => di.sl<AuthBloc>()..add(CheckAuthStatus()),
+    ),
     BlocProvider<ThemeCubit>(create: (_) => ThemeCubit(storage: di.sl())),
     BlocProvider<SettingsCubit>(create: (_) => SettingsCubit(di.sl())),
     BlocProvider<ParcelleBloc>(

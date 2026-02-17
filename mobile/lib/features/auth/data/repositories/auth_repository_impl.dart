@@ -1,14 +1,19 @@
 import 'package:dartz/dartz.dart';
 import 'dart:io';
 import '../../../../core/error/failures.dart';
+import '../../../../core/services/secure_storage_service.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
+  final SecureStorageService secureStorage;
 
-  AuthRepositoryImpl({required this.remoteDataSource});
+  AuthRepositoryImpl({
+    required this.remoteDataSource,
+    required this.secureStorage,
+  });
 
   @override
   Future<Either<Failure, User>> login(
@@ -42,12 +47,30 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> logout() async {
-    return const Right(null);
+    try {
+      await secureStorage.clearAll();
+      return const Right(null);
+    } catch (e) {
+      return const Right(null); // Toujours réussir le logout côté UI
+    }
   }
 
   @override
   Future<Either<Failure, User?>> getCurrentUser() async {
-    return const Right(null);
+    try {
+      final hasToken = await secureStorage.hasAccessToken();
+      if (!hasToken) {
+        return const Right(null);
+      }
+      final user = await remoteDataSource.getMe();
+      return Right(user);
+    } on ServerFailure catch (e) {
+      // Token expiré ou invalide → nettoyer
+      await secureStorage.clearAll();
+      return Left(e);
+    } catch (e) {
+      return const Right(null);
+    }
   }
 
   @override

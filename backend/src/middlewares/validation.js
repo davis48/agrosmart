@@ -323,6 +323,18 @@ const schemas = {
       .optional()
       .isIn(['argileux', 'sablonneux', 'limono_argileux', 'limoneux', 'argilo_sableux'])
       .withMessage('Type de sol invalide'),
+    body('status')
+      .optional()
+      .isIn(['ACTIVE', 'EN_REPOS', 'PREPAREE', 'ENSEMENCEE', 'EN_CROISSANCE', 'RECOLTE'])
+      .withMessage('Statut invalide. Valeurs acceptées: ACTIVE, EN_REPOS, PREPAREE, ENSEMENCEE, EN_CROISSANCE, RECOLTE'),
+    body('culture')
+      .optional()
+      .isString()
+      .trim(),
+    body('date_plantation')
+      .optional()
+      .isISO8601()
+      .withMessage('Date de plantation invalide'),
     validate
   ],
 

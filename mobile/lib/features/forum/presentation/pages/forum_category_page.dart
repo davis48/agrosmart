@@ -15,11 +15,10 @@ class ForumCategoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => di.sl<ForumBloc>()..add(LoadForumTopics(category.id)),
+      create: (context) =>
+          di.sl<ForumBloc>()..add(LoadForumTopics(category.id)),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(category.name),
-        ),
+        appBar: AppBar(title: Text(category.name)),
         body: BlocBuilder<ForumBloc, ForumState>(
           builder: (context, state) {
             if (state is ForumLoading) {
@@ -27,7 +26,9 @@ class ForumCategoryPage extends StatelessWidget {
             } else if (state is ForumTopicsLoaded) {
               final topics = state.topics;
               if (topics.isEmpty) {
-                return const Center(child: Text("Aucun sujet pour le moment. Soyez le premier !"));
+                return const Center(
+                  child: Text("Aucun sujet pour le moment. Soyez le premier !"),
+                );
               }
               return ListView.separated(
                 padding: const EdgeInsets.all(16),
@@ -38,7 +39,7 @@ class ForumCategoryPage extends StatelessWidget {
                 },
               );
             } else if (state is ForumError) {
-               return Center(child: Text(state.message));
+              return Center(child: Text(state.message));
             }
             return const SizedBox();
           },
@@ -46,10 +47,13 @@ class ForumCategoryPage extends StatelessWidget {
         floatingActionButton: Builder(
           builder: (context) {
             return FloatingActionButton(
+              heroTag: 'forum_category_fab',
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => CreateTopicPage(category: category)),
+                  MaterialPageRoute(
+                    builder: (_) => CreateTopicPage(category: category),
+                  ),
                 );
                 if (result == true) {
                   // Refresh
@@ -60,7 +64,7 @@ class ForumCategoryPage extends StatelessWidget {
               },
               child: const Icon(Icons.add),
             );
-          }
+          },
         ),
       ),
     );
@@ -69,7 +73,10 @@ class ForumCategoryPage extends StatelessWidget {
   Widget _buildTopicTile(BuildContext context, ForumTopic topic) {
     return ListTile(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => ForumTopicPage(topic: topic)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ForumTopicPage(topic: topic)),
+        );
       },
       title: Text(
         topic.title,
@@ -79,11 +86,7 @@ class ForumCategoryPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 4),
-          Text(
-            topic.content,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+          Text(topic.content, maxLines: 2, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -106,12 +109,12 @@ class ForumCategoryPage extends StatelessWidget {
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
-          )
+          ),
         ],
       ),
-      trailing: topic.isSolved 
-         ? const Icon(Icons.check_circle, color: Colors.green) 
-         : null,
+      trailing: topic.isSolved
+          ? const Icon(Icons.check_circle, color: Colors.green)
+          : null,
     );
   }
 

@@ -367,23 +367,34 @@ class _NpkDetailPageV2State extends State<NpkDetailPageV2>
   }
 
   Widget _buildSummaryCard() {
+    final hasData =
+        widget.capteur.nitrogen != null ||
+        widget.capteur.phosphorus != null ||
+        widget.capteur.potassium != null;
     final n = widget.capteur.nitrogen ?? 0;
     final p = widget.capteur.phosphorus ?? 0;
     final k = widget.capteur.potassium ?? 0;
 
-    String overallStatus = 'Optimal';
-    Color statusColor = Colors.green;
-    String statusIcon = '✓';
+    String overallStatus;
+    Color statusColor;
+    String statusIcon;
 
-    if (n < 50 || p < 30 || k < 150) {
-      overallStatus = 'Carence détectée';
-      statusColor = Colors.orange;
-      statusIcon = '⚠';
-    }
-    if (n < 30 || p < 20 || k < 100) {
+    if (!hasData) {
+      overallStatus = 'Pas de données';
+      statusColor = Colors.grey;
+      statusIcon = '?';
+    } else if (n < 30 || p < 20 || k < 100) {
       overallStatus = 'Carence sévère';
       statusColor = Colors.red;
       statusIcon = '✗';
+    } else if (n < 50 || p < 30 || k < 150) {
+      overallStatus = 'Carence détectée';
+      statusColor = Colors.orange;
+      statusIcon = '⚠';
+    } else {
+      overallStatus = 'Optimal';
+      statusColor = Colors.green;
+      statusIcon = '✓';
     }
 
     return Card(

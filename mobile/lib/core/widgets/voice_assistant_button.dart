@@ -11,7 +11,8 @@ class VoiceAssistantButton extends StatefulWidget {
   State<VoiceAssistantButton> createState() => _VoiceAssistantButtonState();
 }
 
-class _VoiceAssistantButtonState extends State<VoiceAssistantButton> with SingleTickerProviderStateMixin {
+class _VoiceAssistantButtonState extends State<VoiceAssistantButton>
+    with SingleTickerProviderStateMixin {
   final VoiceAssistantService _service = sl<VoiceAssistantService>();
   bool _isListening = false;
   late AnimationController _controller;
@@ -20,8 +21,8 @@ class _VoiceAssistantButtonState extends State<VoiceAssistantButton> with Single
   void initState() {
     super.initState();
     _controller = AnimationController(
-       vsync: this,
-       duration: const Duration(milliseconds: 1000),
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
   }
 
@@ -41,7 +42,7 @@ class _VoiceAssistantButtonState extends State<VoiceAssistantButton> with Single
         setState(() => _isListening = true);
         _service.startListening(
           onResult: (text) {
-             widget.onResult(text);
+            widget.onResult(text);
           },
           onDone: () {
             if (mounted) setState(() => _isListening = false);
@@ -54,11 +55,15 @@ class _VoiceAssistantButtonState extends State<VoiceAssistantButton> with Single
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
+      heroTag: 'voice_assistant_fab',
       onPressed: _toggleListening,
       backgroundColor: _isListening ? Colors.red : Colors.green,
-      child: _isListening 
-       ? ScaleTransition(scale: Tween<double>(begin: 1.0, end: 1.2).animate(_controller), child: const Icon(Icons.mic))
-       : const Icon(Icons.mic_none),
+      child: _isListening
+          ? ScaleTransition(
+              scale: Tween<double>(begin: 1.0, end: 1.2).animate(_controller),
+              child: const Icon(Icons.mic),
+            )
+          : const Icon(Icons.mic_none),
     );
   }
 }

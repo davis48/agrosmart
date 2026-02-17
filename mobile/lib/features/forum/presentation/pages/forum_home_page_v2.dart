@@ -197,6 +197,7 @@ class _ForumHomePageV2State extends State<ForumHomePageV2>
           ),
         ),
         floatingActionButton: FloatingActionButton.extended(
+          heroTag: 'forum_new_topic_fab',
           onPressed: () => _createNewTopic(context),
           backgroundColor: const Color(0xFF2E7D32),
           icon: const Icon(Icons.add, color: Colors.white),

@@ -506,6 +506,20 @@ exports.getMe = async (req, res, next) => {
       where: { userId: req.user.id }
     });
 
+    // Calculer la surface totale
+    const surfaceTotale = await prisma.parcelle.aggregate({
+      _sum: { superficie: true },
+      where: { userId: req.user.id }
+    });
+
+    // Compter les capteurs actifs
+    const capteursActifs = await prisma.capteur.count({
+      where: {
+        parcelle: { userId: req.user.id },
+        statut: 'ACTIF'
+      }
+    });
+
     res.json({
       success: true,
       data: {
@@ -529,6 +543,16 @@ exports.getMe = async (req, res, next) => {
 
         parcelles_count: parcellesCount,
         capteurs_count: capteursCount,
+        hectares_total: parseFloat(surfaceTotale._sum.superficie) || 0,
+        
+        // ✨ Nouvelles statistiques pour le profil
+        statistics: {
+          parcelles_count: parcellesCount,
+          surface_totale: surfaceTotale._sum.superficie || 0,
+          capteurs_count: capteursCount,
+          capteurs_actifs: capteursActifs
+        },
+        
         updatedAt: userData.updatedAt
       }
     });

@@ -50,5 +50,8 @@ docker-compose*.yml
 README.md
 docs/
 
-# Scripts non nécessaires en prod
-scripts/
+# Tests (not needed in production)
+tests/
+coverage/
+jest.config.js
+eslint.config.*

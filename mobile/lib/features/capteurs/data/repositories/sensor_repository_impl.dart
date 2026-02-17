@@ -70,4 +70,16 @@ class SensorRepositoryImpl implements SensorRepository {
       return []; // Return empty if error
     }
   }
+
+  @override
+  Future<void> toggleSensorStatus(String id, String status) async {
+    debugPrint('[SENSORS] toggleSensorStatus called: $id => $status');
+    try {
+      await remoteDataSource.toggleSensorStatus(id, status);
+      debugPrint('[SENSORS] Status toggled successfully');
+    } catch (e) {
+      debugPrint('[SENSORS] Toggle error: $e');
+      throw Exception('Failed to toggle sensor status: $e');
+    }
+  }
 }

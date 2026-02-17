@@ -232,6 +232,7 @@ exports.getAll = async (req, res, next) => {
             parcelle: { select: { nom: true, userId: true } }
           }
         },
+        parcelle: { select: { nom: true, userId: true } },
         mesures: {
           orderBy: { timestamp: 'desc' },
           take: 1,
@@ -243,22 +244,43 @@ exports.getAll = async (req, res, next) => {
       skip: offset
     });
 
-    const data = capteurs.map(c => ({
-      ...c,
-      station_nom: c.station?.nom,
-      parcelle_nom: c.station?.parcelle?.nom,
-      parcelle_id: c.parcelleId, // Already exists in capteur directly
-      user_id: c.station?.parcelle?.userId,
-      derniere_valeur: c.mesures[0]?.valeur,
-      derniereMesure: c.mesures[0] ? {
-        valeur: c.mesures[0].valeur,
-        unite: c.mesures[0].unite || c.unite,
-        date: c.mesures[0].timestamp
-      } : null,
-      // Add explicit field mapping for mobile compatibility
-      code: c.id, // If mobile expects 'code' field
-      statut: c.statut  // Ensure status field is present
-    }));
+    const data = capteurs.map(c => {
+      const result = {
+        ...c,
+        station_nom: c.station?.nom,
+        parcelle_nom: c.parcelle?.nom || c.station?.parcelle?.nom,
+        parcelle_id: c.parcelleId, // Already exists in capteur directly
+        user_id: c.station?.parcelle?.userId,
+        derniere_valeur: c.mesures[0]?.valeur,
+        derniereMesure: c.mesures[0] ? {
+          valeur: c.mesures[0].valeur,
+          unite: c.mesures[0].unite || c.unite,
+          date: c.mesures[0].timestamp
+        } : null,
+        // Add explicit field mapping for mobile compatibility
+        code: c.id, // If mobile expects 'code' field
+        statut: c.statut  // Ensure status field is present
+      };
+
+      // Pour les capteurs NPK, extraire les valeurs N, P, K de la dernière mesure
+      if (c.type === 'NPK' && c.mesures[0]?.valeur) {
+        try {
+          const parsed = JSON.parse(c.mesures[0].valeur);
+          if (typeof parsed === 'object') {
+            result.nitrogen = parsed.N ?? parsed.nitrogen ?? parsed.azote ?? 0;
+            result.phosphorus = parsed.P ?? parsed.phosphorus ?? parsed.phosphore ?? 0;
+            result.potassium = parsed.K ?? parsed.potassium ?? 0;
+          }
+        } catch {
+          // Valeur simple, pas de JSON
+          result.nitrogen = 0;
+          result.phosphorus = 0;
+          result.potassium = 0;
+        }
+      }
+
+      return result;
+    });
 
     res.json({
       success: true,
@@ -406,6 +428,12 @@ exports.getById = async (req, res, next) => {
           include: {
             parcelle: { select: { nom: true } }
           }
+        },
+        parcelle: { select: { nom: true } },
+        mesures: {
+          orderBy: { timestamp: 'desc' },
+          take: 1,
+          select: { valeur: true, unite: true, timestamp: true }
         }
       }
     });
@@ -417,9 +445,31 @@ exports.getById = async (req, res, next) => {
     const data = {
       ...capteur,
       station_nom: capteur.station?.nom,
-      parcelle_id: capteur.station?.parcelleId,
-      parcelle_nom: capteur.station?.parcelle?.nom
+      parcelle_id: capteur.station?.parcelleId || capteur.parcelleId,
+      parcelle_nom: capteur.parcelle?.nom || capteur.station?.parcelle?.nom,
+      derniere_valeur: capteur.mesures[0]?.valeur,
+      derniereMesure: capteur.mesures[0] ? {
+        valeur: capteur.mesures[0].valeur,
+        unite: capteur.mesures[0].unite || capteur.unite,
+        date: capteur.mesures[0].timestamp
+      } : null,
     };
+
+    // Pour les capteurs NPK, extraire les valeurs N, P, K
+    if (capteur.type === 'NPK' && capteur.mesures[0]?.valeur) {
+      try {
+        const parsed = JSON.parse(capteur.mesures[0].valeur);
+        if (typeof parsed === 'object') {
+          data.nitrogen = parsed.N ?? parsed.nitrogen ?? parsed.azote ?? 0;
+          data.phosphorus = parsed.P ?? parsed.phosphorus ?? parsed.phosphore ?? 0;
+          data.potassium = parsed.K ?? parsed.potassium ?? 0;
+        }
+      } catch {
+        data.nitrogen = 0;
+        data.phosphorus = 0;
+        data.potassium = 0;
+      }
+    }
 
     res.json({
       success: true,
@@ -600,9 +650,18 @@ exports.toggleStatus = async (req, res, next) => {
     const { id } = req.params;
     const { status } = req.body;
 
+    logger.info('Toggle status request', { id, status, body: req.body });
+
+    // Vérifier que le status est présent
+    if (!status) {
+      throw errors.badRequest('Le champ status est requis');
+    }
+
     // Validate status match Enum values in SQL: ACTIF, INACTIF
     const validStatuses = ['ACTIF', 'INACTIF', 'MAINTENANCE'];
     const newStatus = status.toUpperCase();
+
+    logger.info('Status validation', { newStatus, validStatuses });
 
     if (!validStatuses.includes(newStatus)) {
       throw errors.badRequest('Le statut doit être "actif" ou "inactif"');
@@ -621,6 +680,14 @@ exports.toggleStatus = async (req, res, next) => {
     }
 
     logger.info(`Capteur ${id} ${status} par utilisateur ${req.user.id}`);
+
+    // Recalculer la santé de la parcelle associée
+    try {
+      const parcelleHealthService = require('../services/parcelleHealthService');
+      await parcelleHealthService.recalculateFromCapteur(id);
+    } catch (healthErr) {
+      logger.warn('Erreur recalcul santé après toggle', { error: healthErr.message });
+    }
 
     res.json({
       success: true,

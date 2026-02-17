@@ -10,6 +10,7 @@ const {
   authenticate, 
   isProducteur, 
   isConseiller,
+  isAdmin,
   requireParcelleAccess,
   schemas 
 } = require('../middlewares');
@@ -46,6 +47,13 @@ router.get('/map', isProducteur, parcellesController.getMapData);
 router.post('/', isProducteur, schemas.createParcelle, parcellesController.create);
 
 /**
+ * @route   POST /api/parcelles/recalculate-all-health
+ * @desc    Recalculer la santé de toutes les parcelles
+ * @access  Admin
+ */
+router.post('/recalculate-all-health', isAdmin, parcellesController.recalculateAllHealth);
+
+/**
  * @route   GET /api/parcelles/:id
  * @desc    Obtenir une parcelle par son ID
  * @access  Propriétaire, Conseiller, Admin
@@ -75,10 +83,17 @@ router.get('/:id/stations', schemas.paramUuid('id'), requireParcelleAccess, parc
 
 /**
  * @route   GET /api/parcelles/:id/mesures
- * @desc    Obtenir les dernières mesures d'une parcelle
+ * @desc    Obtenir l'historique des mesures d'une parcelle
  * @access  Propriétaire, Conseiller, Admin
  */
 router.get('/:id/mesures', schemas.paramUuid('id'), requireParcelleAccess, parcellesController.getMesures);
+
+/**
+ * @route   GET /api/parcelles/:id/iot-metrics
+ * @desc    Obtenir les métriques IoT actuelles d'une parcelle (dernières valeurs par capteur)
+ * @access  Propriétaire, Conseiller, Admin
+ */
+router.get('/:id/iot-metrics', schemas.paramUuid('id'), requireParcelleAccess, parcellesController.getIotMetrics);
 
 /**
  * @route   GET /api/parcelles/:id/alertes
@@ -107,5 +122,12 @@ router.get('/:id/recommandations', schemas.paramUuid('id'), requireParcelleAcces
  * @access  Propriétaire, Conseiller, Admin
  */
 router.get('/:id/historique', schemas.paramUuid('id'), requireParcelleAccess, parcellesController.getHistorique);
+
+/**
+ * @route   POST /api/parcelles/:id/recalculate-health
+ * @desc    Recalculer la santé d'une parcelle à partir des capteurs
+ * @access  Propriétaire, Conseiller, Admin
+ */
+router.post('/:id/recalculate-health', schemas.paramUuid('id'), requireParcelleAccess, parcellesController.recalculateHealth);
 
 module.exports = router;

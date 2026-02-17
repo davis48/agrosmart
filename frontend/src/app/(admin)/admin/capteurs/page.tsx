@@ -52,7 +52,8 @@ interface Capteur {
   id: string
   nom: string
   type: string
-  status: 'actif' | 'inactif' | 'maintenance' | 'defaillant'
+  statut: string
+  status?: string
   parcelle_nom?: string
   agriculteur_nom?: string
   derniere_mesure?: string
@@ -97,16 +98,19 @@ export default function AdminCapteursPage() {
         api.get('/capteurs').catch(() => ({ data: { data: [] } })),
       ])
 
-      const capteursData = capteursRes.data?.data || []
+      const capteursData = (capteursRes.data?.data || []).map((c: Record<string, unknown>) => ({
+        ...c,
+        statut: ((c.statut || c.status || '') as string).toLowerCase(),
+      }))
       setCapteurs(capteursData)
 
       // Calculer les stats
       const calculatedStats = {
         total: capteursData.length,
-        actifs: capteursData.filter((c: Capteur) => c.status === 'actif').length,
-        inactifs: capteursData.filter((c: Capteur) => c.status === 'inactif').length,
-        maintenance: capteursData.filter((c: Capteur) => c.status === 'maintenance').length,
-        defaillants: capteursData.filter((c: Capteur) => c.status === 'defaillant').length,
+        actifs: capteursData.filter((c: Capteur) => (c.statut || c.status || '').toLowerCase() === 'actif').length,
+        inactifs: capteursData.filter((c: Capteur) => (c.statut || c.status || '').toLowerCase() === 'inactif').length,
+        maintenance: capteursData.filter((c: Capteur) => (c.statut || c.status || '').toLowerCase() === 'maintenance').length,
+        defaillants: capteursData.filter((c: Capteur) => (c.statut || c.status || '').toLowerCase() === 'defaillant').length,
       }
       setStats(calculatedStats)
     } catch (error) {
@@ -184,7 +188,7 @@ export default function AdminCapteursPage() {
       capteur.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
       capteur.parcelle_nom?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       capteur.agriculteur_nom?.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || capteur.status === statusFilter
+    const matchesStatus = statusFilter === 'all' || (capteur.statut || capteur.status || '').toLowerCase() === statusFilter
     const matchesType = typeFilter === 'all' || capteur.type === typeFilter
     return matchesSearch && matchesStatus && matchesType
   })
@@ -360,13 +364,13 @@ export default function AdminCapteursPage() {
                   className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-start gap-4 flex-1">
-                    <div className={`p-3 rounded-lg ${getStatusColor(capteur.status)} bg-opacity-20`}>
+                    <div className={`p-3 rounded-lg ${getStatusColor((capteur.statut || capteur.status || '').toLowerCase())} bg-opacity-20`}>
                       {getTypeIcon(capteur.type)}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium text-gray-900 dark:text-white">{capteur.nom}</h3>
-                        {getStatusBadge(capteur.status)}
+                        {getStatusBadge((capteur.statut || capteur.status || '').toLowerCase())}
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {capteur.parcelle_nom} • {capteur.agriculteur_nom}
@@ -409,13 +413,13 @@ export default function AdminCapteursPage() {
                           <Settings className="h-4 w-4 mr-2" />
                           Détails
                         </DropdownMenuItem>
-                        {capteur.status !== 'maintenance' && (
+                        {(capteur.statut || capteur.status || '').toLowerCase() !== 'maintenance' && (
                           <DropdownMenuItem onClick={() => handleMaintenance(capteur.id, 'start')}>
                             <Wrench className="h-4 w-4 mr-2" />
                             Mettre en maintenance
                           </DropdownMenuItem>
                         )}
-                        {capteur.status === 'maintenance' && (
+                        {(capteur.statut || capteur.status || '').toLowerCase() === 'maintenance' && (
                           <DropdownMenuItem onClick={() => handleMaintenance(capteur.id, 'end')}>
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Terminer maintenance

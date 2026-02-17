@@ -22,6 +22,7 @@ const socket = require('./socket');
 const routes = require('./routes');
 const { setupSwagger } = require('./config/swagger');
 const prisma = require('./config/prisma');
+const { initWorker } = require('./workers/sensorWorker');
 
 // Création de l'application Express
 const app = express();
@@ -160,6 +161,10 @@ const startServer = async () => {
   try {
     await prisma.$connect();
     logger.info('Prisma connected to MySQL successfully');
+
+    // Initialiser le worker pour le traitement des mesures IoT
+    initWorker();
+    logger.info('Worker IoT initialisé');
 
     server.listen(config.server.port, () => {
       logger.info(`AgroSmart Backend démarré`);

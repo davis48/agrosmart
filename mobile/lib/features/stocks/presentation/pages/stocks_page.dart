@@ -99,6 +99,7 @@ class _StocksPageState extends State<StocksPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'stocks_add_fab',
         onPressed: () {
           // TODO: Naviguer vers la page de création de stock
           ScaffoldMessenger.of(context).showSnackBar(

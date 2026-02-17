@@ -381,6 +381,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
                     if (authState is AuthAuthenticated &&
                         authState.user.role == 'PRODUCTEUR') {
                       return FloatingActionButton(
+                        heroTag: 'marketplace_add_fab',
                         onPressed: () => _showAddOptions(context),
                         tooltip: 'Ajouter une annonce',
                         backgroundColor: const Color(0xFF28A745),

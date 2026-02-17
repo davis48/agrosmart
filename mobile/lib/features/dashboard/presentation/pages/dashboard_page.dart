@@ -123,11 +123,6 @@ class _DashboardPageState extends State<DashboardPage> {
                         const SizedBox(height: 12),
                         _buildActionButtons(context),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle("Alertes par catégorie"),
-                        const SizedBox(height: 12),
-                        _buildAlertsWithCategories(),
-
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -423,7 +418,13 @@ class _DashboardPageState extends State<DashboardPage> {
             builder: (context, state) {
               int count = 0;
               if (state is SensorLoaded) {
-                count = state.sensors.length;
+                count = state.sensors
+                    .where(
+                      (s) =>
+                          s.status.toLowerCase() == 'actif' ||
+                          s.status.toLowerCase() == 'active',
+                    )
+                    .length;
               }
               return _buildInfoCard(
                 title: "Capteurs\nactifs",

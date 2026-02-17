@@ -237,6 +237,7 @@ Future<void> init() async {
       register: sl(),
       updateProfile: sl(),
       logout: sl(),
+      authRepository: sl(),
     ),
   );
 
@@ -368,7 +369,7 @@ Future<void> init() async {
 
   // Auth
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(remoteDataSource: sl()),
+    () => AuthRepositoryImpl(remoteDataSource: sl(), secureStorage: sl()),
   );
 
   // Dashboard

@@ -232,7 +232,7 @@ const requireCapteurAccess = async (req, res, next) => {
       return next(errors.unauthorized('Authentification requise'));
     }
 
-    const capteurId = req.params.capteurId || req.body.capteur_id;
+    const capteurId = req.params.capteurId || req.params.id || req.body.capteur_id;
 
     if (!capteurId) {
       return next(errors.badRequest('ID de capteur requis'));

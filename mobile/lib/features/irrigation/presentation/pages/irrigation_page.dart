@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:agriculture/features/parcelles/presentation/bloc/parcelle_bloc.dart';
 import 'package:agriculture/core/network/api_client.dart';
 import 'package:agriculture/injection_container.dart' as di;
@@ -51,14 +52,29 @@ class _IrrigationPageState extends State<IrrigationPage> {
                   bottomRight: Radius.circular(30),
                 ),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.water_drop, color: Colors.white, size: 28),
-                      SizedBox(width: 12),
-                      Expanded(
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/');
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.water_drop,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
                         child: Text(
                           "Programme d'Irrigation",
                           style: TextStyle(
@@ -70,8 +86,8 @@ class _IrrigationPageState extends State<IrrigationPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
-                  Text(
+                  const SizedBox(height: 12),
+                  const Text(
                     "Gérez l'irrigation de vos parcelles de manière intelligente",
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),

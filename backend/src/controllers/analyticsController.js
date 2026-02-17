@@ -84,28 +84,27 @@ exports.getStats = async (req, res, next) => {
             total: Number(economiesAgg._sum.economiesTotalesFcfa || 0)
         };
 
-        // Obtenir les rendements par culture depuis plantations + recoltes
-        // Requête complexe avec CASE et HAVING -> Utiliser Raw (compatible MySQL)
+        // Obtenir les rendements par culture depuis la table rendements_par_culture
+        // Requête simplifiée compatible MySQL
         const rendementsCulturesRaw = await prisma.$queryRaw`
             SELECT 
                 c.nom as culture,
-                COALESCE(AVG(r.rendement_par_hectare), 0) as rendement_actuel,
+                COALESCE(AVG(rpc.rendement_kg_ha), 0) as rendement_actuel,
                 c.rendement_optimal as rendement_objectif,
                 COALESCE(SUM(DISTINCT p.superficie), 0) as superficie,
-                COALESCE(SUM(r.quantite_kg * COALESCE(r.prix_unitaire, 0)), 0) as revenus,
+                0 as revenus,
                 CASE 
                     WHEN c.rendement_moyen > 0 THEN 
-                        ((COALESCE(AVG(r.rendement_par_hectare), 0) - c.rendement_moyen) / c.rendement_moyen) * 100
+                        ((COALESCE(AVG(rpc.rendement_kg_ha), 0) - c.rendement_moyen) / c.rendement_moyen) * 100
                     ELSE 0
                 END as improvement
             FROM cultures c
-            LEFT JOIN plantations pl ON c.id = pl.culture_id
-            LEFT JOIN recoltes r ON pl.id = r.plantation_id
-            LEFT JOIN parcelles p ON pl.parcelle_id = p.id
-            WHERE p.user_id = ${userId}
+            LEFT JOIN rendements_par_culture rpc ON c.id = rpc.culture_id
+            LEFT JOIN parcelles p ON rpc.parcelle_id = p.id
+            WHERE p.user_id = ${userId} AND rpc.id IS NOT NULL
             GROUP BY c.id, c.nom, c.rendement_moyen, c.rendement_optimal
-            HAVING COUNT(r.id) > 0
             ORDER BY rendement_actuel DESC
+            LIMIT 10
         `;
 
         const rendementesParCulture = rendementsCulturesRaw.map(row => ({
@@ -146,20 +145,19 @@ exports.getStats = async (req, res, next) => {
             ? rendementesParCulture.reduce((sum, r) => sum + r.improvement, 0) / rendementesParCulture.length
             : 0;
 
-        // Production mensuelle (12 derniers mois) depuis les récoltes
+        // Production mensuelle (12 derniers mois) depuis rendements_par_culture
         const twelveMonthsAgo = new Date();
         twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
         const productionMensuelleRaw = await prisma.$queryRaw`
             SELECT 
-                DATE_FORMAT(r.date_recolte, '%Y-%m') as mois,
-                SUM(r.quantite_kg) as production,
+                DATE_FORMAT(rpc.created_at, '%Y-%m') as mois,
+                SUM(rpc.rendement_kg_ha * p.superficie) as production,
                 0 as saison_precedente
-            FROM recoltes r
-            JOIN plantations pl ON r.plantation_id = pl.id 
-            JOIN parcelles p ON pl.parcelle_id = p.id
+            FROM rendements_par_culture rpc
+            JOIN parcelles p ON rpc.parcelle_id = p.id
             WHERE p.user_id = ${userId}
-              AND r.date_recolte >= ${twelveMonthsAgo}
+              AND rpc.created_at >= ${twelveMonthsAgo}
             GROUP BY mois
             ORDER BY mois ASC
         `;
@@ -227,29 +225,37 @@ async function getParcellesStats(userId) {
         where: { userId }
     });
 
-    // Obtenir les cultures uniques via findMany sur plantations (ou cultures jointes)
-    const culturesList = await prisma.plantation.findMany({
-        where: { parcelle: { userId }, estActive: true },
-        include: { culture: { select: { nom: true } } },
-        distinct: ['cultureId']
+    // Obtenir les cultures uniques directement depuis parcelles (cultureActuelle)
+    const parcellesWithCulture = await prisma.parcelle.findMany({
+        where: { 
+            userId,
+            cultureActuelle: { not: null }
+        },
+        select: { cultureActuelle: true },
+        distinct: ['cultureActuelle']
     });
-    const cultures = culturesList.map(p => p.culture?.nom).filter(Boolean);
+    const cultures = parcellesWithCulture
+        .map(p => p.cultureActuelle)
+        .filter(Boolean);
 
     const parcelles = await prisma.parcelle.findMany({
         where: { userId },
-        include: {
-            plantations: {
-                where: { estActive: true },
-                include: { culture: true },
-                take: 1
-            }
+        select: {
+            nom: true,
+            cultureActuelle: true,
+            superficie: true,
+            sante: true
         }
     });
 
-    // La logique de boucle de performance est en JS simple, on la garde mais on adapte la source de données
+    // La logique de boucle de performance basée sur la santé de la parcelle
     const performance = parcelles.map(p => {
-        const cultureNom = p.plantations[0]?.culture?.nom || 'Culture';
-        const score = 0; // Défaut
+        const cultureNom = p.cultureActuelle || 'Non définie';
+        // Score basé sur la santé: OPTIMAL=80, SURVEILLANCE=50, CRITIQUE=20
+        let score = 50;
+        if (p.sante === 'OPTIMAL') score = 80;
+        if (p.sante === 'CRITIQUE') score = 20;
+        
         return {
             nom: `${cultureNom} - ${p.nom}`,
             score,

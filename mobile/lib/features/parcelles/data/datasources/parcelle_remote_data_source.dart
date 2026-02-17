@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:agriculture/features/parcelles/data/models/parcelle_model.dart';
+import 'package:agriculture/features/parcelles/data/models/iot_metric_model.dart';
 
 abstract class ParcelleRemoteDataSource {
   Future<List<ParcelleModel>> getParcelles();
   Future<void> createParcelle(Map<String, dynamic> data);
+  Future<IotMetricsResponse> getParcelleIotMetrics(String parcelleId);
 }
 
 class ParcelleRemoteDataSourceImpl implements ParcelleRemoteDataSource {
@@ -46,5 +48,38 @@ class ParcelleRemoteDataSourceImpl implements ParcelleRemoteDataSource {
       throw Exception('Failed to create parcelle: $e');
     }
   }
-}
 
+  @override
+  Future<IotMetricsResponse> getParcelleIotMetrics(String parcelleId) async {
+    try {
+      debugPrint('[PARCELLE DS] Fetching IoT metrics for parcelle: $parcelleId');
+      final response = await dio.get('/parcelles/$parcelleId/iot-metrics');
+      debugPrint('[PARCELLE DS] IoT metrics response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return IotMetricsResponse.fromJson(response.data);
+      } else {
+        throw Exception('Failed to load IoT metrics');
+      }
+    } on DioException catch (e) {
+      debugPrint('[PARCELLE DS] DioException getting IoT metrics: ${e.type} - ${e.message}');
+      // Retourner une réponse vide au lieu de lever une exception
+      return const IotMetricsResponse(
+        metrics: [],
+        groupedByType: {},
+        totalCapteurs: 0,
+        capteursAvecDonnees: 0,
+        message: 'Erreur de connexion au serveur',
+      );
+    } catch (e) {
+      debugPrint('[PARCELLE DS] Error getting IoT metrics: $e');
+      return const IotMetricsResponse(
+        metrics: [],
+        groupedByType: {},
+        totalCapteurs: 0,
+        capteursAvecDonnees: 0,
+        message: 'Aucune donnée disponible',
+      );
+    }
+  }
+}

@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String identifier, String password);
   Future<UserModel> verifyOtp(String identifier, String code);
+  Future<UserModel> getMe();
   Future<UserModel> register({
     required String nom,
     required String prenoms,
@@ -90,6 +91,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final user = UserModel.fromJson(data['user']);
       _log('[AUTH] Connexion réussie');
 
+      // Sauvegarder les données utilisateur pour la restauration de session
+      await _secureStorage.saveUserData(user.toJson().toString());
+      if (user.id.isNotEmpty) {
+        await _secureStorage.saveUserId(user.id);
+      }
+
       return user;
     } on DioException catch (e) {
       _log('[AUTH ERROR] DioException: ${e.message}');
@@ -116,6 +123,38 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return UserModel.fromJson(data['user']);
     } on DioException catch (e) {
       throw ServerFailure(e.response?.data['message'] ?? 'Code invalide');
+    }
+  }
+
+  @override
+  Future<UserModel> getMe() async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        throw const ServerFailure('Pas de token disponible');
+      }
+
+      _log('[AUTH] Appel GET /auth/me');
+
+      final response = await dio.get(
+        '/auth/me',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      _log('[AUTH] getMe response: ${response.statusCode}');
+
+      final data = response.data['data'];
+      return UserModel.fromJson(data);
+    } on DioException catch (e) {
+      _log('[AUTH ERROR] getMe DioException: ${e.message}');
+      final message = _extractErrorMessage(e);
+      throw ServerFailure(message);
+    } catch (e) {
+      if (e is ServerFailure) rethrow;
+      _log('[AUTH ERROR] getMe Exception: $e');
+      throw ServerFailure('Erreur lors de la récupération du profil: ${e.toString()}');
     }
   }
 

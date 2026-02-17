@@ -16,14 +16,21 @@ const prisma = require('../src/config/prisma');
 async function createAdmin() {
   console.log('🔐 Création du compte administrateur AgroSmart...\n');
 
+  // ⚠️ SÉCURITÉ: Le mot de passe par défaut est utilisé UNIQUEMENT en développement
+  // En production, définir ADMIN_PASSWORD dans .env
   const adminData = {
-    telephone: '+2250100000000',
-    email: 'admin@agrosmart.ci',
-    password: 'Admin@2024!',
+    telephone: process.env.ADMIN_TELEPHONE || '+2250100000000',
+    email: process.env.ADMIN_EMAIL || 'admin@agrosmart.ci',
+    password: process.env.ADMIN_PASSWORD || 'ChangeMe@2024!',
     nom: 'Administrateur',
     prenoms: 'AgroSmart',
     role: 'ADMIN',
   };
+
+  if (!process.env.ADMIN_PASSWORD) {
+    console.warn('⚠️  ATTENTION: Utilisation du mot de passe par défaut (DEV uniquement)');
+    console.warn('   En production, définissez ADMIN_PASSWORD dans .env!');
+  }
 
   try {
     // Vérifier si un admin existe déjà

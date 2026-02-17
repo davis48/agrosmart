@@ -189,6 +189,8 @@ class _NotificationsPageState extends State<NotificationsPage>
                 return a.category == AlertCategory.sol;
               case 4:
                 return a.category == AlertCategory.meteo;
+              case 5:
+                return a.category == AlertCategory.general;
               default:
                 return true;
             }
@@ -478,182 +480,209 @@ class _NotificationsPageState extends State<NotificationsPage>
   }
 
   Widget _buildDiseaseAlertCard(Alert alert) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFEBEE),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.red[100]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.bug_report_outlined,
-                color: Colors.red,
-                size: 28,
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                "Alerte Maladie - IA",
-                style: TextStyle(
-                  color: Color(0xFFB71C1C),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+    return InkWell(
+      onTap: () {
+        // Rediriger vers les recommandations
+        context.push('/recommendations');
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFEBEE),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.red[100]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.bug_report_outlined,
+                  color: Colors.red,
+                  size: 28,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            alert.message,
-            style: const TextStyle(color: Color(0xFFB71C1C), fontSize: 14),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD32F2F),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    "Alerte Maladie - IA",
+                    style: TextStyle(
+                      color: Color(0xFFB71C1C),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
                   ),
-                  child: const Text(
-                    "Voir\nRecommandations",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12),
-                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFD32F2F),
-                    side: const BorderSide(color: Color(0xFFD32F2F)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                const Icon(Icons.chevron_right, color: Color(0xFFB71C1C)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              alert.message,
+              style: const TextStyle(color: Color(0xFFB71C1C), fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/recommendations'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFD32F2F),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Voir\nRecommandations",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12),
                     ),
                   ),
-                  child: const Text(
-                    "Contacter un\nexpert",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => context.push('/forum'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFD32F2F),
+                      side: const BorderSide(color: Color(0xFFD32F2F)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Contacter un\nexpert",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildIrrigationCard(Alert alert) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE3F2FD),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue[100]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.water_drop_outlined,
-                color: Colors.blue,
-                size: 28,
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                "Irrigation Programmée",
-                style: TextStyle(
-                  color: Color(0xFF0D47A1),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+    return InkWell(
+      onTap: () {
+        // Rediriger vers l'interface d'irrigation
+        context.push('/irrigation');
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE3F2FD),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.blue[100]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.water_drop_outlined,
+                  color: Colors.blue,
+                  size: 28,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            alert.message,
-            style: const TextStyle(color: Color(0xFF0D47A1), fontSize: 14),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1976D2),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    "Irrigation Programmée",
+                    style: TextStyle(
+                      color: Color(0xFF0D47A1),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text("Modifier la programmation"),
+                const Icon(Icons.chevron_right, color: Color(0xFF0D47A1)),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              alert.message,
+              style: const TextStyle(color: Color(0xFF0D47A1), fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => context.push('/irrigation'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1976D2),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text("Modifier la programmation"),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPhCard(Alert alert) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange[100]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.science_outlined,
-                color: Colors.orange,
-                size: 28,
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                "pH Acide",
-                style: TextStyle(
-                  color: Color(0xFFE65100),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+    return InkWell(
+      onTap: () {
+        // Rediriger vers les capteurs/monitoring
+        context.push('/monitoring');
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3E0),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.orange[100]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.science_outlined,
+                  color: Colors.orange,
+                  size: 28,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            alert.actionRecommandee ??
-                "Mets un peu de chaux ou de cendre de bois pour remonter le pH.",
-            style: const TextStyle(
-              color: Color(0xFFE65100),
-              fontSize: 14,
-              height: 1.5,
+                const SizedBox(width: 10),
+                const Text(
+                  "pH Acide",
+                  style: TextStyle(
+                    color: Color(0xFFE65100),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              alert.actionRecommandee ??
+                  "Mets un peu de chaux ou de cendre de bois pour remonter le pH.",
+              style: const TextStyle(
+                color: Color(0xFFE65100),
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

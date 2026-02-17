@@ -80,6 +80,7 @@ class _CommunityPageState extends State<CommunityPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'community_fab',
         onPressed: () {
           showModalBottomSheet(
             context: context,

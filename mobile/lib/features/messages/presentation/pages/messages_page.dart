@@ -12,7 +12,8 @@ class MessagesPage extends StatefulWidget {
   State<MessagesPage> createState() => _MessagesPageState();
 }
 
-class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderStateMixin {
+class _MessagesPageState extends State<MessagesPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -32,10 +33,7 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
           backgroundColor: const Color(0xFF4285F4),
           foregroundColor: Colors.white,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {},
-            ),
+            IconButton(icon: const Icon(Icons.search), onPressed: () {}),
           ],
           bottom: TabBar(
             controller: _tabController,
@@ -51,7 +49,9 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
         ),
         body: BlocBuilder<MessageBloc, MessageState>(
           buildWhen: (previous, current) =>
-              current is ConversationsLoaded || current is ConversationsLoading || current is MessageError,
+              current is ConversationsLoaded ||
+              current is ConversationsLoading ||
+              current is MessageError,
           builder: (context, state) {
             if (state is ConversationsLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -63,8 +63,12 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
                 controller: _tabController,
                 children: [
                   _buildConversationList(conversations),
-                  _buildConversationList(conversations.where((c) => c.isGroup).toList()),
-                  _buildConversationList(conversations.where((c) => c.isSupport).toList()),
+                  _buildConversationList(
+                    conversations.where((c) => c.isGroup).toList(),
+                  ),
+                  _buildConversationList(
+                    conversations.where((c) => c.isSupport).toList(),
+                  ),
                 ],
               );
             }
@@ -72,6 +76,7 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
           },
         ),
         floatingActionButton: FloatingActionButton(
+          heroTag: 'messages_new_fab',
           onPressed: () => _showNewMessageDialog(context),
           backgroundColor: const Color(0xFF4285F4),
           child: const Icon(Icons.edit, color: Colors.white),
@@ -86,7 +91,11 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
+            Icon(
+              Icons.chat_bubble_outline,
+              size: 64,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 16),
             Text(
               'Aucune conversation',
@@ -99,14 +108,17 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
 
     return ListView.builder(
       itemCount: conversations.length,
-      itemBuilder: (context, index) => _buildConversationTile(conversations[index]),
+      itemBuilder: (context, index) =>
+          _buildConversationTile(conversations[index]),
     );
   }
 
   Widget _buildConversationTile(Conversation conv) {
     return Container(
-      color: conv.nonLus > 0 
-          ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4285F4).withOpacity(0.1) : const Color(0xFF4285F4).withOpacity(0.1)) 
+      color: conv.nonLus > 0
+          ? (Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF4285F4).withOpacity(0.1)
+                : const Color(0xFF4285F4).withOpacity(0.1))
           : Theme.of(context).cardColor,
       child: ListTile(
         onTap: () => _openChat(conv),
@@ -116,20 +128,20 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
               backgroundColor: conv.isGroup
                   ? Colors.blue.shade100
                   : conv.isSupport
-                      ? Colors.green.shade100
-                      : Colors.pink.shade100,
+                  ? Colors.green.shade100
+                  : Colors.pink.shade100,
               radius: 24,
               child: Icon(
                 conv.isGroup
                     ? Icons.group
                     : conv.isSupport
-                        ? Icons.support_agent
-                        : Icons.person,
+                    ? Icons.support_agent
+                    : Icons.person,
                 color: conv.isGroup
                     ? Colors.blue
                     : conv.isSupport
-                        ? Colors.green
-                        : Colors.pink,
+                    ? Colors.green
+                    : Colors.pink,
               ),
             ),
             if (conv.isOnline && !conv.isGroup)
@@ -154,7 +166,9 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
               child: Text(
                 conv.nom,
                 style: TextStyle(
-                  fontWeight: conv.nonLus > 0 ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: conv.nonLus > 0
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                 ),
               ),
             ),
@@ -175,8 +189,10 @@ class _MessagesPageState extends State<MessagesPage> with SingleTickerProviderSt
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: conv.nonLus > 0 
-                      ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
+                  color: conv.nonLus > 0
+                      ? (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black87)
                       : Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
@@ -345,14 +361,8 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.call),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.call), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
         ],
       ),
       body: Column(
@@ -361,7 +371,9 @@ class _ChatPageState extends State<ChatPage> {
             child: BlocConsumer<MessageBloc, MessageState>(
               listener: (context, state) {
                 if (state is ChatLoaded) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _scrollToBottom(),
+                  );
                 }
               },
               builder: (context, state) {
@@ -378,7 +390,8 @@ class _ChatPageState extends State<ChatPage> {
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
                     itemCount: messages.length,
-                    itemBuilder: (context, index) => _buildMessageBubble(messages[index]),
+                    itemBuilder: (context, index) =>
+                        _buildMessageBubble(messages[index]),
                   );
                 }
                 return const SizedBox.shrink();
@@ -420,7 +433,10 @@ class _ChatPageState extends State<ChatPage> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade100,
+                        fillColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade100,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
@@ -432,7 +448,11 @@ class _ChatPageState extends State<ChatPage> {
                   CircleAvatar(
                     backgroundColor: const Color(0xFF4285F4),
                     child: IconButton(
-                      icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                      icon: const Icon(
+                        Icons.send,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       onPressed: _sendMessage,
                     ),
                   ),
@@ -454,9 +474,11 @@ class _ChatPageState extends State<ChatPage> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isMe 
-              ? const Color(0xFF4285F4)  
-              : (Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade200),
+          color: isMe
+              ? const Color(0xFF4285F4)
+              : (Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey.shade800
+                    : Colors.grey.shade200),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -473,8 +495,8 @@ class _ChatPageState extends State<ChatPage> {
             Text(
               message.texte,
               style: TextStyle(
-                color: isMe 
-                    ? Colors.white 
+                color: isMe
+                    ? Colors.white
                     : Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
@@ -496,10 +518,9 @@ class _ChatPageState extends State<ChatPage> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    context.read<MessageBloc>().add(SendMessage(
-      userId: widget.conversation.id,
-      content: text,
-    ));
+    context.read<MessageBloc>().add(
+      SendMessage(userId: widget.conversation.id, content: text),
+    );
     // The Bloc will handle the request and reload messages if successful
     _messageController.clear();
   }

@@ -48,6 +48,7 @@ class GroupPurchasesListPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'group_purchases_fab',
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Création d\'achat groupé (bientôt)')),

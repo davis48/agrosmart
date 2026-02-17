@@ -5,4 +5,5 @@ abstract class SensorRepository {
   Future<List<Sensor>> getSensors();
   Future<Sensor> getSensorById(String id);
   Future<List<SensorMeasure>> getSensorHistory(String id);
+  Future<void> toggleSensorStatus(String id, String status);
 }

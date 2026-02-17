@@ -8,6 +8,7 @@ import '../../domain/usecases/verify_otp.dart';
 import '../../domain/usecases/register.dart';
 import '../../domain/usecases/update_profile.dart';
 import '../../domain/usecases/logout.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/usecases/usecase.dart';
 
 // Events
@@ -15,6 +16,9 @@ abstract class AuthEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
+
+/// Événement pour vérifier l'état d'authentification au démarrage
+class CheckAuthStatus extends AuthEvent {}
 
 /// Événement de déconnexion
 class LogoutRequested extends AuthEvent {}
@@ -187,6 +191,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final Register register;
   final UpdateProfile updateProfile;
   final Logout logout;
+  final AuthRepository authRepository;
 
   AuthBloc({
     required this.login,
@@ -194,12 +199,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.register,
     required this.updateProfile,
     required this.logout,
+    required this.authRepository,
   }) : super(AuthInitial()) {
+    on<CheckAuthStatus>(_onCheckAuthStatus);
     on<LoginRequested>(_onLoginRequested);
     on<VerifyOtpRequested>(_onVerifyOtpRequested);
     on<RegisterRequested>(_onRegisterRequested);
     on<UpdateProfileRequested>(_onUpdateProfileRequested);
     on<LogoutRequested>(_onLogoutRequested);
+  }
+
+  /// Handler pour vérifier l'état d'authentification au démarrage
+  Future<void> _onCheckAuthStatus(
+    CheckAuthStatus event,
+    Emitter<AuthState> emit,
+  ) async {
+    debugPrint('[AUTH] 🔍 Vérification de l\'état d\'authentification...');
+    emit(AuthLoading());
+
+    final result = await authRepository.getCurrentUser();
+    result.fold(
+      (failure) {
+        debugPrint('[AUTH] ❌ Pas de session valide: ${failure.message}');
+        emit(AuthUnauthenticated());
+      },
+      (user) {
+        if (user != null) {
+          debugPrint('[AUTH] ✅ Session restaurée: ${user.nom} ${user.prenoms}');
+          emit(AuthAuthenticated(user));
+        } else {
+          debugPrint('[AUTH] ⚠️ Pas de token stocké');
+          emit(AuthUnauthenticated());
+        }
+      },
+    );
   }
 
   /// Handler pour la déconnexion

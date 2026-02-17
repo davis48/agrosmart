@@ -6,7 +6,7 @@ part 'cached_sensor_data.g.dart';
 class CachedSensorData {
   Id id = Isar.autoIncrement;
 
-  @Index(unique: true)
+  @Index(unique: true, replace: true)
   late String sensorId;
 
   late String code;

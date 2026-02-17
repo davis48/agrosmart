@@ -203,6 +203,7 @@ class _CommunityMarketplacePageState extends State<CommunityMarketplacePage>
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
+          heroTag: 'community_marketplace_fab',
           onPressed: () => _showCreateListingSheet(context),
           backgroundColor: const Color(0xFF1B5E20),
           icon: const Icon(Icons.add, color: Colors.white),

@@ -182,6 +182,7 @@ class _CalendrierPageState extends State<CalendrierPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'calendrier_add_fab',
         onPressed: () => _showCreateActiviteDialog(),
         child: const Icon(Icons.add),
       ),

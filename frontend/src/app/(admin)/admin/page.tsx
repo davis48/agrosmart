@@ -90,7 +90,7 @@ export default function AdminDashboard() {
         totalCapteurs: capteurs.length,
         alertesActives: alertes.filter((a: { lu: boolean }) => !a.lu).length,
         commandesEnCours: 0,
-        capteursActifs: capteurs.filter((c: { status: string }) => c.status === 'actif').length,
+        capteursActifs: capteurs.filter((c: { statut?: string; status?: string }) => (c.statut || c.status || '').toLowerCase() === 'actif').length,
         tendanceAgriculteurs: userStats?.nouveaux_30j ? parseInt(userStats.nouveaux_30j) : 0,
         tendanceParcelles: 8,
       })

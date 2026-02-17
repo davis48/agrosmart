@@ -6,6 +6,7 @@ const { Worker } = require('bullmq');
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
 const alertesService = require('../services/alertesService');
+const parcelleHealthService = require('../services/parcelleHealthService');
 const config = require('../config');
 
 // Configuration Redis centralisée
@@ -99,6 +100,16 @@ const processMeasure = async (job) => {
                     results.push(sensor.id);
                 }
             }
+
+            // Recalculer la santé de la parcelle après ingestion MQTT
+            if (station.parcelleId) {
+                try {
+                    await parcelleHealthService.recalculateParcelleHealth(station.parcelleId);
+                } catch (healthErr) {
+                    logger.warn('Erreur recalcul santé parcelle (MQTT)', { error: healthErr.message });
+                }
+            }
+
             return { status: 'success', processed: results.length };
         }
 
@@ -134,6 +145,13 @@ const processMeasure = async (job) => {
             }
         } catch (alertErr) {
             logger.warn('Erreur vérification alertes dans worker', { error: alertErr.message, capteur_id });
+        }
+
+        // Recalculer la santé de la parcelle après ingestion HTTP
+        try {
+            await parcelleHealthService.recalculateFromCapteur(capteur_id);
+        } catch (healthErr) {
+            logger.warn('Erreur recalcul santé parcelle (HTTP)', { error: healthErr.message, capteur_id });
         }
 
         return {

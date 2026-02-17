@@ -1,0 +1,349 @@
+# ==============================================
+# AgroSmart CI - Docker Compose Production (Hostinger VPS)
+# ==============================================
+# Usage:
+#   1. Copier .env.production.example → .env
+#   2. Remplir les variables dans .env
+#   3. docker compose -f docker-compose.hostinger.yml up -d --build
+# ==============================================
+
+services:
+  # ============================
+  # Base de données MySQL
+  # ============================
+  mysql:
+    image: mysql:8.4
+    container_name: agrismart_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-agrismart_ci}
+      MYSQL_USER: ${MYSQL_USER:-agrismart}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --pid-file=/var/lib/mysql-files/mysqld.pid
+      --max-connections=200
+      --innodb-buffer-pool-size=2G
+      --innodb-log-file-size=256M
+      --slow-query-log=1
+      --slow-query-log-file=/var/lib/mysql/slow.log
+      --long-query-time=2
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+        reservations:
+          memory: 1G
+
+  # ============================
+  # Cache Redis
+  # ============================
+  redis:
+    image: redis:7.4-alpine
+    container_name: agrismart_redis
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+  # ============================
+  # InfluxDB (IoT Time Series)
+  # ============================
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: agrismart_influxdb
+    restart: always
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USER:-agrismart}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: agrismart
+      DOCKER_INFLUXDB_INIT_BUCKET: sensors
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # ============================
+  # Mosquitto MQTT Broker
+  # ============================
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: agrismart_mosquitto
+    restart: always
+    volumes:
+      - ./iot_service/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # ============================
+  # Backend API (Node.js + Prisma)
+  # Auto-migration + Seed au démarrage
+  # ============================
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: agrismart_api
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+
+      # Base de données
+      DATABASE_URL: mysql://${MYSQL_USER:-agrismart}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-agrismart_ci}
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-30d}
+
+      # CORS - Domaines autorisés
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,https://localhost}
+
+      # Services internes
+      AI_SERVICE_URL: http://ai_service:5001
+      IOT_SERVICE_URL: http://iot_service:4000
+
+      # Seed automatique au premier déploiement
+      RUN_SEED: ${RUN_SEED:-true}
+    volumes:
+      - uploads_data:/app/uploads
+      - api_logs:/app/logs
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # ============================
+  # AI Service (Python/Flask)
+  # ============================
+  ai_service:
+    build:
+      context: ./ai_service
+      dockerfile: Dockerfile
+    container_name: agrismart_ai
+    restart: always
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      FLASK_ENV: production
+      PORT: 5001
+      MODEL_PATH: /app/models
+      USE_GPU: ${USE_GPU:-false}
+    volumes:
+      - ai_models:/app/models
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ============================
+  # IoT Service (Node.js/MQTT)
+  # ============================
+  iot_service:
+    build:
+      context: ./iot_service
+      dockerfile: Dockerfile
+    container_name: agrismart_iot
+    restart: always
+    depends_on:
+      - influxdb
+      - mosquitto
+      - redis
+      - api
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      MQTT_BROKER_URL: mqtt://mosquitto:1883
+      MQTT_USERNAME: ${MQTT_USERNAME:-agrismart}
+      MQTT_PASSWORD: ${MQTT_PASSWORD}
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: agrismart
+      INFLUXDB_BUCKET: sensors
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      BACKEND_API_URL: http://api:3000/api
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # ============================
+  # Frontend (Next.js)
+  # ============================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        # URL relative : nginx fait le proxy vers l'API
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/v1}
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-}
+    container_name: agrismart_frontend
+    restart: always
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # ============================
+  # Nginx Reverse Proxy + SSL
+  # ============================
+  nginx:
+    image: nginx:alpine
+    container_name: agrismart_nginx
+    restart: always
+    depends_on:
+      - api
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/hostinger.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - certbot_data:/var/www/certbot:ro
+      - certbot_certs:/etc/letsencrypt:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - agrismart_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # ============================
+  # Certbot (SSL Let's Encrypt)
+  # Lancé manuellement via script
+  # ============================
+  certbot:
+    image: certbot/certbot
+    container_name: agrismart_certbot
+    volumes:
+      - certbot_data:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - agrismart_network
+
+# ============================
+# Networks
+# ============================
+networks:
+  agrismart_network:
+    driver: bridge
+
+# ============================
+# Volumes persistants
+# ============================
+volumes:
+  mysql_data:
+    name: agrismart_prod_mysql
+    driver: local
+  redis_data:
+    name: agrismart_prod_redis
+    driver: local
+  influxdb_data:
+    name: agrismart_prod_influxdb
+    driver: local
+  mosquitto_data:
+    name: agrismart_prod_mosquitto
+    driver: local
+  mosquitto_logs:
+    name: agrismart_prod_mosquitto_logs
+    driver: local
+  ai_models:
+    name: agrismart_prod_ai_models
+    driver: local
+  uploads_data:
+    name: agrismart_prod_uploads
+    driver: local
+  api_logs:
+    name: agrismart_prod_api_logs
+    driver: local
+  certbot_data:
+    name: agrismart_prod_certbot_data
+    driver: local
+  certbot_certs:
+    name: agrismart_prod_certbot_certs
+    driver: local
+  nginx_logs:
+    name: agrismart_prod_nginx_logs
+    driver: local

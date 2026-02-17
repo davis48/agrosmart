@@ -542,7 +542,14 @@ async function seedCooperatives(regions) {
 async function seedUsers(regions) {
   console.log('👤 Création des utilisateurs...');
   
-  const hashedPassword = await bcrypt.hash('password123', 12);
+  // ⚠️ Mot de passe par défaut pour les seeds de développement
+  // Ne JAMAIS utiliser en production
+  const defaultPassword = process.env.SEED_DEFAULT_PASSWORD || 'DevSeed@2024!';
+  const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+  
+  if (!process.env.SEED_DEFAULT_PASSWORD) {
+    console.warn('⚠️  SEED: Utilisation du mot de passe par défaut (DEV uniquement)');
+  }
   
   const users = [];
   

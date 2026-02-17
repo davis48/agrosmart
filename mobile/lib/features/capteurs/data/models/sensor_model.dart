@@ -24,23 +24,57 @@ class SensorModel extends Sensor {
     String signal = 'moyen';
     // if (json['signal'] > ...) signal = 'fort';
 
+    // Map signal strength from int to label
+    final signalValue = json['signal'];
+    if (signalValue is num) {
+      if (signalValue > 70) {
+        signal = 'fort';
+      } else if (signalValue > 40) {
+        signal = 'moyen';
+      } else {
+        signal = 'faible';
+      }
+    }
+
     return SensorModel(
       id: json['id'] ?? '',
-      code: json['code'] ?? '',
+      code: json['code'] ?? json['id'] ?? '',
       nom: json['nom'] ?? 'Capteur sans nom',
       type: json['type'] ?? 'Inconnu',
-      status: json['statut'] ?? json['status'] ?? 'inactif',
-      parcelleNom: json['parcelle_nom'], // Need join in backend query
-      niveauBatterie: double.tryParse(json['niveau_batterie']?.toString() ?? '0') ?? 0.0,
-      signalForce: signal, 
-      lastUpdate: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      status: (json['statut'] ?? json['status'] ?? 'inactif')
+          .toString()
+          .toLowerCase(),
+      parcelleNom: json['parcelle_nom'],
+      niveauBatterie:
+          double.tryParse(
+            json['batterie']?.toString() ??
+                json['niveau_batterie']?.toString() ??
+                '0',
+          ) ??
+          0.0,
+      signalForce: signal,
+      lastUpdate: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : DateTime.now(),
-      lastValue: double.tryParse(json['derniere_valeur']?.toString() ?? '0') ?? 0.0,
-      unit: json['unite_mesure']?.toString(),
-      nitrogen: double.tryParse(json['nitrogen']?.toString() ?? '0'),
-      phosphorus: double.tryParse(json['phosphorus']?.toString() ?? '0'),
-      potassium: double.tryParse(json['potassium']?.toString() ?? '0'),
+      lastValue:
+          double.tryParse(
+            json['derniere_valeur']?.toString() ??
+                json['derniereMesure']?['valeur']?.toString() ??
+                '0',
+          ) ??
+          0.0,
+      unit: json['unite']?.toString() ?? json['unite_mesure']?.toString(),
+      nitrogen: json['nitrogen'] != null
+          ? double.tryParse(json['nitrogen'].toString())
+          : null,
+      phosphorus: json['phosphorus'] != null
+          ? double.tryParse(json['phosphorus'].toString())
+          : null,
+      potassium: json['potassium'] != null
+          ? double.tryParse(json['potassium'].toString())
+          : null,
     );
   }
 }

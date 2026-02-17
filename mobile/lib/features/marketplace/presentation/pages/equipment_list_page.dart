@@ -145,6 +145,7 @@ class _EquipmentListPageState extends State<EquipmentListPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'equipment_list_fab',
         onPressed: () {
           // TODO: Navigate to Add Equipment page (for owners)
           ScaffoldMessenger.of(context).showSnackBar(
