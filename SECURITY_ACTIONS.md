@@ -1,17 +1,34 @@
 # 🔐 GUIDE DE SÉCURITÉ - Actions Requises
 
-## ⚠️ Alerte GitGuardian Détectée
+## 📋 Historique des Alertes GitGuardian
 
-**Date**: 9 février 2026  
+### Alerte #2 - 17 février 2026 ✅ CORRIGÉE
+
+**Fichier**: `backend/.env.scripts.example`  
+**Problème**: Exemples de mots de passe trop réalistes détectés comme "Generic Password"  
+**Secrets détectés**: 
+- `ChangeMe@2024!` (ADMIN_PASSWORD)
+- `TestPassword123!` (TEST_USER_PASSWORD)
+- `DevSeed@2024!` (SEED_DEFAULT_PASSWORD)
+
+**Statut**: ✅ **CORRIGÉ** (commit 4d47b69)
+
+**Solution appliquée**:
+- Remplacé par des placeholders clairs: `YOUR_STRONG_PASSWORD_HERE`
+- Ajouté des commentaires sur les formats requis
+- Aucun mot de passe réel n'a été exposé (fichier template seulement)
+
+### Alerte #1 - 9 février 2026 ✅ CORRIGÉE
+
 **Fichier**: `backend/scripts/seed_admin.js`  
 **Problème**: Mot de passe en dur `'Admin@2024!'` commité dans l'historique Git  
-**Statut**: ✅ **CORRIGÉ** dans ce commit
+**Statut**: ✅ **CORRIGÉ** dans commit 5842be8
 
 ---
 
 ## ✅ Corrections Appliquées
 
-### 1. Scripts Sécurisés
+### 1. Scripts Sécurisés (Alerte #1)
 
 | Fichier | Avant | Après |
 |---------|-------|-------|
@@ -19,11 +36,22 @@
 | `verify_api_contract.js` | `password: 'StrongPassword123!'` | `password: process.env.TEST_USER_PASSWORD \|\| 'TestPassword123!'` |
 | `seed-complete.js` | `bcrypt.hash('password123', 12)` | `bcrypt.hash(process.env.SEED_DEFAULT_PASSWORD \|\| 'DevSeed@2024!', 12)` |
 
-### 2. Nouveau Fichier
+### 2. Templates d'Environnement (Alerte #2)
 
-- ✅ `backend/.env.scripts.example` créé pour documenter les variables de dev
+| Fichier | Avant | Après |
+|---------|-------|-------|
+| `.env.scripts.example` | `ADMIN_PASSWORD=ChangeMe@2024!` | `ADMIN_PASSWORD=YOUR_STRONG_PASSWORD_HERE` |
+| `.env.scripts.example` | `TEST_USER_PASSWORD=TestPassword123!` | `TEST_USER_PASSWORD=YOUR_TEST_PASSWORD_HERE` |
+| `.env.scripts.example` | `SEED_DEFAULT_PASSWORD=DevSeed@2024!` | `SEED_DEFAULT_PASSWORD=YOUR_DEV_SEED_PASSWORD_HERE` |
 
-### 3. GitIgnore Vérifié
+### 3. Nouveaux Fichiers Créés
+
+- ✅ `backend/.env.scripts.example` - Template pour variables de développement
+- ✅ `scripts/pre-commit-security.sh` - Hook Git pour détecter les secrets
+- ✅ `SECURITY_ACTIONS.md` - Ce guide de sécurité
+- ✅ `PRE_PUSH_CHECKLIST.md` - Checklist avant chaque push
+
+### 4. GitIgnore Vérifié
 
 - ✅ `.env` est bien ignoré
 - ✅ `.credentials-backup` est bien ignoré
