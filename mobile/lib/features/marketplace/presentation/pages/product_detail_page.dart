@@ -664,8 +664,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   String _getImageUrl(String path) {
     if (path.startsWith('http')) return path;
     String baseUrl = Platform.isAndroid
-        ? 'http://10.0.2.2:3000'
-        : 'http://localhost:3000';
+        ? 'http://10.0.2.2:3600'
+        : 'http://localhost:3600';
     if (!path.startsWith('/')) path = '/$path';
     return '$baseUrl$path';
   }

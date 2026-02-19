@@ -9,7 +9,7 @@
 
 **Avant** : Les notifications étaient statiques et non cliquables.
 
-**Après** : 
+**Après** :
 - ✨ Toutes les notifications sont désormais **cliquables**
 - 🔄 Redirection automatique vers les interfaces concernées :
   - Alertes maladies → Page Recommandations
@@ -98,7 +98,7 @@ Exemple :
 
 **Problème** : "Erreur de connexion au serveur" dans les détails des parcelles.
 
-**Cause** : Utilisation d'une instance Dio avec URL hardcodée `localhost:3000`.
+**Cause** : Utilisation d'une instance Dio avec URL hardcodée non alignée avec la configuration API.
 
 **Solution** :
 - ✅ Utilisation du client API global (`dioClient`) correctement configuré
@@ -111,7 +111,7 @@ Exemple :
 **Code avant** :
 ```dart
 final dio = Dio(BaseOptions(
-  baseUrl: 'http://localhost:3000/api', // ❌ Hardcodé
+  baseUrl: '<API_URL>/api', // ❌ URL hardcodée
   ...
 ));
 ```

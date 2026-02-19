@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
+import { logger } from '@/lib/logger'
 
 interface ExportConfig {
   type: string
@@ -136,7 +137,7 @@ export default function AdminExportPage() {
       // En l'absence d'historique réel venant du backend, on ne rajoute pas de fausse entrée
 
     } catch (error) {
-      console.error('Erreur export:', error)
+      logger.error('Erreur export admin', error instanceof Error ? error : undefined)
       toast.error('Service d\'export indisponible pour le moment')
     } finally {
       setExporting(false)

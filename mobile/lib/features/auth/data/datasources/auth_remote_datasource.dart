@@ -88,7 +88,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         await _secureStorage.saveRefreshToken(data['refreshToken']);
       }
 
-      final user = UserModel.fromJson(data['user']);
+      UserModel user = UserModel.fromJson(data['user']);
+
+      try {
+        final enrichedUser = await getMe();
+        user = UserModel.fromJson({...user.toJson(), ...enrichedUser.toJson()});
+        _log('[AUTH] Profil enrichi via /auth/me');
+      } catch (e) {
+        _log('[AUTH] Impossible de récupérer /auth/me après login: $e');
+      }
+
       _log('[AUTH] Connexion réussie');
 
       // Sauvegarder les données utilisateur pour la restauration de session
@@ -138,9 +147,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       final response = await dio.get(
         '/auth/me',
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       _log('[AUTH] getMe response: ${response.statusCode}');
@@ -154,7 +161,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       if (e is ServerFailure) rethrow;
       _log('[AUTH ERROR] getMe Exception: $e');
-      throw ServerFailure('Erreur lors de la récupération du profil: ${e.toString()}');
+      throw ServerFailure(
+        'Erreur lors de la récupération du profil: ${e.toString()}',
+      );
     }
   }
 

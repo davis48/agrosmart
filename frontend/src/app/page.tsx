@@ -21,7 +21,7 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'}/analytics/public`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3600/api/v1'}/analytics/public`)
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.data) {

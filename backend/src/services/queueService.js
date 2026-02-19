@@ -13,23 +13,34 @@ const connection = {
     password: config.redis.password
 };
 
-// Création de la file d'attente
-const sensorQueue = new Queue('sensor-data', {
-    connection,
-    defaultJobOptions: {
-        attempts: 3,
-        backoff: {
-            type: 'exponential',
-            delay: 1000,
-        },
-        removeOnComplete: true,
-        removeOnFail: 1000 // Garder les 1000 derniers échecs pour debug
-    }
-});
+let sensorQueue = null;
 
-sensorQueue.on('error', (err) => {
-    logger.error('Erreur file d\'attente sensor-data', { error: err.message });
-});
+const getSensorQueue = () => {
+    if (!config.redis.enabled) {
+        return null;
+    }
+
+    if (!sensorQueue) {
+        sensorQueue = new Queue('sensor-data', {
+            connection,
+            defaultJobOptions: {
+                attempts: 3,
+                backoff: {
+                    type: 'exponential',
+                    delay: 1000,
+                },
+                removeOnComplete: true,
+                removeOnFail: 1000 // Garder les 1000 derniers échecs pour debug
+            }
+        });
+
+        sensorQueue.on('error', (err) => {
+            logger.error('Erreur file d\'attente sensor-data', { error: err.message });
+        });
+    }
+
+    return sensorQueue;
+};
 
 /**
  * Ajouter une mesure à la file d'attente
@@ -37,7 +48,13 @@ sensorQueue.on('error', (err) => {
  */
 exports.addJob = async (data) => {
     try {
-        return await sensorQueue.add('process-measure', data);
+        if (!config.redis.enabled) {
+            const { processMeasure } = require('../workers/sensorWorker');
+            return processMeasure({ id: `sync-${Date.now()}`, data });
+        }
+
+        const queue = getSensorQueue();
+        return await queue.add('process-measure', data);
     } catch (error) {
         logger.error('Échec ajout job file d\'attente', { error: error.message });
         throw error;
@@ -47,4 +64,4 @@ exports.addJob = async (data) => {
 /**
  * Obtenir le client de la file (pour monitoring éventuel)
  */
-exports.getQueue = () => sensorQueue;
+exports.getQueue = () => getSensorQueue();

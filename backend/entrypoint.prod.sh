@@ -101,7 +101,7 @@ fi
 echo ""
 echo "🟢 Démarrage du serveur AgroSmart..."
 echo "====================================="
-echo "   Port: ${PORT:-3000}"
+echo "   Port: ${PORT:-3600}"
 echo "   Env: ${NODE_ENV:-production}"
 echo ""
 

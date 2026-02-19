@@ -20,7 +20,7 @@ class EnvironmentConfig {
     switch (_currentEnvironment) {
       case Environment.development:
         // Pour l'émulateur Android, 10.0.2.2 pointe vers localhost de la machine hôte
-        return 'http://10.0.2.2:3000/api/v1';
+        return 'http://10.0.2.2:3600/api/v1';
       case Environment.staging:
         return 'https://staging-api.agrosmart.ci/api/v1';
       case Environment.production:
@@ -32,7 +32,7 @@ class EnvironmentConfig {
   static String get wsBaseUrl {
     switch (_currentEnvironment) {
       case Environment.development:
-        return 'ws://10.0.2.2:3000';
+        return 'ws://10.0.2.2:3600';
       case Environment.staging:
         return 'wss://staging-api.agrosmart.ci';
       case Environment.production:

@@ -528,7 +528,7 @@ class _NotificationsPageState extends State<NotificationsPage>
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => context.push('/recommendations'),
+                    onPressed: () => context.push('/recommandations'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFD32F2F),
                       foregroundColor: Colors.white,
@@ -546,7 +546,7 @@ class _NotificationsPageState extends State<NotificationsPage>
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => context.push('/forum'),
+                    onPressed: () => context.push('/community'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFD32F2F),
                       side: const BorderSide(color: Color(0xFFD32F2F)),

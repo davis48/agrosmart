@@ -45,7 +45,7 @@ router.use(authenticate);
 
 /**
  * @route   POST /api/diagnostics/analyze
- * @desc    Analyser une image de plante (AI placeholder)
+ * @desc    Analyser une image de plante avec le service IA
  * @access  Producteur
  */
 router.post('/analyze',

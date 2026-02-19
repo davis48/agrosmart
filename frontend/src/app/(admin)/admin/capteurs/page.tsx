@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/dialog'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
+import { logger } from '@/lib/logger'
 
 interface Capteur {
   id: string
@@ -114,7 +115,7 @@ export default function AdminCapteursPage() {
       }
       setStats(calculatedStats)
     } catch (error) {
-      console.error('Erreur chargement capteurs:', error)
+      logger.error('Erreur chargement capteurs admin', error instanceof Error ? error : undefined)
       setCapteurs([])
       setStats({
         total: 0,
@@ -453,7 +454,7 @@ export default function AdminCapteursPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Statut</p>
-                  {getStatusBadge(selectedCapteur.status)}
+                  {getStatusBadge((selectedCapteur.statut || selectedCapteur.status || '').toLowerCase())}
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Parcelle</p>

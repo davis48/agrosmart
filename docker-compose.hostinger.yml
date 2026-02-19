@@ -137,19 +137,15 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3600
 
       # Base de données
       DATABASE_URL: mysql://${MYSQL_USER:-agrismart}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-agrismart_ci}
 
       # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_ENABLED: "false"
 
       # JWT
       JWT_SECRET: ${JWT_SECRET}
@@ -230,7 +226,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      BACKEND_API_URL: http://api:3000/api
+      BACKEND_API_URL: http://api:3600/api
     networks:
       - agrismart_network
     deploy:

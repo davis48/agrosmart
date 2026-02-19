@@ -49,12 +49,12 @@ RUN mkdir -p uploads logs uploads/profiles uploads/diagnostics && \
 # Utiliser node user pour la sécurité
 USER node
 
-EXPOSE 3000
+EXPOSE 3600
 
 ENV NODE_ENV=development
-ENV PORT=3000
+ENV PORT=3600
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD wget -qO- http://localhost:3000/health || exit 1
+    CMD wget -qO- http://localhost:3600/health || exit 1
 
 CMD ["node", "src/server.js"]

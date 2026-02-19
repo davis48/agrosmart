@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import api from '@/lib/api'
 import toast from 'react-hot-toast'
+import { logger } from '@/lib/logger'
 
 interface Agriculteur {
   id: string
@@ -133,49 +134,13 @@ export default function AgriculteurDetailPage() {
       setAlertes(userAlertes)
 
     } catch (error) {
-      console.error('Erreur chargement données agriculteur:', error)
+      logger.error('Erreur chargement détail agriculteur admin', error instanceof Error ? error : undefined)
       toast.error('Erreur lors du chargement des données')
-      
-      // Données de démonstration
-      setAgriculteur({
-        id: agriculteurId,
-        nom: 'Koné',
-        prenoms: 'Amadou',
-        telephone: '0701234567',
-        email: 'amadou.kone@email.com',
-        role: 'producteur',
-        status: 'actif',
-        created_at: '2024-01-15T10:00:00Z',
-        derniere_connexion: '2024-12-05T08:30:00Z',
-        langue_preferee: 'fr',
-        region_id: null,
-        cooperative_id: null,
-      })
-      
-      setParcelles([
-        {
-          id: '1',
-          nom: 'Parcelle Nord',
-          description: 'Parcelle principale de cacao',
-          surface: 5.5,
-          latitude: 5.3167,
-          longitude: -4.0333,
-          type_sol: 'argileux',
-          status: 'active',
-          created_at: '2024-02-01T10:00:00Z',
-        },
-        {
-          id: '2',
-          nom: 'Parcelle Sud',
-          description: 'Cultures maraîchères',
-          surface: 2.0,
-          latitude: 5.3100,
-          longitude: -4.0400,
-          type_sol: 'sableux',
-          status: 'active',
-          created_at: '2024-03-15T14:00:00Z',
-        },
-      ])
+      setAgriculteur(null)
+      setParcelles([])
+      setCapteurs([])
+      setMesures([])
+      setAlertes([])
     } finally {
       setLoading(false)
     }

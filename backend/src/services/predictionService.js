@@ -56,16 +56,6 @@ exports.getPestHeatmapData = async (regionId) => {
         };
       });
 
-    // Ajouter des données simulées si pas assez de données réelles pour la démo
-    if (points.length < 5) {
-      // Abidjan area simulation
-      points.push(
-        { lat: 5.3600, lng: -4.0083, intensity: 0.8, disease: 'Mildiou' },
-        { lat: 5.3700, lng: -4.0183, intensity: 0.6, disease: 'Rouille' },
-        { lat: 5.3500, lng: -3.9983, intensity: 0.9, disease: 'Chenille' }
-      );
-    }
-
     return points;
   } catch (error) {
     logger.error('Erreur récupération heatmap', { error: error.message });
@@ -74,13 +64,43 @@ exports.getPestHeatmapData = async (regionId) => {
 };
 
 /**
- * Prédire le rendement futur (Mock IA)
+ * Prédire le rendement futur à partir des données historiques réelles
  */
 exports.predictYield = async (parcelleId, dateRecolte) => {
-  // Logique simulée pour l'instant
+  const history = await prisma.performanceParcelle.findMany({
+    where: { parcelleId },
+    orderBy: { annee: 'desc' },
+    take: 5,
+    select: {
+      rendementMoyen: true,
+      scoreQualiteSol: true,
+      meilleurePratique: true,
+      annee: true
+    }
+  });
+
+  if (!history.length) {
+    throw new Error('Aucune donnée historique disponible pour prédire le rendement de cette parcelle');
+  }
+
+  const values = history
+    .map((item) => Number(item.rendementMoyen))
+    .filter((value) => Number.isFinite(value));
+
+  if (!values.length) {
+    throw new Error('Données de rendement insuffisantes pour la prédiction');
+  }
+
+  const averageYield = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const confidence = Math.min(0.95, 0.55 + values.length * 0.08);
+  const factors = history
+    .map((item) => item.meilleurePratique)
+    .filter(Boolean)
+    .slice(0, 3);
+
   return {
-    estime: 12.5, // Tonnes
-    confiance: 0.85,
-    facteurs: ['Pluviométrie favorable', 'Sol riche']
+    estime: Number(averageYield.toFixed(2)),
+    confiance: Number(confidence.toFixed(2)),
+    facteurs: factors.length ? factors : ['Basé sur historique des rendements']
   };
 };

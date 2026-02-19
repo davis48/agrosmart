@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agriculture/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:agriculture/core/services/voice_service.dart';
+import 'package:agriculture/features/parcelles/presentation/bloc/parcelle_bloc.dart';
+import 'package:agriculture/features/capteurs/presentation/bloc/sensor_bloc.dart';
+import 'package:agriculture/features/parcelles/domain/entities/parcelle.dart';
+import 'package:agriculture/features/capteurs/domain/entities/sensor.dart';
 import 'package:agriculture/injection_container.dart' as di;
 
 /// Page de profil unifiée pour tous les rôles
@@ -23,6 +27,14 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _loadPreferences();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadOperationalStats();
+    });
+  }
+
+  void _loadOperationalStats() {
+    context.read<ParcelleBloc>().add(const LoadParcelles());
+    context.read<SensorBloc>().add(const LoadSensors());
   }
 
   Future<void> _loadPreferences() async {
@@ -69,6 +81,39 @@ class _ProfilePageState extends State<ProfilePage> {
 
         final user = state.user;
         final isProducer = user.role.toUpperCase() != 'ACHETEUR';
+        final parcelleState = context.watch<ParcelleBloc>().state;
+        final sensorState = context.watch<SensorBloc>().state;
+
+        final liveParcelles = parcelleState is ParcelleLoaded
+            ? parcelleState.parcelles
+            : <Parcelle>[];
+        final liveSensors = sensorState is SensorLoaded
+            ? sensorState.sensors
+            : <Sensor>[];
+
+        final hasLiveStats = liveParcelles.isNotEmpty || liveSensors.isNotEmpty;
+
+        final parcellesCount = hasLiveStats
+            ? liveParcelles.length
+            : user.parcellesCount;
+
+        final hectaresTotal = hasLiveStats
+            ? liveParcelles.fold<double>(
+                0,
+                (sum, parcelle) => sum + parcelle.superficie,
+              )
+            : (user.hectaresTotal > 0
+                  ? user.hectaresTotal
+                  : (user.superficieExploitee ?? 0));
+
+        final capteursCount = hasLiveStats
+            ? liveSensors.length
+            : user.capteursCount;
+
+        final production3Mois =
+            (user.productionMois1 ?? 0) +
+            (user.productionMois2 ?? 0) +
+            (user.productionMois3 ?? 0);
 
         return Scaffold(
           body: SingleChildScrollView(
@@ -77,7 +122,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildProfileHeader(context, user, isProducer),
                 if (isProducer) ...[
                   const SizedBox(height: 16),
-                  _buildStatisticsCards(context, user),
+                  _buildStatisticsCards(
+                    context,
+                    parcellesCount: parcellesCount,
+                    hectaresTotal: hectaresTotal,
+                    capteursCount: capteursCount,
+                    production3Mois: production3Mois,
+                  ),
                 ],
                 const SizedBox(height: 20),
                 _buildMenuSection(context, isProducer),
@@ -146,7 +197,17 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildStatisticsCards(BuildContext context, dynamic user) {
+  Widget _buildStatisticsCards(
+    BuildContext context, {
+    required int parcellesCount,
+    required double hectaresTotal,
+    required int capteursCount,
+    required double production3Mois,
+  }) {
+    final productionText = production3Mois > 0
+        ? '${production3Mois.toStringAsFixed(0)} kg'
+        : '--';
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -171,7 +232,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Expanded(
                         child: _buildStatItem(
-                          value: '${user.parcellesCount ?? 0}',
+                          value: '$parcellesCount',
                           label: 'Parcelles',
                           color: Colors.green,
                         ),
@@ -179,8 +240,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Container(width: 1, height: 40, color: Colors.grey[300]),
                       Expanded(
                         child: _buildStatItem(
-                          value:
-                              '${(user.hectaresTotal ?? 0).toStringAsFixed(1)}ha',
+                          value: '${hectaresTotal.toStringAsFixed(1)} ha',
                           label: 'Surface totale',
                           color: Colors.blue,
                         ),
@@ -192,7 +252,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Expanded(
                         child: _buildStatItem(
-                          value: 'N/A',
+                          value: productionText,
                           label: 'Production (3 mois)',
                           color: Colors.orange,
                         ),
@@ -200,7 +260,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Container(width: 1, height: 40, color: Colors.grey[300]),
                       Expanded(
                         child: _buildStatItem(
-                          value: '${user.capteursCount ?? 0}',
+                          value: '$capteursCount',
                           label: 'Capteurs',
                           color: Colors.purple,
                         ),

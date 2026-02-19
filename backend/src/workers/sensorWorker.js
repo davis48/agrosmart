@@ -169,6 +169,11 @@ const processMeasure = async (job) => {
  * Initialiser le worker
  */
 const initWorker = () => {
+    if (!config.redis.enabled) {
+        logger.info('Redis désactivé: worker IoT non démarré (mode synchrone).');
+        return null;
+    }
+
     worker = new Worker('sensor-data', processMeasure, {
         connection,
         concurrency: 5
@@ -186,4 +191,4 @@ const initWorker = () => {
     return worker;
 };
 
-module.exports = { initWorker };
+module.exports = { initWorker, processMeasure };

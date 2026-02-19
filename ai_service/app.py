@@ -40,13 +40,13 @@ def load_models():
             disease_model = tf.keras.models.load_model(DISEASE_MODEL_PATH)
             logger.info('Disease model loaded from %s', DISEASE_MODEL_PATH)
         else:
-            logger.warning('Disease model not found at %s — using mock predictions', DISEASE_MODEL_PATH)
+            logger.error('Disease model not found at %s', DISEASE_MODEL_PATH)
 
         if os.path.exists(IRRIGATION_MODEL_PATH):
             irrigation_model = tf.keras.models.load_model(IRRIGATION_MODEL_PATH)
             logger.info('Irrigation model loaded from %s', IRRIGATION_MODEL_PATH)
         else:
-            logger.warning('Irrigation model not found at %s — using mock predictions', IRRIGATION_MODEL_PATH)
+            logger.error('Irrigation model not found at %s', IRRIGATION_MODEL_PATH)
     except Exception as e:
         logger.error('Failed to load models: %s', e, exc_info=True)
 
@@ -106,8 +106,8 @@ def health_check():
         'status': 'healthy',
         'service': 'AgroSmart AI',
         'models': {
-            'disease': 'loaded' if disease_model else 'mock',
-            'irrigation': 'loaded' if irrigation_model else 'mock',
+            'disease': 'loaded' if disease_model else 'missing',
+            'irrigation': 'loaded' if irrigation_model else 'missing',
         },
     }), 200
 
@@ -136,20 +136,18 @@ def predict_disease():
         return jsonify({'error': f'File too large. Maximum: {MAX_IMAGE_SIZE // (1024 * 1024)} MB'}), 400
 
     try:
+        if not disease_model:
+            return jsonify({'error': 'Disease model unavailable'}), 503
+
         image = Image.open(file.stream).convert('RGB')
         image = image.resize((224, 224))
         img_array = np.array(image) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        if disease_model:
-            predictions = disease_model.predict(img_array)
-            class_idx = np.argmax(predictions[0])
-            confidence = float(predictions[0][class_idx])
-            result = DISEASE_CLASSES[class_idx]
-        else:
-            # Mock prediction
-            result = 'Mildiou'
-            confidence = 0.85
+        predictions = disease_model.predict(img_array)
+        class_idx = np.argmax(predictions[0])
+        confidence = float(predictions[0][class_idx])
+        result = DISEASE_CLASSES[class_idx]
 
         logger.info('Disease prediction: %s (confidence: %.2f)', result, confidence)
 
@@ -177,6 +175,9 @@ def predict_irrigation():
         return jsonify({'errors': errors}), 400
 
     try:
+        if not irrigation_model:
+            return jsonify({'error': 'Irrigation model unavailable'}), 503
+
         temp = data.get('temperature', 25)
         humidity = data.get('humidity', 60)
         soil_moisture = data.get('soil_moisture', 50)
@@ -184,12 +185,8 @@ def predict_irrigation():
 
         inputs = np.array([[temp, humidity, soil_moisture, crop_type]])
 
-        if irrigation_model:
-            prediction = irrigation_model.predict(inputs)
-            water_amount = float(prediction[0][0])
-        else:
-            # Mock: simplified Hargreaves-based estimation
-            water_amount = max(0, (30 - soil_moisture) * 0.5 + (temp - 20) * 0.2)
+        prediction = irrigation_model.predict(inputs)
+        water_amount = float(prediction[0][0])
 
         water_amount = round(water_amount, 2)
         logger.info('Irrigation prediction: %.2f mm (temp=%.1f, moisture=%.1f)', water_amount, temp, soil_moisture)

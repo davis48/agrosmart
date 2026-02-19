@@ -64,14 +64,11 @@ services:
     restart: always
     depends_on:
       - mysql
-      - redis
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3600
       DATABASE_URL: mysql://agrismart:${MYSQL_PASSWORD}@mysql:3306/agrismart_ci
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_ENABLED: "false"
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
@@ -124,7 +121,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      BACKEND_API_URL: http://api:3000/api
+      BACKEND_API_URL: http://api:3600/api
     networks:
       - agrismart_network
 

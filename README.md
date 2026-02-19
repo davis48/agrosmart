@@ -94,7 +94,7 @@ La plateforme permet aux agriculteurs de :
 ┌──────────────────┐                         ┌──────────────────┐
 │   Frontend       │                         │   Mobile App     │
 │   (Next.js)      │                         │   (Flutter)      │
-│   Port 3001      │                         │   iOS/Android    │
+│   Port 3601      │                         │   iOS/Android    │
 └────────┬─────────┘                         └────────┬─────────┘
          │                                            │
          └────────────────────┬───────────────────────┘
@@ -102,7 +102,7 @@ La plateforme permet aux agriculteurs de :
                     ┌──────────────────┐
                     │   Backend API    │
                     │   (Node.js)      │
-                    │   Port 3000      │
+                    │   Port 3600      │
                     └────────┬─────────┘
                              │
          ┌───────────────────┼───────────────────┐
@@ -221,7 +221,7 @@ La plateforme permet aux agriculteurs de :
 - **Serveur VPS** : 16GB RAM, 4 vCPU minimum (ex: Hostinger KVM 4)
 - **OS** : Ubuntu 22.04 LTS (recommandé) / Debian 11+ / CentOS 8+
 - **Docker** + **Docker Compose**
-- **Ports requis** : 80, 443, 3000, 3001, 1883, 8086
+- **Ports requis** : 80, 443, 3600, 3601, 1883, 8086
 
 ## 🚀 Installation
 
@@ -304,11 +304,11 @@ docker compose exec api npm run db:seed
 
 #### d) Accéder aux services
 
-- **Frontend** : http://localhost:3001
-- **Backend API** : http://localhost:3000/api/v1
-- **PhpMyAdmin** : http://localhost:8080
-- **InfluxDB UI** : http://localhost:8086
-- **API Docs** : http://localhost:3000/api/v1/docs (à venir)
+- **Frontend** : <http://localhost:3601>
+- **Backend API** : <http://localhost:3600/api/v1>
+- **PhpMyAdmin** : <http://localhost:8080>
+- **InfluxDB UI** : <http://localhost:8086>
+- **API Docs** : <http://localhost:3600/api/v1/docs> (à venir)
 
 ### 3. Installation Manuelle (sans Docker)
 
@@ -399,8 +399,8 @@ Créez un fichier `backend/.env` basé sur `backend/.env.example` :
 ```bash
 # Serveur
 NODE_ENV=development
-PORT=3000
-CORS_ORIGIN=http://localhost:3001
+PORT=3600
+CORS_ORIGIN=http://localhost:3601
 
 # Base de données
 DATABASE_URL="mysql://user:password@localhost:3306/agrosmart_ci"
@@ -449,8 +449,8 @@ Créez un fichier `frontend/.env.local` :
 
 ```bash
 # API Backend
-NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
-NEXT_PUBLIC_SOCKET_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3600/api/v1
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3600
 
 # App
 NEXT_PUBLIC_APP_NAME=AgroSmart CI
@@ -466,11 +466,11 @@ NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
 
 ```dart
 class AppConfig {
-  static const String apiBaseUrl = 'http://10.0.2.2:3000/api/v1'; // Android emulator
-  // Ou 'http://localhost:3000/api/v1' pour iOS simulator
-  // Ou 'http://YOUR_IP:3000/api/v1' pour device physique
+  static const String apiBaseUrl = 'http://10.0.2.2:3600/api/v1'; // Android emulator
+  // Ou 'http://localhost:3600/api/v1' pour iOS simulator
+  // Ou 'http://YOUR_IP:3600/api/v1' pour device physique
   
-  static const String socketUrl = 'http://10.0.2.2:3000';
+  static const String socketUrl = 'http://10.0.2.2:3600';
 }
 ```
 
@@ -524,9 +524,9 @@ flutter run
 
 ### Accès à la plateforme
 
-1. **Créer un compte** : http://localhost:3001/register
-2. **Se connecter** : http://localhost:3001/login
-3. **Dashboard** : http://localhost:3001/dashboard
+1. **Créer un compte** : <http://localhost:3601/register>
+2. **Se connecter** : <http://localhost:3601/login>
+3. **Dashboard** : <http://localhost:3601/dashboard>
 
 ### Compte Administrateur par défaut (après seed)
 
@@ -600,7 +600,7 @@ psql -U agrismart -d agrismart_ci -f scripts/clean-database.sql  # Nettoyer DB
 ### Frontend (`frontend/`)
 
 ```bash
-npm run dev        # Démarrer serveur dev (port 3001)
+npm run dev        # Démarrer serveur dev (port 3601)
 npm run build      # Build production optimisé
 npm start          # Démarrer serveur production
 npm run lint       # Vérifier code avec ESLint
@@ -791,7 +791,7 @@ vercel --prod
 
 ## 🧪 Tests
 
-### Backend
+### Tests Backend
 
 ```bash
 cd backend
@@ -820,7 +820,7 @@ npm run test:docker
 
 **Coverage requis** : 80% minimum
 
-### Frontend
+### Tests Frontend
 
 ```bash
 cd frontend
@@ -829,7 +829,7 @@ cd frontend
 # npm test
 ```
 
-### Mobile
+### Tests Mobile
 
 ```bash
 cd mobile
@@ -955,7 +955,7 @@ POST   /api/v1/cooperatives/:id/join   # Adhérer à une coopérative
 }
 ```
 
-### Authentification
+### Authentification (Routes)
 
 Toutes les routes (sauf `/auth/*`) nécessitent un token JWT :
 
@@ -1144,7 +1144,7 @@ Utiliser [Conventional Commits](https://www.conventionalcommits.org/) :
 
 ### Signaler une vulnérabilité
 
-Si vous découvrez une vulnérabilité de sécurité, **NE PAS** créer d'issue publique. Envoyez un email à : **security@agrosmart.ci**
+Si vous découvrez une vulnérabilité de sécurité, **NE PAS** créer d'issue publique. Envoyez un email à : <security@agrosmart.ci>
 
 ### Bonnes pratiques
 
@@ -1202,10 +1202,10 @@ SOFTWARE.
 
 ## 📞 Contact & Support
 
-- **Website** : https://agrosmart.ci (à venir)
-- **Email** : contact@agrosmart.ci
-- **Issues** : https://github.com/davis48/agrosmart/issues
-- **Discussions** : https://github.com/davis48/agrosmart/discussions
+- **Website** : <https://agrosmart.ci> (à venir)
+- **Email** : <contact@agrosmart.ci>
+- **Issues** : <https://github.com/davis48/agrosmart/issues>
+- **Discussions** : <https://github.com/davis48/agrosmart/discussions>
 
 ## 🙏 Remerciements
 

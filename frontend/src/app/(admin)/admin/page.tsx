@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import api from '@/lib/api'
+import { logger } from '@/lib/logger'
 
 interface DashboardStats {
   totalAgriculteurs: number
@@ -119,18 +120,19 @@ export default function AdminDashboard() {
         }))
       )
     } catch (error) {
-      console.error('Erreur chargement dashboard:', error)
-      // Utiliser des données de démonstration
+      logger.error('Erreur chargement dashboard admin', error instanceof Error ? error : undefined)
       setStats({
-        totalAgriculteurs: 156,
-        totalParcelles: 423,
-        totalCapteurs: 89,
-        alertesActives: 12,
-        commandesEnCours: 34,
-        capteursActifs: 76,
-        tendanceAgriculteurs: 12,
-        tendanceParcelles: 8,
+        totalAgriculteurs: 0,
+        totalParcelles: 0,
+        totalCapteurs: 0,
+        alertesActives: 0,
+        commandesEnCours: 0,
+        capteursActifs: 0,
+        tendanceAgriculteurs: 0,
+        tendanceParcelles: 0,
       })
+      setRecentAgriculteurs([])
+      setRecentAlertes([])
     } finally {
       setLoading(false)
     }

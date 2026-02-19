@@ -55,6 +55,10 @@ const PREFIXES = {
  * @returns {Redis} Client Redis
  */
 const initRedis = () => {
+  if (!config.redis.enabled) {
+    return null;
+  }
+
   if (!redisClient) {
     redisClient = new Redis({
       host: config.redis.host,
@@ -140,6 +144,7 @@ const cache = {
    */
   get: async (key) => {
     try {
+      if (!config.redis.enabled) return null;
       if (!redisClient) initRedis();
       const raw = await redisClient.get(key);
       
@@ -168,6 +173,7 @@ const cache = {
    */
   set: async (key, value, ttlSeconds = TTL.DEFAULT) => {
     try {
+      if (!config.redis.enabled) return;
       if (!redisClient) initRedis();
       
       const stringValue = JSON.stringify(value);
@@ -202,6 +208,7 @@ const cache = {
    */
   del: async (key) => {
     try {
+      if (!config.redis.enabled) return;
       if (!redisClient) initRedis();
       await redisClient.del(key);
       logger.debug(`[Cache] Del: ${key}`);
@@ -216,6 +223,7 @@ const cache = {
    */
   clearPattern: async (pattern) => {
     try {
+      if (!config.redis.enabled) return 0;
       if (!redisClient) initRedis();
       
       const fullPattern = `agrismart:${pattern}`;
@@ -254,6 +262,7 @@ const cache = {
    */
   exists: async (key) => {
     try {
+      if (!config.redis.enabled) return false;
       if (!redisClient) initRedis();
       const result = await redisClient.exists(key);
       return result === 1;
@@ -373,6 +382,7 @@ const cache = {
   
   // Client Redis brut si nécessaire
   getClient: () => {
+    if (!config.redis.enabled) return null;
     if (!redisClient) initRedis();
     return redisClient;
   }

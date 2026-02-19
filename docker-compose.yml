@@ -118,12 +118,10 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
       # Environnement
       NODE_ENV: development
-      PORT: 3000
+      PORT: 3600
 
       # Base de données MySQL
       DATABASE_URL: mysql://agrismart:${MYSQL_PASSWORD}@mysql:3306/agrismart_ci
@@ -134,28 +132,26 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD}
 
       # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_ENABLED: "false"
 
       # JWT
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET requis}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET requis}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-30d}
-      CORS_ORIGIN: http://localhost:3001,http://localhost:3000
+      CORS_ORIGIN: http://localhost:3601,http://localhost:3600
 
       # Services internes
       AI_SERVICE_URL: http://ai_service:5001
       IOT_SERVICE_URL: http://iot_service:4000
     ports:
-      - "3000:3000"
+      - "3600:3600"
     volumes:
       - ./backend:/app
       - /app/node_modules
       - uploads_data:/app/uploads
     healthcheck:
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:3000/api/v1/health" ]
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://localhost:3600/api/v1/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -222,7 +218,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
 
       # Backend API
-      BACKEND_API_URL: http://api:3000/api
+      BACKEND_API_URL: http://api:3600/api
     ports:
       - "4000:4000"
     healthcheck:
@@ -241,8 +237,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
-        NEXT_PUBLIC_SOCKET_URL: http://localhost:3000
+        NEXT_PUBLIC_API_URL: http://localhost:3600/api/v1
+        NEXT_PUBLIC_SOCKET_URL: http://localhost:3600
         NEXT_PUBLIC_AI_SERVICE_URL: http://localhost:5001
     container_name: agrismart_frontend
     restart: unless-stopped
@@ -251,7 +247,7 @@ services:
     environment:
       NODE_ENV: production
     ports:
-      - "3001:3000"
+      - "3601:3601"
     networks:
       - agrismart_network
 

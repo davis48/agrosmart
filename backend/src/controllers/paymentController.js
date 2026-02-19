@@ -7,7 +7,6 @@ const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
 
-// Mock payment integration (replace with actual provider SDKs)
 exports.initiatePayment = async (req, res, next) => {
     try {
         const userId = req.user.id;
@@ -31,14 +30,13 @@ exports.initiatePayment = async (req, res, next) => {
             }
         });
 
-        // TODO: Call actual payment provider API
-        // For now, mock response
         res.status(201).json({
             success: true,
             message: 'Paiement initié',
             data: {
                 ...transaction,
-                payment_url: `https://payment.example.com/${reference}`
+                payment_url: null,
+                provider_status: 'pending_provider_confirmation'
             }
         });
     } catch (error) {

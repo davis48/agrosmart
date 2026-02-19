@@ -155,12 +155,12 @@ http {
     limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/m;
 
     upstream backend_api {
-        server api:3000;
+        server api:3600;
         keepalive 32;
     }
 
     upstream frontend_app {
-        server frontend:3001;
+        server frontend:3601;
         keepalive 16;
     }
 

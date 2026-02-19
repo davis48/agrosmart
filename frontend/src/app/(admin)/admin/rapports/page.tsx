@@ -40,6 +40,7 @@ import {
   Cell,
 } from 'recharts'
 import api from '@/lib/api'
+import { logger } from '@/lib/logger'
 
 interface QualityMetric {
   name: string
@@ -108,20 +109,16 @@ export default function AdminRapportsPage() {
       });
       setAnomalies(anomaliesData)
 
-      // Quality Metrics - Placeholder ou calcul réel si possible (ici vide pour respecter "Real Data")
+      // Quality Metrics: volontairement vide tant que la source backend dédiée n'est pas disponible
       setQualityMetrics([])
 
-      // System Health - Placeholder (mocké pour l'instant car pas d'endpoint monitoring infra)
-      // On le laisse vide ou on met un statut basique basé sur le fait que l'API a répondu
-      setSystemHealth([
-        { component: 'API Backend', status: 'operational', uptime: 100, lastCheck: 'À l\'instant' },
-      ])
+      setSystemHealth([])
 
       // Data Volume - Vide car pas de données historiques
       setDataVolume([])
 
     } catch (error) {
-      console.error('Erreur chargement rapports:', error)
+      logger.error('Erreur chargement rapports admin', error instanceof Error ? error : undefined)
       setAnomalies([])
       setQualityMetrics([])
       setSystemHealth([])

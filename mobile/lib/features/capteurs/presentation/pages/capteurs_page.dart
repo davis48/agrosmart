@@ -10,6 +10,7 @@ import 'package:agriculture/features/parcelles/presentation/pages/parcelle_detai
 import 'package:agriculture/features/notifications/presentation/bloc/alert_bloc.dart';
 import 'package:agriculture/features/notifications/domain/entities/alert.dart';
 import 'package:agriculture/features/notifications/presentation/pages/alert_detail_page.dart';
+import 'package:agriculture/features/capteurs/presentation/utils/sensor_insights.dart';
 
 class CapteursPage extends StatefulWidget {
   const CapteursPage({super.key});
@@ -429,6 +430,7 @@ class _CapteursPageState extends State<CapteursPage>
     final isActive = sensor.status == 'actif' || sensor.status == 'active';
     final statusColor = isActive ? Colors.green : Colors.red;
     final colorScheme = Theme.of(context).colorScheme;
+    final insight = getSensorInsight(sensor);
 
     return InkWell(
       onTap: () {
@@ -493,6 +495,17 @@ class _CapteursPageState extends State<CapteursPage>
                       const SizedBox(width: 8),
                       _buildBatteryIndicator(sensor.niveauBatterie),
                     ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    insight.message,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: insight.color,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -650,6 +663,7 @@ class _CapteursPageState extends State<CapteursPage>
   Widget _buildSensorDetailCard(Sensor sensor) {
     final isActive = sensor.status == 'actif' || sensor.status == 'active';
     final statusColor = isActive ? Colors.green : Colors.red;
+    final insight = getSensorInsight(sensor);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -706,6 +720,25 @@ class _CapteursPageState extends State<CapteursPage>
                     Text(
                       '${sensor.type} • ${sensor.parcelleNom ?? "Non assigné"}',
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.insights, size: 13, color: insight.color),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            insight.message,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: insight.color,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     Row(

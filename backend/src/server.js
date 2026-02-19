@@ -163,8 +163,12 @@ const startServer = async () => {
     logger.info('Prisma connected to MySQL successfully');
 
     // Initialiser le worker pour le traitement des mesures IoT
-    initWorker();
-    logger.info('Worker IoT initialisé');
+    const worker = initWorker();
+    if (worker) {
+      logger.info('Worker IoT initialisé');
+    } else {
+      logger.info('Worker IoT désactivé (Redis désactivé)');
+    }
 
     server.listen(config.server.port, () => {
       logger.info(`AgroSmart Backend démarré`);

@@ -69,14 +69,14 @@ ENTRYPOINT ["/sbin/tini", "--"]
 
 # Health check for container orchestration
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-    CMD wget -q -O - http://localhost:3000/health || exit 1
+    CMD wget -q -O - http://localhost:3600/health || exit 1
 
 # Expose port
-EXPOSE 3000
+EXPOSE 3600
 
 # Environment variables (can be overridden at runtime)
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3600
 
 # Start via entrypoint (migrations + seed + server)
 CMD ["/app/entrypoint.prod.sh"]

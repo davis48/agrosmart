@@ -23,12 +23,12 @@ async function testRegister() {
     console.log("Sending registration payload:", JSON.stringify(payload, null, 2));
 
     try {
-        // Assuming backend is running on localhost:3000
-        const response = await axios.post('http://localhost:3000/api/v1/auth/register', payload);
+        // Assuming backend is running on localhost:3600
+        const response = await axios.post('http://localhost:3600/api/v1/auth/register', payload);
         console.log("Registration Response:", response.status, response.data);
 
         // Now login to get token and check parcelles
-        const loginResponse = await axios.post('http://localhost:3000/api/v1/auth/login', {
+        const loginResponse = await axios.post('http://localhost:3600/api/v1/auth/login', {
             identifier: email,
             password: "Password123!"
         });
@@ -37,7 +37,7 @@ async function testRegister() {
         console.log("Login successful. Token obtained.");
 
         // Check parcelles
-        const parcellesResponse = await axios.get('http://localhost:3000/api/v1/parcelles', {
+        const parcellesResponse = await axios.get('http://localhost:3600/api/v1/parcelles', {
             headers: { Authorization: `Bearer ${token}` }
         });
 

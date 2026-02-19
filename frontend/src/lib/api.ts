@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3600/api/v1'
 
 /**
  * Récupère le token depuis le store Zustand persisté (auth-storage dans localStorage).

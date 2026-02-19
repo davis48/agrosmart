@@ -1,6 +1,6 @@
 /**
  * Diagnostics Controller
- * AgroSmart - Plant disease diagnostics (AI placeholder)
+ * AgroSmart - Plant disease diagnostics
  */
 
 const prisma = require('../config/prisma');
@@ -50,9 +50,7 @@ exports.analyzePlant = async (req, res, next) => {
         pythonProcess.on('close', async (code) => {
             if (code !== 0) {
                 logger.error(`Python script exited with code ${code}: ${errorString}`);
-                // Fallback to mock if script fails
-                const mockDiagnostic = generateMockDiagnostic(crop_type);
-                return saveAndSendResponse(mockDiagnostic, true); // true = fallback
+                return next(errors.external('Analyse IA indisponible. Veuillez réessayer plus tard.'));
             }
 
             try {
@@ -60,20 +58,18 @@ exports.analyzePlant = async (req, res, next) => {
 
                 if (analysisResult.error) {
                     logger.error('Analysis Error:', analysisResult.error);
-                    const mockDiagnostic = generateMockDiagnostic(crop_type);
-                    return saveAndSendResponse(mockDiagnostic, true);
+                    return next(errors.external('Le service d\'analyse IA a retourné une erreur.'));
                 }
 
-                await saveAndSendResponse(analysisResult, false);
+                await saveAndSendResponse(analysisResult);
 
             } catch (e) {
                 logger.error('Error parsing Python output:', e, dataString);
-                const mockDiagnostic = generateMockDiagnostic(crop_type);
-                await saveAndSendResponse(mockDiagnostic, true);
+                return next(errors.external('Réponse IA invalide. Veuillez réessayer plus tard.'));
             }
         });
 
-        async function saveAndSendResponse(diagnosticData, isFallback) {
+        async function saveAndSendResponse(diagnosticData) {
             try {
                 // Save diagnostic to database
                 const diagnostic = await prisma.diagnostic.create({
@@ -92,8 +88,7 @@ exports.analyzePlant = async (req, res, next) => {
 
                 res.json({
                     success: true,
-                    data: diagnostic,
-                    is_fallback: isFallback
+                    data: diagnostic
                 });
             } catch (dbError) {
                 next(dbError);
@@ -184,30 +179,3 @@ exports.getDiagnosticById = async (req, res, next) => {
         next(error);
     }
 };
-
-/**
- * Generate mock diagnostic (placeholder for AI model)
- */
-function generateMockDiagnostic(cropType) {
-    const diseases = {
-        'Tomate': ['Mildiou', 'Nécrose apicale', 'Mosaïque'],
-        'Maïs': ['Striga', 'Rouille', 'Charbon'],
-        'Riz': ['Pyriculariose', 'Helminthosporiose'],
-        'Cacao': ['Pourriture brune', 'Swollen shoot'],
-        'default': ['Tache foliaire', 'Flétrissement']
-    };
-
-    const cropDiseases = diseases[cropType] || diseases['default'];
-    const diseaseName = cropDiseases[Math.floor(Math.random() * cropDiseases.length)];
-    const confidence = Math.floor(Math.random() * 20) + 75; // 75-95%
-    const severityLevels = ['low', 'medium', 'high'];
-    const severity = severityLevels[Math.floor(Math.random() * severityLevels.length)];
-
-    return {
-        disease_name: diseaseName,
-        confidence_score: confidence,
-        severity,
-        recommendations: `Surveillance régulière de la parcelle. Traiter si les symptômes persistent.`,
-        treatment_suggestions: `Application de fongicide recommandée. Consulter un conseiller agricole.`
-    };
-}

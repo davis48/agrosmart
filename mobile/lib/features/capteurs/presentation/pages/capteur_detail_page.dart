@@ -5,6 +5,7 @@ import 'package:agriculture/features/capteurs/presentation/bloc/sensor_bloc.dart
 import 'package:agriculture/features/capteurs/domain/entities/sensor_measure.dart';
 import '../../domain/entities/sensor.dart';
 import '../widgets/sensor_history_chart.dart';
+import '../utils/sensor_insights.dart';
 import '../../../../injection_container.dart' as di;
 
 class CapteurDetailPage extends StatefulWidget {
@@ -189,6 +190,8 @@ class _CapteurDetailPageState extends State<CapteurDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final insight = getSensorInsight(widget.capteur);
+
     return BlocProvider(
       create: (_) =>
           di.sl<SensorBloc>()..add(LoadSensorHistory(widget.capteur.id)),
@@ -265,6 +268,48 @@ class _CapteurDetailPageState extends State<CapteurDetailPage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // Interprétation terrain
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: insight.color.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: insight.color.withOpacity(0.25)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.insights, color: insight.color, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Lecture terrain • ${insight.label}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: insight.color,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(insight.message, style: const TextStyle(fontSize: 14)),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Conseil: ${insight.recommendation}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 24),
 
               // History Chart
@@ -380,16 +425,12 @@ class _CapteurDetailPageState extends State<CapteurDetailPage> {
   }
 
   String getUnite(String type) {
-    switch (type.toLowerCase()) {
-      case 'temperature':
-        return '°C';
-      case 'humidite':
-        return '%';
-      case 'ph':
-        return 'pH';
-      default:
-        return '';
-    }
+    final normalized = type.toLowerCase();
+    if (normalized.contains('temp')) return '°C';
+    if (normalized.contains('humid')) return '%';
+    if (normalized.contains('ph')) return 'pH';
+    if (normalized.contains('uv')) return 'UV';
+    return '';
   }
 
   Widget _buildStatusBadge(String status) {

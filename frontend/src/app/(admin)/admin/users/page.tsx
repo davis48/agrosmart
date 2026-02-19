@@ -14,6 +14,7 @@ import {
     XCircle
 } from 'lucide-react';
 import api from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 // Types
 interface User {
@@ -64,7 +65,7 @@ export default function UsersPage() {
                 setUsers(transformedUsers);
                 setLoading(false);
             } catch (err: any) {
-                console.error('Error fetching users:', err);
+                logger.error('Error fetching admin users', err instanceof Error ? err : undefined);
                 const errorMessage = err.response?.data?.message || err.message || 'Erreur inconnue'
                 setError(errorMessage);
                 setLoading(false);

@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import api from '@/lib/api'
+import { logger } from '@/lib/logger'
 
 interface Agriculteur {
   id: string
@@ -85,7 +86,7 @@ export default function AgriculteursPage() {
 
       setAgriculteurs(agriculteursList)
     } catch (error) {
-      console.error('Erreur chargement agriculteurs:', error)
+      logger.error('Erreur chargement agriculteurs admin', error instanceof Error ? error : undefined)
       setAgriculteurs([])
     } finally {
       setLoading(false)

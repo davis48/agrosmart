@@ -14,6 +14,8 @@ const config = require('../config');
 const axios = require('axios');
 const FormData = require('form-data');
 
+const AI_DISEASE_ENDPOINT = `${process.env.AI_SERVICE_URL || 'http://localhost:5001'}/predict/disease`;
+
 /* ========== CATALOGUE DES MALADIES ========== */
 
 exports.getAll = async (req, res, next) => {
@@ -212,32 +214,10 @@ exports.detectFromImage = async (req, res, next) => {
 
     let detectionResult;
     try {
-      const aiResponse = await axios.post('http://localhost:5000/predict/disease', formData, {
-        headers: {
-          ...formData.getHeaders()
-        }
-      });
-
-      const { disease, confidence, recommendation } = aiResponse.data;
-
-      // Trouver l'ID de la maladie correspondante
-      const maladie = await prisma.maladie.findUnique({
-        where: { nom: disease }
-      });
-      const maladieId = maladie ? maladie.id : null;
-
-      detectionResult = {
-        maladie_id: maladieId,
-        confiance: confidence,
-        raw: aiResponse.data
-      };
+      detectionResult = await detectDiseaseFromImageStream(fs.createReadStream(uploadPath));
     } catch (aiError) {
       logger.error('Erreur service IA', { error: aiError.message });
-      detectionResult = {
-        maladie_id: null,
-        confiance: 0,
-        raw: { error: 'Service IA indisponible' }
-      };
+      throw errors.external('Service IA indisponible');
     }
 
     // Enregistrer la détection
@@ -288,7 +268,7 @@ exports.detectFromImageBatch = async (req, res, next) => {
         .jpeg({ quality: 85 })
         .toBuffer();
 
-      const detectionResult = await simulateAIDetection(processedImage);
+      const detectionResult = await detectDiseaseFromImageBuffer(processedImage, file.originalname || 'image.jpg');
       results.push({
         filename: file.originalname,
         ...detectionResult
@@ -446,37 +426,57 @@ exports.getStats = async (req, res, next) => {
 
 /* ========== HELPERS ========== */
 
-async function simulateAIDetection(imageBuffer) {
-  const count = await prisma.maladie.count();
+async function detectDiseaseFromImageStream(imageStream) {
+  const formData = new FormData();
+  formData.append('image', imageStream);
 
-  if (count === 0) {
-    return {
-      maladie_id: null,
-      confiance: 0,
-      raw: { message: 'Aucune maladie dans la base de données' }
-    };
-  }
+  const aiResponse = await axios.post(AI_DISEASE_ENDPOINT, formData, {
+    headers: {
+      ...formData.getHeaders()
+    },
+    timeout: 10000
+  });
 
-  if (Math.random() > 0.3) {
-    const skip = Math.floor(Math.random() * count);
-    const randomMaladie = (await prisma.maladie.findMany({ take: 1, skip }))[0];
+  const { disease, confidence } = aiResponse.data;
 
-    return {
-      maladie_id: randomMaladie.id,
-      confiance: 0.7 + Math.random() * 0.25,
-      raw: {
-        model: 'simulation_v1',
-        predictions: [
-          { maladie: randomMaladie.nom, confiance: 0.7 + Math.random() * 0.25 }
-        ]
-      }
-    };
-  }
+  const maladie = disease
+    ? await prisma.maladie.findFirst({
+      where: { nom: { equals: disease, mode: 'insensitive' } }
+    })
+    : null;
 
   return {
-    maladie_id: null,
-    confiance: 0,
-    raw: { model: 'simulation_v1', message: 'Plante saine' }
+    maladie_id: maladie ? maladie.id : null,
+    confiance: confidence ?? 0,
+    raw: aiResponse.data
+  };
+}
+
+async function detectDiseaseFromImageBuffer(imageBuffer, filename = 'image.jpg') {
+  const formData = new FormData();
+  formData.append('image', imageBuffer, {
+    filename,
+    contentType: 'image/jpeg'
+  });
+
+  const aiResponse = await axios.post(AI_DISEASE_ENDPOINT, formData, {
+    headers: {
+      ...formData.getHeaders()
+    },
+    timeout: 10000
+  });
+
+  const { disease, confidence } = aiResponse.data;
+  const maladie = disease
+    ? await prisma.maladie.findFirst({
+      where: { nom: { equals: disease, mode: 'insensitive' } }
+    })
+    : null;
+
+  return {
+    maladie_id: maladie ? maladie.id : null,
+    confiance: confidence ?? 0,
+    raw: aiResponse.data
   };
 }
 

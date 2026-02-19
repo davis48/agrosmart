@@ -2,16 +2,16 @@ const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-// Read port from env or default to 3000
-const API_PORT = process.env.PORT || 3000;
+// Read port from env or default to 3600
+const API_PORT = process.env.PORT || 3600;
 const API_URL = `http://localhost:${API_PORT}/api/v1`; // Note: check prefix in server.js
 // server.js has `app.use('/api/v1', routes);` AND `app.use('/api/parcelles', parcelles);`
 // Wait. server.js has mixed mounting!
 // Line 166: app.use('/api/v1', routes);
 // Line 169: app.use('/api/parcelles', parcelles);
-// This means /api/parcelles is accessible at http://localhost:3000/api/parcelles (v1 prefix NOT required for this specific mount?)
+// This means /api/parcelles is accessible at http://localhost:${API_PORT}/api/parcelles (v1 prefix NOT required for this specific mount?)
 // BUT /api/v1/parcelles IS ALSO likely mounted inside `routes/index.js` which mounts `parcellesRoutes` at `/parcelles`.
-// So http://localhost:3000/api/v1/parcelles is the standard one?
+// So http://localhost:${API_PORT}/api/v1/parcelles is the standard one?
 // Let's check `routes/index.js`: `router.use('/parcelles', parcellesRoutes);`.
 // So yes, `api/v1/parcelles` exists.
 // The `app.use('/api/parcelles', parcelles)` might be legacy or duplicate.

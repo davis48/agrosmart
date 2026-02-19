@@ -42,7 +42,9 @@ class ParcelleRemoteDataSourceImpl implements ParcelleRemoteDataSource {
       debugPrint('[PARCELLE DS] Create response: ${response.statusCode}');
     } on DioException catch (e) {
       debugPrint('[PARCELLE DS] DioException: ${e.type} - ${e.message}');
-      throw Exception('Erreur réseau: ${e.response?.data?['message'] ?? e.message}');
+      throw Exception(
+        'Erreur réseau: ${e.response?.data?['message'] ?? e.message}',
+      );
     } catch (e) {
       debugPrint('[PARCELLE DS] Exception: $e');
       throw Exception('Failed to create parcelle: $e');
@@ -52,7 +54,9 @@ class ParcelleRemoteDataSourceImpl implements ParcelleRemoteDataSource {
   @override
   Future<IotMetricsResponse> getParcelleIotMetrics(String parcelleId) async {
     try {
-      debugPrint('[PARCELLE DS] Fetching IoT metrics for parcelle: $parcelleId');
+      debugPrint(
+        '[PARCELLE DS] Fetching IoT metrics for parcelle: $parcelleId',
+      );
       final response = await dio.get('/parcelles/$parcelleId/iot-metrics');
       debugPrint('[PARCELLE DS] IoT metrics response: ${response.statusCode}');
 
@@ -62,7 +66,9 @@ class ParcelleRemoteDataSourceImpl implements ParcelleRemoteDataSource {
         throw Exception('Failed to load IoT metrics');
       }
     } on DioException catch (e) {
-      debugPrint('[PARCELLE DS] DioException getting IoT metrics: ${e.type} - ${e.message}');
+      debugPrint(
+        '[PARCELLE DS] DioException getting IoT metrics: ${e.type} - ${e.message}',
+      );
       // Retourner une réponse vide au lieu de lever une exception
       return const IotMetricsResponse(
         metrics: [],

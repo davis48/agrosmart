@@ -268,7 +268,7 @@ log_info "Attente de l'API (migrations en cours, peut prendre 1-2 minutes)..."
 MAX_WAIT=180
 WAITED=0
 while [ $WAITED -lt $MAX_WAIT ]; do
-    if docker compose -f docker-compose.hostinger.yml exec -T api wget -q -O - http://localhost:3000/health 2>/dev/null | grep -q "ok"; then
+    if docker compose -f docker-compose.hostinger.yml exec -T api wget -q -O - http://localhost:3600/health 2>/dev/null | grep -q "ok"; then
         break
     fi
     sleep 5

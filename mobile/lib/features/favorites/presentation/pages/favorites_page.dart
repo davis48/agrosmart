@@ -318,8 +318,8 @@ class _FavoriteItemCard extends StatelessWidget {
     if (path == null) return '';
     if (path.startsWith('http')) return path;
     String baseUrl = Platform.isAndroid
-        ? 'http://10.0.2.2:3000'
-        : 'http://localhost:3000';
+        ? 'http://10.0.2.2:3600'
+        : 'http://localhost:3600';
     if (!path.startsWith('/')) path = '/$path';
     return '$baseUrl$path';
   }

@@ -42,6 +42,7 @@ import {
   Legend,
 } from 'recharts'
 import api from '@/lib/api'
+import { logger } from '@/lib/logger'
 
 interface ProductionData {
   culture: string
@@ -130,7 +131,7 @@ export default function AdminProductionsPage() {
       setTrendData([])
 
     } catch (error) {
-      console.error('Erreur chargement productions:', error)
+      logger.error('Erreur chargement productions admin', error instanceof Error ? error : undefined)
       setProductions([])
       setRepartition([])
     } finally {
