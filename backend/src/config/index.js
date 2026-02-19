@@ -43,7 +43,7 @@ const config = {
     // Ne pas utiliser de valeur par défaut pour les secrets en production
     secret: process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? null : 'dev-only-secret-not-for-production'),
     refreshSecret: process.env.JWT_REFRESH_SECRET || (process.env.NODE_ENV === 'production' ? null : 'dev-only-refresh-secret-not-for-production'),
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    expiresIn: process.env.JWT_EXPIRES_IN || '1h',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
   },
 

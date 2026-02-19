@@ -274,8 +274,22 @@ const generateRefreshToken = async (userId) => {
     { expiresIn: config.jwt.refreshExpiresIn }
   );
 
+  // Aligner l'expiration DB avec la config JWT (parser la durée)
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // 7 jours
+  const refreshDuration = config.jwt.refreshExpiresIn || '30d';
+  const match = refreshDuration.match(/^(\d+)(d|h|m|s)$/);
+  if (match) {
+    const value = parseInt(match[1]);
+    const unit = match[2];
+    switch (unit) {
+      case 'd': expiresAt.setDate(expiresAt.getDate() + value); break;
+      case 'h': expiresAt.setHours(expiresAt.getHours() + value); break;
+      case 'm': expiresAt.setMinutes(expiresAt.getMinutes() + value); break;
+      case 's': expiresAt.setSeconds(expiresAt.getSeconds() + value); break;
+    }
+  } else {
+    expiresAt.setDate(expiresAt.getDate() + 30); // fallback 30 jours
+  }
 
   // Stocker en base de données
   await prisma.refreshToken.create({
@@ -307,8 +321,9 @@ const revokeRefreshToken = async (tokenId) => {
     // const decoded = jwt.decode(tokenId); // This line was commented out in the instruction, keeping it that way.
     // But usually we delete by token string match.
     // Let's assume tokenId is the actual token string.
-    await prisma.refreshToken.deleteMany({
-      where: { token: tokenId }
+    await prisma.refreshToken.updateMany({
+      where: { token: tokenId, revoked: false },
+      data: { revoked: true, revokedAt: new Date() }
     });
   } catch (e) {
     // ignore

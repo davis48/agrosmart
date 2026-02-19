@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Configuration de sécurité réseau AgroSmart
+    Autorise le trafic HTTP (non-TLS) uniquement vers les serveurs de développement.
+    En production, seul HTTPS est utilisé (pas de règle → comportement par défaut sécurisé).
+-->
+<network-security-config>
+
+    <!-- Serveurs de développement local — HTTP autorisé -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Appareil physique Android/iOS sur le même réseau WiFi -->
+        <domain includeSubdomains="false">192.168.50.40</domain>
+        <!-- Émulateur Android (pointe vers localhost de la machine hôte) -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <!-- Simulateur iOS / tests localhost -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+
+    <!-- Production : HTTPS uniquement (comportement par défaut Android) -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+
+</network-security-config>

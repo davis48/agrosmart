@@ -20,6 +20,16 @@ const logger = require('../utils/logger');
  */
 const loginAttempts = new Map();
 
+// Nettoyage périodique des tentatives expirées (évite les fuites mémoire)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, data] of loginAttempts.entries()) {
+    if (now - data.lastAttempt > BRUTE_FORCE_CONFIG.windowMs) {
+      loginAttempts.delete(key);
+    }
+  }
+}, 5 * 60 * 1000); // Nettoyage toutes les 5 minutes
+
 /**
  * Configuration par défaut de la protection brute-force
  */
@@ -39,10 +49,10 @@ const sanitizeInput = (input) => {
   if (typeof input !== 'string') return input;
   
   return input
-    .replace(/[<>]/g, '') // Supprime les chevrons
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Supprime les balises script
     .replace(/javascript:/gi, '') // Supprime les URLs javascript
     .replace(/on\w+\s*=/gi, '') // Supprime les event handlers
-    .replace(/data:/gi, '') // Supprime les data URIs potentiellement dangereux
+    .replace(/data:text\/html/gi, '') // Supprime les data URIs HTML dangereux
     .trim();
 };
 

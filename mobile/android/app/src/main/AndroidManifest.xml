@@ -13,7 +13,8 @@
         android:label="Agrosmart CI"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name="com.agrismart.mobile.MainActivity"
             android:exported="true"

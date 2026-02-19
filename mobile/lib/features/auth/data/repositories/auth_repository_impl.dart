@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'dart:io';
 import '../../../../core/error/failures.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/services/secure_storage_service.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -48,9 +49,18 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
+      // Appeler le backend pour invalider le refresh token côté serveur
+      try {
+        await dioClient.post('/auth/logout');
+      } catch (_) {
+        // Ne pas bloquer le logout local si l'appel backend échoue
+      }
+      // Nettoyer le stockage local
       await secureStorage.clearAll();
       return const Right(null);
     } catch (e) {
+      // Toujours nettoyer même en cas d'erreur
+      await secureStorage.clearAll();
       return const Right(null); // Toujours réussir le logout côté UI
     }
   }

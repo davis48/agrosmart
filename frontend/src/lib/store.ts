@@ -116,13 +116,15 @@ export interface Formation {
 interface AuthState {
   user: User | null
   token: string | null
+  refreshToken: string | null
   isAuthenticated: boolean
   isLoading: boolean
   setUser: (user: User | null) => void
   setToken: (token: string | null) => void
-  login: (user: User, token: string) => void
+  login: (user: User, token: string, refreshToken?: string) => void
   logout: () => void
   setLoading: (loading: boolean) => void
+  updateTokens: (token: string, refreshToken?: string) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -130,24 +132,28 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: true,
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       setToken: (token) => set({ token }),
-      login: (user, token) => {
-        set({ user, token, isAuthenticated: true, isLoading: false })
+      login: (user, token, refreshToken) => {
+        set({ user, token, refreshToken: refreshToken || null, isAuthenticated: true, isLoading: false })
       },
       logout: () => {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('auth-storage')
         }
-        set({ user: null, token: null, isAuthenticated: false, isLoading: false })
+        set({ user: null, token: null, refreshToken: null, isAuthenticated: false, isLoading: false })
+      },
+      updateTokens: (token, refreshToken) => {
+        set({ token, ...(refreshToken ? { refreshToken } : {}) })
       },
       setLoading: (isLoading) => set({ isLoading }),
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ user: state.user, token: state.token, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({ user: state.user, token: state.token, refreshToken: state.refreshToken, isAuthenticated: state.isAuthenticated }),
       onRehydrateStorage: () => (state) => {
         // Après la réhydratation, mettre isLoading à false et vérifier isAuthenticated
         if (state) {

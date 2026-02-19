@@ -126,12 +126,45 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: {'identifier': identifier, 'otp': code},
       );
       final data = response.data['data'];
-      if (data['token'] != null) {
-        await _secureStorage.saveAccessToken(data['token']);
+
+      // Sauvegarde sécurisée du token (support accessToken et token pour rétrocompatibilité)
+      final accessToken = data['accessToken'] ?? data['token'];
+      if (accessToken != null) {
+        _log('[AUTH] OTP vérifié, sauvegarde du token');
+        await _secureStorage.saveAccessToken(accessToken);
       }
-      return UserModel.fromJson(data['user']);
+
+      // Sauvegarde du refresh token s'il existe
+      if (data['refreshToken'] != null) {
+        await _secureStorage.saveRefreshToken(data['refreshToken']);
+      }
+
+      UserModel user = UserModel.fromJson(data['user']);
+
+      // Enrichir le profil utilisateur
+      try {
+        final enrichedUser = await getMe();
+        user = UserModel.fromJson({...user.toJson(), ...enrichedUser.toJson()});
+        _log('[AUTH] Profil enrichi via /auth/me après OTP');
+      } catch (e) {
+        _log('[AUTH] Impossible de récupérer /auth/me après OTP: $e');
+      }
+
+      // Sauvegarder les données utilisateur
+      await _secureStorage.saveUserData(user.toJson().toString());
+      if (user.id.isNotEmpty) {
+        await _secureStorage.saveUserId(user.id);
+      }
+
+      return user;
     } on DioException catch (e) {
-      throw ServerFailure(e.response?.data['message'] ?? 'Code invalide');
+      _log('[AUTH ERROR] verifyOtp DioException: ${e.message}');
+      final message = _extractErrorMessage(e);
+      throw ServerFailure(message);
+    } catch (e) {
+      if (e is ServerFailure) rethrow;
+      _log('[AUTH ERROR] verifyOtp Exception: $e');
+      throw ServerFailure('Erreur lors de la vérification OTP: ${e.toString()}');
     }
   }
 
@@ -145,9 +178,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       _log('[AUTH] Appel GET /auth/me');
 
+      // L'intercepteur Dio ajoute déjà le header Authorization automatiquement
       final response = await dio.get(
         '/auth/me',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       _log('[AUTH] getMe response: ${response.statusCode}');
@@ -215,15 +248,43 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       final data = response.data['data'];
 
-      // Sauvegarde sécurisée du token
-      if (data['token'] != null) {
-        await _secureStorage.saveAccessToken(data['token']);
+      // Sauvegarde sécurisée du token (support accessToken et token pour rétrocompatibilité)
+      final accessToken = data['accessToken'] ?? data['token'];
+      if (accessToken != null) {
+        _log('[AUTH] Inscription réussie, sauvegarde du token');
+        await _secureStorage.saveAccessToken(accessToken);
       }
 
-      return UserModel.fromJson(data['user']);
+      // Sauvegarde du refresh token s'il existe
+      if (data['refreshToken'] != null) {
+        await _secureStorage.saveRefreshToken(data['refreshToken']);
+      }
+
+      UserModel user = UserModel.fromJson(data['user']);
+
+      // Enrichir le profil utilisateur
+      try {
+        final enrichedUser = await getMe();
+        user = UserModel.fromJson({...user.toJson(), ...enrichedUser.toJson()});
+        _log('[AUTH] Profil enrichi via /auth/me après inscription');
+      } catch (e) {
+        _log('[AUTH] Impossible de récupérer /auth/me après inscription: $e');
+      }
+
+      // Sauvegarder les données utilisateur
+      await _secureStorage.saveUserData(user.toJson().toString());
+      if (user.id.isNotEmpty) {
+        await _secureStorage.saveUserId(user.id);
+      }
+
+      return user;
     } on DioException catch (e) {
       final message = _extractErrorMessage(e);
       throw ServerFailure(message);
+    } catch (e) {
+      if (e is ServerFailure) rethrow;
+      _log('[AUTH ERROR] register Exception: $e');
+      throw ServerFailure('Erreur lors de l\'inscription: ${e.toString()}');
     }
   }
 

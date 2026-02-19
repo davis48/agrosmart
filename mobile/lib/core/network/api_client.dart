@@ -69,6 +69,17 @@ class ApiTokenManager {
     return await _secureStorage?.getAccessToken();
   }
 
+  Future<String?> getRefreshToken() async {
+    return await _secureStorage?.getRefreshToken();
+  }
+
+  Future<void> saveTokens({required String accessToken, String? refreshToken}) async {
+    await _secureStorage?.saveAccessToken(accessToken);
+    if (refreshToken != null) {
+      await _secureStorage?.saveRefreshToken(refreshToken);
+    }
+  }
+
   Future<void> saveToken(String token) async {
     await _secureStorage?.saveAccessToken(token);
   }
@@ -132,14 +143,59 @@ Future<void> initDioClient(SecureStorageService secureStorage) async {
         }
         return handler.next(response);
       },
-      onError: (DioException e, handler) {
+      onError: (DioException e, handler) async {
         if (EnvironmentConfig.enableNetworkLogs) {
           debugPrint('[DIO ERROR] ❌ ${e.type}: ${e.message}');
         }
 
-        // Gérer l'expiration du token (401)
+        // Gérer l'expiration du token (401) — tentative de refresh automatique
         if (e.response?.statusCode == 401) {
-          debugPrint('[DIO] 🔒 Token expiré - refresh nécessaire');
+          final isAuthRequest = e.requestOptions.path.contains('/auth/login') ||
+              e.requestOptions.path.contains('/auth/register') ||
+              e.requestOptions.path.contains('/auth/verify-otp') ||
+              e.requestOptions.path.contains('/auth/refresh');
+
+          if (!isAuthRequest) {
+            debugPrint('[DIO] 🔒 Token expiré - tentative de refresh...');
+            try {
+              final refreshToken = await ApiTokenManager().getRefreshToken();
+              if (refreshToken != null && refreshToken.isNotEmpty) {
+                // Appeler l'endpoint de refresh avec un Dio séparé (pas d'intercepteur)
+                final refreshDio = Dio(BaseOptions(
+                  baseUrl: EnvironmentConfig.apiBaseUrl,
+                  connectTimeout: const Duration(seconds: 10),
+                  receiveTimeout: const Duration(seconds: 10),
+                ));
+                final refreshResponse = await refreshDio.post(
+                  '/auth/refresh',
+                  data: {'refreshToken': refreshToken},
+                );
+
+                if (refreshResponse.statusCode == 200 &&
+                    refreshResponse.data['data'] != null) {
+                  final newAccessToken = refreshResponse.data['data']['accessToken'];
+                  final newRefreshToken = refreshResponse.data['data']['refreshToken'];
+
+                  // Sauvegarder les nouveaux tokens
+                  await ApiTokenManager().saveTokens(
+                    accessToken: newAccessToken,
+                    refreshToken: newRefreshToken,
+                  );
+                  debugPrint('[DIO] ✅ Token rafraîchi avec succès');
+
+                  // Rejouer la requête originale avec le nouveau token
+                  final opts = e.requestOptions;
+                  opts.headers['Authorization'] = 'Bearer $newAccessToken';
+                  final retryResponse = await dioClient.fetch(opts);
+                  return handler.resolve(retryResponse);
+                }
+              }
+            } catch (refreshError) {
+              debugPrint('[DIO] ❌ Échec du refresh token: $refreshError');
+              // Nettoyer les tokens invalides
+              await ApiTokenManager().clearToken();
+            }
+          }
         }
 
         return handler.next(e);

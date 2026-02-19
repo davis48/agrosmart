@@ -115,8 +115,8 @@ app.use(securityMiddleware());
 app.use('/api/v1/auth/login', bruteForceProtection());
 app.use('/api/v1/auth/otp', bruteForceProtection());
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // =====================================================
@@ -191,6 +191,7 @@ const gracefulShutdown = async (signal) => {
   logger.info(`Signal ${signal} reçu, arrêt en cours...`);
   server.close(() => logger.info('Serveur HTTP fermé'));
   io.close(() => logger.info('Connexions WebSocket fermées'));
+  await prisma.$disconnect();
   await closePool();
   process.exit(0);
 };

@@ -538,7 +538,7 @@ exports.getIotMetrics = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Récupérer tous les capteurs de la parcelle (inclure tous les statuts)
+    // Récupérer tous les capteurs avec leur dernière mesure en une seule requête (évite N+1)
     const capteurs = await prisma.capteur.findMany({
       where: {
         parcelleId: id
@@ -552,7 +552,15 @@ exports.getIotMetrics = async (req, res, next) => {
         seuilMax: true,
         signal: true,
         batterie: true,
-        statut: true
+        statut: true,
+        mesures: {
+          orderBy: { timestamp: 'desc' },
+          take: 1,
+          select: {
+            valeur: true,
+            timestamp: true
+          }
+        }
       }
     });
 
@@ -566,12 +574,9 @@ exports.getIotMetrics = async (req, res, next) => {
       });
     }
 
-    // Pour chaque capteur, récupérer la dernière mesure
-    const metricsPromises = capteurs.map(async (capteur) => {
-      const derniereMesure = await prisma.mesure.findFirst({
-        where: { capteurId: capteur.id },
-        orderBy: { timestamp: 'desc' }
-      });
+    // Transformer les résultats
+    const metrics = capteurs.map((capteur) => {
+      const derniereMesure = capteur.mesures[0] || null;
 
       return {
         capteur_id: capteur.id,
@@ -591,8 +596,6 @@ exports.getIotMetrics = async (req, res, next) => {
         ) : false
       };
     });
-
-    const metrics = await Promise.all(metricsPromises);
 
     // Grouper par type de capteur pour un affichage plus clair
     const groupedMetrics = {};

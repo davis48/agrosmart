@@ -60,7 +60,7 @@ export default function LoginPage() {
           toast.success('Code OTP envoyé par SMS')
         } else {
           setDebugMessage('Connexion réussie! Redirection...')
-          login(response.data.data.user, response.data.data.accessToken)
+          login(response.data.data.user, response.data.data.accessToken, response.data.data.refreshToken)
           toast.success('Connexion réussie!')
 
           // Rediriger vers le dashboard admin si l'utilisateur est admin
@@ -107,7 +107,7 @@ export default function LoginPage() {
       const response = await authApi.verifyOtp({ telephone: getValues('identifier'), otp: otpCode })
 
       if (response.data.success) {
-        login(response.data.data.user, response.data.data.accessToken)
+        login(response.data.data.user, response.data.data.accessToken, response.data.data.refreshToken)
         toast.success('Connexion réussie!')
         router.push('/dashboard')
       } else {

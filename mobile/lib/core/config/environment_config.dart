@@ -15,12 +15,28 @@ class EnvironmentConfig {
     _currentEnvironment = env;
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  //  CONFIGURATION DE TEST LOCAL — à adapter selon votre appareil
+  // ═══════════════════════════════════════════════════════════════
+  //
+  //  Émulateur Android        → '10.0.2.2'
+  //  Simulateur iOS           → '127.0.0.1'
+  //  Appareil physique (USB/WiFi) → IP locale de votre Mac
+  //                               (ex: 192.168.50.40)
+  //
+  //  Commande pour connaître votre IP : ifconfig | grep 'inet 192'
+  // ═══════════════════════════════════════════════════════════════
+  static const String _devHost = String.fromEnvironment(
+    'DEV_HOST',
+    defaultValue: '192.168.50.40', // IP locale du Mac de développement
+  );
+  static const int _devPort = int.fromEnvironment('DEV_PORT', defaultValue: 3600);
+
   /// URL de base de l'API selon l'environnement
   static String get apiBaseUrl {
     switch (_currentEnvironment) {
       case Environment.development:
-        // Pour l'émulateur Android, 10.0.2.2 pointe vers localhost de la machine hôte
-        return 'http://10.0.2.2:3600/api/v1';
+        return 'http://$_devHost:$_devPort/api/v1';
       case Environment.staging:
         return 'https://staging-api.agrosmart.ci/api/v1';
       case Environment.production:
@@ -32,7 +48,7 @@ class EnvironmentConfig {
   static String get wsBaseUrl {
     switch (_currentEnvironment) {
       case Environment.development:
-        return 'ws://10.0.2.2:3600';
+        return 'ws://$_devHost:$_devPort';
       case Environment.staging:
         return 'wss://staging-api.agrosmart.ci';
       case Environment.production:

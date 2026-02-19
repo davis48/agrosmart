@@ -107,14 +107,19 @@ router.use('/upload', uploadRoutes);
 // =====================================================
 
 router.get('/health', (req, res) => {
-  res.json({
+  const config = require('../config');
+  const response = {
     success: true,
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
     version: '1.0.0'
-  });
+  };
+  // N'exposer les détails serveur qu'en dev
+  if (!config.isProd) {
+    response.uptime = process.uptime();
+    response.memory = process.memoryUsage();
+  }
+  res.json(response);
 });
 
 router.get('/', (req, res) => {

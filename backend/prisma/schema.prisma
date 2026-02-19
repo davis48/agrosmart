@@ -264,6 +264,8 @@ model User {
   @@index([email])
   @@index([telephone])
   @@index([regionId])
+  @@index([role, status])
+  @@index([isActive])
   @@map("users")
 }
 
@@ -446,6 +448,8 @@ model Diagnostic {
 
   @@index([userId])
   @@index([parcelleId])
+  @@index([userId, createdAt])
+  @@index([type])
   @@map("diagnostics")
 }
 
@@ -675,6 +679,8 @@ model MarketplaceCommande {
   @@index([produitId])
   @@index([statut])          // D-IDX-07: Index pour filtrage par statut
   @@index([vendeurId, statut]) // Index pour requêtes vendeur analytics
+  @@index([acheteurId, statut])
+  @@index([createdAt])
   @@map("marketplace_commandes")
 }
 
@@ -690,6 +696,7 @@ model MarketplaceTransaction {
   commande      MarketplaceCommande @relation(fields: [commandeId], references: [id], onDelete: Cascade)
 
   @@index([commandeId])
+  @@index([statut])
   @@map("marketplace_transactions")
 }
 
@@ -750,9 +757,9 @@ model Message {
   expediteur      User          @relation("MessagesSent", fields: [expediteurId], references: [id], onDelete: Cascade)
   destinataire    User          @relation("MessagesReceived", fields: [destinataireId], references: [id], onDelete: Cascade)
 
-  @@index([conversationId])
+  @@index([conversationId, createdAt])
   @@index([expediteurId])
-  @@index([destinataireId])
+  @@index([destinataireId, lu])
   @@map("messages")
 }
 
@@ -836,8 +843,9 @@ model ActivitiesLog {
 
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([userId, createdAt])
   @@index([action])
+  @@index([createdAt])
   @@map("activities_log")
 }
 
@@ -1010,6 +1018,8 @@ model Recommandation {
 
   @@index([parcelleId])
   @@index([userId])
+  @@index([userId, appliquee])
+  @@index([type])
   @@map("recommandations")
 }
 
@@ -1057,6 +1067,7 @@ model TransactionPaiement {
   // Keeping them as loose IDs for now to match legacy behavior unless we are sure about relations.
 
   @@index([userId])
+  @@index([statut])
   @@map("transactions_paiement")
 }
 
@@ -1083,6 +1094,7 @@ model EquipementLocation {
   locations       Location[]
 
   @@index([proprietaireId])
+  @@index([disponible, categorie])
   @@map("equipements_location")
 }
 
@@ -1107,6 +1119,7 @@ model Location {
 
   @@index([equipementId])
   @@index([locataireId])
+  @@index([statut])
   @@map("locations")
 }
 

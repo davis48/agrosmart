@@ -23,6 +23,34 @@ function clearPersistedAuth(): void {
   localStorage.removeItem('auth-storage')
 }
 
+function getPersistedRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('auth-storage')
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed?.state?.refreshToken ?? null
+  } catch {
+    return null
+  }
+}
+
+function updatePersistedTokens(token: string, refreshToken?: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = localStorage.getItem('auth-storage')
+    if (!raw) return
+    const parsed = JSON.parse(raw)
+    if (parsed?.state) {
+      parsed.state.token = token
+      if (refreshToken) parsed.state.refreshToken = refreshToken
+      localStorage.setItem('auth-storage', JSON.stringify(parsed))
+    }
+  } catch {
+    // ignore
+  }
+}
+
 // Créer l'instance axios
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -53,18 +81,79 @@ api.interceptors.request.use(
   }
 )
 
-// Intercepteur pour gérer les erreurs
+// Intercepteur pour gérer les erreurs avec auto-refresh du token
+let isRefreshing = false
+let failedQueue: Array<{ resolve: (value: unknown) => void; reject: (reason?: unknown) => void }> = []
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (token) {
+      prom.resolve(token)
+    } else {
+      prom.reject(error)
+    }
+  })
+  failedQueue = []
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Ne pas rediriger si l'erreur vient de la tentative de connexion elle-même
-      const isAuthRequest = error.config?.url?.includes('/auth/login') ||
-        error.config?.url?.includes('/auth/verify-otp');
+  async (error) => {
+    const originalRequest = error.config
 
-      // Token expiré ou invalide (seulement pour les autres requêtes)
-      if (!isAuthRequest && typeof window !== 'undefined') {
-        clearPersistedAuth()
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Ne pas tenter le refresh pour les requêtes auth
+      const isAuthRequest = originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/verify-otp') ||
+        originalRequest.url?.includes('/auth/refresh');
+
+      if (isAuthRequest) {
+        return Promise.reject(error)
+      }
+
+      if (isRefreshing) {
+        // Si un refresh est déjà en cours, mettre en file d'attente
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`
+          return api(originalRequest)
+        }).catch((err) => {
+          return Promise.reject(err)
+        })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      const refreshToken = getPersistedRefreshToken()
+      if (refreshToken) {
+        try {
+          const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken })
+          const newToken = response.data?.data?.accessToken
+          const newRefreshToken = response.data?.data?.refreshToken
+
+          if (newToken) {
+            updatePersistedTokens(newToken, newRefreshToken)
+            originalRequest.headers.Authorization = `Bearer ${newToken}`
+            processQueue(null, newToken)
+            return api(originalRequest)
+          }
+        } catch (refreshError) {
+          processQueue(refreshError, null)
+          clearPersistedAuth()
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login'
+          }
+          return Promise.reject(refreshError)
+        } finally {
+          isRefreshing = false
+        }
+      }
+
+      // Pas de refresh token — rediriger vers login
+      clearPersistedAuth()
+      if (typeof window !== 'undefined') {
         window.location.href = '/login'
       }
     }
@@ -357,13 +446,13 @@ export const messagesApi = {
 
 // ============ STATISTIQUES ============
 export const statsApi = {
-  getDashboard: () => api.get('/stats/dashboard'),
+  getDashboard: () => api.get('/dashboard/stats'),
 
   getParcelleStats: (id: string, params?: { periode?: string }) =>
-    api.get(`/stats/parcelle/${id}`, { params }),
+    api.get(`/dashboard/parcelle/${id}`, { params }),
 
   getROI: (params?: { parcelle_id?: string; periode?: string }) =>
-    api.get('/stats/roi', { params }),
+    api.get('/dashboard/roi', { params }),
 }
 
 // ============ FICHES PRATIQUES (Bibliothèque Agricole) ============
@@ -435,14 +524,14 @@ export const calendrierApi = {
 // ============ EQUIPMENT ============
 export const equipmentApi = {
   getAll: (params?: { page?: number; limit?: number }) =>
-    api.get('/equipment/equipment', { params }),
+    api.get('/equipment', { params }),
 
-  getById: (id: string) => api.get(`/equipment/equipment/${id}`),
+  getById: (id: string) => api.get(`/equipment/${id}`),
 
-  create: (data: FormData) => api.post('/equipment/equipment', data),
+  create: (data: FormData) => api.post('/equipment', data),
 
   rent: (id: string, data: { dateDebut: string; dateFin: string }) =>
-    api.post(`/equipment/equipment/${id}/rent`, data),
+    api.post(`/equipment/${id}/rent`, data),
 
   getMyRentals: () => api.get('/equipment/rentals/my-rentals'),
 

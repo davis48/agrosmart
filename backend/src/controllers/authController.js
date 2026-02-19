@@ -239,7 +239,7 @@ exports.refreshToken = async (req, res, next) => {
  */
 exports.logout = async (req, res, next) => {
   try {
-    const { refreshToken, allSessions = true } = req.body;
+    const { refreshToken, allSessions = true } = req.body || {};
     const { revokeTokenByString, revokeAllUserTokens } = require('../middlewares/auth');
 
     if (refreshToken && !allSessions) {
