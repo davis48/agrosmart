@@ -13,17 +13,11 @@
     "db:reset": "npx prisma migrate reset --force",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio",
-    "test": "DOTENV_CONFIG_PATH=.env.test jest --coverage",
-    "test:watch": "DOTENV_CONFIG_PATH=.env.test jest --watch",
-    "test:docker": "docker compose exec api npm test",
     "test:security": "node scripts/security-audit.js",
     "audit:security": "node scripts/npm-audit.js",
     "audit:deps": "npm audit --audit-level=moderate",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix",
-    "docker:dev": "docker compose --profile dev up -d",
-    "docker:prod": "docker compose --profile production up -d",
-    "docker:down": "docker compose down"
+    "lint:fix": "eslint src/ --fix"
   },
   "keywords": [
     "agriculture",
@@ -74,12 +68,8 @@
     "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.5.0",
-    "jest": "^30.2.0",
-    "node-mocks-http": "^1.17.2",
     "nodemon": "^3.1.11",
     "prisma": "^6.9.0",
-    "socket.io-client": "^4.8.3",
-    "supertest": "^7.2.2",
     "typescript-eslint": "^8.54.0"
   },
   "engines": {

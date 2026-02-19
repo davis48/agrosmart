@@ -81,14 +81,14 @@ apt update && apt upgrade -y
 apt install -y curl git wget nano build-essential
 ```
 
-### 1.2 Installer Node.js 20
+### 1.2 Installer Node.js 22
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 apt install -y nodejs
 
 # Vérifier
-node -v   # doit afficher v20.x.x
+node -v   # doit afficher v22.x.x
 npm -v    # doit afficher 10.x.x
 ```
 
@@ -162,7 +162,7 @@ npm install --production
 
 ```bash
 # Créer le .env depuis le template
-cp .env.PRODUCTION_SANS_DOCKER .env
+cp .env.example .env
 nano .env
 ```
 
