@@ -646,18 +646,60 @@ bash test-iot.sh                        # Tester système IoT
 
 ## 🚀 Déploiement
 
-### Déploiement sur Hostinger VPS (Production)
+### Déploiement sur Hostinger VPS — Nginx + PM2 (Sans Docker)
 
-Le projet inclut un script de déploiement automatisé pour Hostinger VPS.
+> 📄 **Le guide de déploiement complet est dans [`DEPLOY.md`](./DEPLOY.md)**
 
-#### Prérequis
+Il couvre étape par étape :
+- Installation des prérequis (Node.js, Python, PM2, Nginx)
+- Configuration de chaque service (Backend, Frontend, AI, IoT)
+- **Configuration Nginx dédiée par service** (avec sous-domaines ou IP unique)
+- Démarrage avec PM2 + persistance au reboot
+- Activation SSL/HTTPS avec Certbot (Let's Encrypt)
+- Commandes de maintenance, mise à jour et dépannage
 
-- VPS Hostinger KVM 4 (16GB RAM, 4 vCPU) ou supérieur
-- Ubuntu 22.04 LTS
-- Accès SSH root
-- (Optionnel) Nom de domaine pointant vers le VPS
+**Résumé des commandes essentielles :**
 
-#### Procédure complète
+```bash
+# 1. Prérequis
+apt install -y nodejs npm nginx python3-venv
+npm install -g pm2
+
+# 2. Cloner le projet
+git clone https://github.com/davis48/agrosmart.git /var/www/agrosmart
+cd /var/www/agrosmart
+
+# 3. Backend
+cd backend && npm install --production
+npx prisma generate && npx prisma migrate deploy
+cd ..
+
+# 4. Frontend
+cd frontend && npm install && npm run build
+cd ..
+
+# 5. Lancer avec PM2
+pm2 start ecosystem.config.js --only agrismart-backend,agrismart-frontend
+pm2 save && pm2 startup
+
+# 6. Nginx (copier la config de chaque service)
+# → Voir DEPLOY.md section "Étape 8" pour les configs complètes
+nginx -t && systemctl reload nginx
+```
+
+**Accès :**
+- Web App : `http://VOTRE_IP_VPS`
+- API : `http://VOTRE_IP_VPS/api/v1`
+- Health : `http://VOTRE_IP_VPS/health`
+
+---
+
+### Déploiement avec Docker (ancienne méthode)
+
+> ⚠️ La méthode Docker n'est plus maintenue activement.
+> Utiliser le guide Nginx + PM2 ci-dessus.
+
+#### Procédure Docker
 
 **1. Connexion au VPS**
 

@@ -155,8 +155,8 @@ if (config.isProd) {
     'JWT_SECRET',
     'JWT_REFRESH_SECRET',
     'DB_PASSWORD',
-    'TWILIO_ACCOUNT_SID',
-    'TWILIO_AUTH_TOKEN'
+    // 'TWILIO_ACCOUNT_SID',  // Optionnel - SMS/WhatsApp non activé pour l'instant
+    // 'TWILIO_AUTH_TOKEN',   // Optionnel - SMS/WhatsApp non activé pour l'instant
   ];
 
   const missingVars = requiredEnvVars.filter(v => !process.env[v]);

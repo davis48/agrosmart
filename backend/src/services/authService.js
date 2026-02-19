@@ -20,7 +20,7 @@ class AuthService {
      * Inscription d'un nouvel utilisateur
      */
     async registerUser(userData) {
-        const { email, telephone, password, nom, prenoms, prenom, langue_preferee = 'fr', adresse, 
+        const { email, telephone, password, nom, prenoms, prenom, langue_preferee = 'fr', adresse,
             role = 'PRODUCTEUR', // Nouveau: rôle par défaut PRODUCTEUR pour compatibilité
             type_producteur,
             production_3_mois_precedents_kg, superficie_exploitee, unite_superficie, systeme_irrigation,
@@ -30,11 +30,11 @@ class AuthService {
 
         // Normalisation du numéro de téléphone
         const normalizedPhone = normalizePhoneNumber(telephone);
-        
+
         // Normalisation prenoms
         const userPrenoms = prenoms || prenom || '';
         const userEmail = email || null;
-        
+
         // Validation du rôle (seulement ACHETEUR ou PRODUCTEUR autorisés à l'inscription)
         const validRoles = ['ACHETEUR', 'PRODUCTEUR'];
         const userRole = validRoles.includes(role) ? role : 'PRODUCTEUR';
@@ -58,8 +58,10 @@ class AuthService {
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Statut initial (actif en dev)
-        const initialStatus = (config.isDev || config.env === 'development') ? 'ACTIF' : 'EN_ATTENTE';
+        // Statut initial : ACTIF par défaut
+        // OTP/Twilio non configuré → on active directement le compte à l'inscription
+        // TODO: Remettre EN_ATTENTE une fois que la vérification OTP/Email sera activée
+        const initialStatus = 'ACTIF';
 
         // Insertion - Les champs agricoles ne sont pertinents que pour les producteurs
         const user = await prisma.user.create({
@@ -126,49 +128,35 @@ class AuthService {
             logger.info('Buyer account created - no parcelle needed', { userId: user.id });
         }
 
-        // Logique Auto-Login en Dev
-        if (config.isDev || config.env === 'development') {
-            const accessToken = generateAccessToken(user);
-            const refreshToken = await generateRefreshToken(user.id);
+        // Auto-login à l'inscription (OTP/Twilio désactivé → on retourne directement un token)
+        // TODO: Séparer ce comportement dev/prod quand la vérification OTP/Email sera activée
+        const accessToken = generateAccessToken(user);
+        const refreshToken = await generateRefreshToken(user.id);
 
-            logger.audit('Inscription et connexion directe (dev)', { userId: user.id });
+        logger.audit('Inscription et connexion directe', { userId: user.id });
 
-            return {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    telephone: user.telephone,
-                    nom: user.nom,
-                    prenom: user.prenoms,
-                    role: user.role,
-                    status: user.status,
-                    // Champs agricoles
-                    type_producteur: user.typeProducteur,
-                    superficie_exploitee: user.superficieExploitee,
-                    unite_superficie: user.uniteSuperficie,
-                    systeme_irrigation: user.systemeIrrigation,
-                    production_mois1_kg: user.productionMois1Kg,
-                    production_mois2_kg: user.productionMois2Kg,
-                    production_mois3_kg: user.productionMois3Kg,
-                    production_3_mois_precedents_kg: user.production3MoisPrecedentsKg
-                },
-                token: accessToken,
-                refreshToken,
-                isAutoLogin: true,
-                isDebug: true
-            };
-        }
-
-        // Production: Retour simple sans token
         return {
             user: {
                 id: user.id,
                 email: user.email,
-                telephone: user.telephone
+                telephone: user.telephone,
+                nom: user.nom,
+                prenom: user.prenoms,
+                role: user.role,
+                status: user.status,
+                // Champs agricoles
+                type_producteur: user.typeProducteur,
+                superficie_exploitee: user.superficieExploitee,
+                unite_superficie: user.uniteSuperficie,
+                systeme_irrigation: user.systemeIrrigation,
+                production_mois1_kg: user.productionMois1Kg,
+                production_mois2_kg: user.productionMois2Kg,
+                production_mois3_kg: user.productionMois3Kg,
+                production_3_mois_precedents_kg: user.production3MoisPrecedentsKg
             },
-            token: null,
-            isAutoLogin: false,
-            isDebug: true
+            token: accessToken,
+            refreshToken,
+            isAutoLogin: true
         };
     }
 
@@ -181,7 +169,7 @@ class AuthService {
         // Normaliser le numéro de téléphone si c'est un numéro
         // Accepte: 0701000001, +2250701000001, 2250701000001
         const phoneVariants = getPhoneVariants(login);
-        
+
         // Recherche utilisateur (email ou téléphone avec variantes)
         const user = await prisma.user.findFirst({
             where: {
@@ -260,7 +248,7 @@ class AuthService {
     async generateAndSendOtp(userId, telephone, type = 'LOGIN') {
         // Générer un code à 6 chiffres
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        
+
         // Expiration dans 10 minutes
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + 10);
