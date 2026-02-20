@@ -28,9 +28,12 @@ class EnvironmentConfig {
   // ═══════════════════════════════════════════════════════════════
   static const String _devHost = String.fromEnvironment(
     'DEV_HOST',
-    defaultValue: '192.168.50.40', // IP locale du Mac de développement
+    defaultValue: '10.0.2.2', // Émulateur Android -> localhost machine hôte
   );
-  static const int _devPort = int.fromEnvironment('DEV_PORT', defaultValue: 3600);
+  static const int _devPort = int.fromEnvironment(
+    'DEV_PORT',
+    defaultValue: 3600,
+  );
 
   /// URL de base de l'API selon l'environnement
   static String get apiBaseUrl {

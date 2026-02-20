@@ -94,7 +94,16 @@ exports.getAll = async (req, res, next) => {
     }
 
     if (capteur_id) where.capteurId = capteur_id;
-    if (parcelle_id) where.capteur = { ...where.capteur, station: { parcelleId: parcelle_id } }; // Merge with existing capteur where if any
+    if (parcelle_id) {
+      // Merge parcelleId into existing station filter (preserves ownership check for producteurs)
+      where.capteur = {
+        ...where.capteur,
+        station: {
+          ...(where.capteur?.station || {}),
+          parcelleId: parcelle_id
+        }
+      };
+    }
     if (type) where.capteur = { ...where.capteur, type };
 
     if (debut || fin) {

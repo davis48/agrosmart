@@ -42,26 +42,37 @@ healthServer.listen(PORT, () => {
 // ============================
 const connection = {
     host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
-    password: process.env.REDIS_PASSWORD
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || undefined,
+    // Required by BullMQ v5 to avoid unhandled promise rejections on timeout
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
 };
 
-const sensorQueue = new Queue('sensor-data', { connection });
+const sensorQueue = new Queue('sensor-data', {
+    connection,
+    // Don't crash the process on Redis connect failure
+    defaultJobOptions: { removeOnComplete: 100, removeOnFail: 50 },
+});
 
-// Track Redis connection
+// Track Redis connection errors
 sensorQueue.on('error', (err) => {
-    console.error('[Redis] Queue error:', err.message);
+    // Ignore ECONNREFUSED during retry cycle — it is expected when Redis is down
+    if (err.code !== 'ECONNREFUSED') {
+        console.error('[Redis] Queue error:', err.message);
+    }
     redisConnected = false;
 });
 
-// Check Redis connection on startup
+// Check Redis connection on startup using BullMQ v5 API
 (async () => {
     try {
-        await sensorQueue.client;
+        await sensorQueue.waitUntilReady();
         redisConnected = true;
-        console.log('[Redis] Connected to Redis');
+        console.log('[Redis] Connected to Redis successfully');
     } catch (err) {
-        console.error('[Redis] Connection failed:', err.message);
+        console.error('[Redis] Connection failed (service will retry automatically):', err.message);
+        console.warn('[Redis] IoT service is running without Redis — sensor data will NOT be queued.');
         redisConnected = false;
     }
 })();
@@ -132,42 +143,22 @@ function decodePayload(payload) {
 }
 
 async function enqueueMeasurement(deviceCode, data) {
-    // data example: { temperature: 25.5, humidity: 60 }
+    // Envoie { device_code, values, timestamp } dans la queue.
+    // Le worker backend (sensorWorker.js) est responsable du lookup UUID par device_code.
+    if (!redisConnected) {
+        console.warn(`[Queue] Redis indisponible — données du device "${deviceCode}" ignorées.`);
+        return;
+    }
 
-    // We need to look up the sensor ID from the code in the backend worker.
-    // However, the current worker expects `capteur_id` (UUID).
-    // Problem: IoT Service only has deviceCode (string).
-    // Solution 1: Worker does lookup via code.
-    // Solution 2: IoT Service does lookup.
-
-    // To keep IoT service decoupled from DB, we should send { device_code, values } to Queue
-    // And let the Worker resolve UUID.
-    // BUT my current worker implementation expects 'capteur_id' (UUID).
-
-    // I will update the worker later to handle lookup if 'capteur_id' is missing but 'device_code' is present?
-    // OR for this MVP, I assume IoT service has access to DB map?
-    // Let's stick to the previous implementation where IoT Service had DB Access.
-    // It's faster to do lookup here (Read-only) and push UUID to queue.
-    // Or even better: Worker should handle Lookup to centralize logic.
-
-    // Let's modify Worker to accept `device_code` too.
-    // For now, I will modify `iot_service` to just push raw data.
-    // But wait, my worker insert query requires `capteur_id`.
-
-    // Compromise: IoT Service looks up UUID (it already has pg pool setup in previous version, I removed it in this new file content).
-    // I should re-add PG pool for lookup ONLY.
-
-    // Actually, to make it robust, `iot_service` shouldn't touch the main DB.
-    // The backend worker should do the lookup.
-
-    // So I will push: { device_code: deviceCode, values: data, timestamp: new Date() }
-    // And I will need to update `sensorWorker.js` to handle this.
-
-    await sensorQueue.add('process-mqtt', {
-        device_code: deviceCode,
-        values: data,
-        timestamp: new Date()
-    });
-
-    console.log(`[Queue] Enqueued data for device: ${deviceCode}`);
+    try {
+        await sensorQueue.add('process-mqtt', {
+            device_code: deviceCode,
+            values: data,
+            timestamp: new Date(),
+        });
+        console.log(`[Queue] Enqueued data for device: ${deviceCode}`);
+    } catch (err) {
+        console.error(`[Queue] Failed to enqueue data for device "${deviceCode}":`, err.message);
+        redisConnected = false;
+    }
 }

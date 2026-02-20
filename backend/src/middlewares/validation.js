@@ -166,8 +166,8 @@ const validators = {
 
   limit: () => query('limit')
     .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('La limite doit être entre 1 et 100')
+    .isInt({ min: 1, max: 500 })
+    .withMessage('La limite doit être entre 1 et 500')
     .toInt(),
 
   // Dates

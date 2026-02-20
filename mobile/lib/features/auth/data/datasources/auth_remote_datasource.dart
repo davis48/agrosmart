@@ -164,7 +164,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       if (e is ServerFailure) rethrow;
       _log('[AUTH ERROR] verifyOtp Exception: $e');
-      throw ServerFailure('Erreur lors de la vérification OTP: ${e.toString()}');
+      throw ServerFailure(
+        'Erreur lors de la vérification OTP: ${e.toString()}',
+      );
     }
   }
 
@@ -179,9 +181,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       _log('[AUTH] Appel GET /auth/me');
 
       // L'intercepteur Dio ajoute déjà le header Authorization automatiquement
-      final response = await dio.get(
-        '/auth/me',
-      );
+      final response = await dio.get('/auth/me');
 
       _log('[AUTH] getMe response: ${response.statusCode}');
 

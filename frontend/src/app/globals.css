@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@source "../components/**/*.{ts,tsx}";
+@source "../hooks/**/*.{ts,tsx}";
+@source "../lib/**/*.{ts,tsx}";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));

@@ -13,14 +13,30 @@ import { authApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import toast from 'react-hot-toast'
 
+const WEAK_PASSWORDS = ['password', '12345678', '123456789', 'qwerty', 'azerty', 'abc123', 'password123']
+
+const passwordCriteria = [
+  { key: 'length',    label: 'Au moins 8 caractères',       test: (v: string) => v.length >= 8 },
+  { key: 'upper',     label: 'Au moins une majuscule',       test: (v: string) => /[A-Z]/.test(v) },
+  { key: 'lower',     label: 'Au moins une minuscule',       test: (v: string) => /[a-z]/.test(v) },
+  { key: 'digit',     label: 'Au moins un chiffre',          test: (v: string) => /[0-9]/.test(v) },
+  { key: 'uncommon',  label: 'Mot de passe non commun',      test: (v: string) => !WEAK_PASSWORDS.includes(v.toLowerCase().replace(/[0-9]/g, '')) },
+]
+
 const registerSchema = z.object({
   nom: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
   prenoms: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
   telephone: z.string().min(10, 'Numéro de téléphone invalide'),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
   password: z.string()
-    .min(6, 'Le mot de passe doit contenir au moins 6 caractères')
-    .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule'),
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
+    .regex(/[a-z]/, 'Le mot de passe doit contenir au moins une minuscule')
+    .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre')
+    .refine(
+      (v) => !WEAK_PASSWORDS.includes(v.toLowerCase().replace(/[0-9]/g, '')),
+      'Ce mot de passe est trop commun'
+    ),
   confirmPassword: z.string(),
   region_id: z.string().optional(),
   production_3_mois_precedents_kg: z.number().min(0, 'La production doit être positive').optional(),
@@ -288,6 +304,22 @@ export default function RegisterPage() {
                       )}
                     </button>
                   </div>
+
+                  {/* Real-time password criteria */}
+                  {watch('password') && watch('password').length > 0 && (
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-1.5">
+                      <p className="text-xs font-medium text-gray-600 mb-1">Critères du mot de passe :</p>
+                      {passwordCriteria.map((c) => {
+                        const ok = c.test(watch('password') ?? '')
+                        return (
+                          <div key={c.key} className={`flex items-center gap-2 text-xs ${ok ? 'text-green-600' : 'text-red-500'}`}>
+                            <span className="text-base leading-none">{ok ? '✓' : '✗'}</span>
+                            <span>{c.label}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
 
                   <div className="relative">
                     <Lock className="absolute left-3 top-9 h-5 w-5 text-gray-400" />

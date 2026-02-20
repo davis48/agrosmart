@@ -261,16 +261,21 @@ source .venv/bin/activate
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
-pip install gunicorn
+# gunicorn est inclus dans requirements.txt — pas besoin de 'pip install gunicorn'
 
 # Tester
 python app.py &
 sleep 3
 curl http://localhost:5001/health
+# Réponse attendue: {"status":"healthy","tensorflow":"available",...}
 kill %1
 
 deactivate
 ```
+
+> **Note** : Si TensorFlow n'est pas disponible (architecture ARM non compatibles, etc.),
+> le service démarre quand même en **mode dégradé** — les endpoints `/predict/*` retournent
+> `503 Unavailable` mais `/health` répond `200` normalement.
 
 ### 5.3 Vérifier les modèles IA
 
@@ -288,6 +293,24 @@ ls /var/www/agrosmart/ai_service/models/
 
 ## Étape 6 — IoT Service (Node.js + MQTT)
 
+### 6.0 Installer Redis (requis par BullMQ)
+
+Le service IoT utilise **BullMQ** pour la queue des capteurs, qui requiert Redis.
+
+```bash
+apt install -y redis-server
+systemctl enable redis-server
+systemctl start redis-server
+
+# Vérifier
+redis-cli ping
+# Réponse attendue: PONG
+```
+
+> **Si Redis n'est pas installé**, le service IoT démarre quand même mais
+> les données des capteurs ne sont pas mis en queue (warning dans les logs).
+> Redis est **obligatoire** pour un fonctionnement complet.
+
 ### 6.1 Installer les dépendances
 
 ```bash
@@ -298,15 +321,17 @@ npm install --production
 ### 6.2 Configurer l'environnement
 
 ```bash
-cp .env.example .env
+cp .env.example .env 2>/dev/null || touch .env
 nano .env
 ```
 
 ```bash
 NODE_ENV=production
 PORT=4000
-MQTT_HOST=127.0.0.1
-MQTT_PORT=1883
+MQTT_BROKER_URL=mqtt://127.0.0.1:1883
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+# REDIS_PASSWORD=votre_mot_de_passe   # Uniquement si Redis est sécurisé
 BACKEND_API_URL=http://127.0.0.1:3600
 ```
 
@@ -758,6 +783,10 @@ cd .. && pm2 reload agrismart-backend
 cd frontend && npm install && npm run build
 cd .. && pm2 restart agrismart-frontend
 
+# IoT Service
+cd iot_service && npm install --production
+cd .. && pm2 restart agrismart-iot
+
 # AI Service
 cd ai_service && source .venv/bin/activate && pip install -r requirements.txt && deactivate
 cd .. && pm2 restart agrismart-ai
@@ -799,6 +828,34 @@ curl http://127.0.0.1:3600/health
 tail -50 /var/log/nginx/agrosmart-backend-error.log
 ```
 
+### IoT Service ne démarre pas (erreur Redis)
+
+```bash
+pm2 logs agrismart-iot --lines 30 --err
+
+# Vérifier que Redis tourne
+systemctl status redis-server
+redis-cli ping    # doit répondre PONG
+
+# Si Redis est arrêté
+systemctl start redis-server
+pm2 restart agrismart-iot
+```
+
+### AI Service ne démarre pas
+
+```bash
+pm2 logs agrismart-ai --lines 30 --err
+
+# Vérifier le venv
+ls /var/www/agrosmart/ai_service/.venv/bin/gunicorn
+# Si absent : cd ai_service && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && deactivate
+
+# Tester manuellement
+cd /var/www/agrosmart/ai_service
+.venv/bin/gunicorn --workers 2 --bind 127.0.0.1:5001 --timeout 120 app:app
+```
+
 ---
 
 ## 📌 Récapitulatif des ports
@@ -810,6 +867,9 @@ tail -50 /var/log/nginx/agrosmart-backend-error.log
 | AI Service       | 5001       | `/ai/*` ou `ai.domaine.com`           |
 | IoT Service      | 4000       | `/iot/*` ou `iot.domaine.com`         |
 | MySQL Hostinger  | 3306       | Direct (pas via Nginx)                |
+| Redis            | 6379       | Interne uniquement (jamais exposé)    |
+
+> **Prisma Studio** (port 5555) est un outil de développement uniquement — ne pas l'exposer en production.
 
 ---
 

@@ -1,9 +1,26 @@
 import os
 import logging
 from flask import Flask, request, jsonify
-import numpy as np
-import tensorflow as tf
-from PIL import Image
+
+# =====================================================
+# Importations optionnelles (TensorFlow lourd)
+# Le service démarre même sans TF / modèles disponibles
+# =====================================================
+try:
+    import numpy as np
+    import tensorflow as tf
+    from PIL import Image
+    TF_AVAILABLE = True
+except ImportError as _tf_err:
+    logging.warning(
+        'TensorFlow / Pillow non disponible: %s. '
+        'Le service tourne en mode dégradé (endpoints /predict/* retournent 503).',
+        _tf_err
+    )
+    TF_AVAILABLE = False
+    np = None
+    tf = None
+    Image = None
 
 # =====================================================
 # Configuration du logging structuré
@@ -35,18 +52,29 @@ irrigation_model = None
 # =====================================================
 def load_models():
     global disease_model, irrigation_model
+    if not TF_AVAILABLE:
+        logger.warning('TensorFlow non disponible — chargement des modèles ignoré.')
+        return
     try:
         if os.path.exists(DISEASE_MODEL_PATH):
             disease_model = tf.keras.models.load_model(DISEASE_MODEL_PATH)
             logger.info('Disease model loaded from %s', DISEASE_MODEL_PATH)
         else:
-            logger.error('Disease model not found at %s', DISEASE_MODEL_PATH)
+            logger.warning(
+                'Disease model introuvable sur %s. '
+                'Endpoint /predict/disease retournera 503 jusqu\'au chargement.',
+                DISEASE_MODEL_PATH
+            )
 
         if os.path.exists(IRRIGATION_MODEL_PATH):
             irrigation_model = tf.keras.models.load_model(IRRIGATION_MODEL_PATH)
             logger.info('Irrigation model loaded from %s', IRRIGATION_MODEL_PATH)
         else:
-            logger.error('Irrigation model not found at %s', IRRIGATION_MODEL_PATH)
+            logger.warning(
+                'Irrigation model introuvable sur %s. '
+                'Endpoint /predict/irrigation retournera 503 jusqu\'au chargement.',
+                IRRIGATION_MODEL_PATH
+            )
     except Exception as e:
         logger.error('Failed to load models: %s', e, exc_info=True)
 
@@ -102,12 +130,14 @@ def get_recommendation(disease: str) -> str:
 # =====================================================
 @app.route('/health', methods=['GET'])
 def health_check():
+    """Toujours 200 — le service est opérationnel même sans les modèles."""
     return jsonify({
         'status': 'healthy',
         'service': 'AgroSmart AI',
+        'tensorflow': 'available' if TF_AVAILABLE else 'unavailable',
         'models': {
-            'disease': 'loaded' if disease_model else 'missing',
-            'irrigation': 'loaded' if irrigation_model else 'missing',
+            'disease': 'loaded' if disease_model else ('unavailable' if not TF_AVAILABLE else 'missing'),
+            'irrigation': 'loaded' if irrigation_model else ('unavailable' if not TF_AVAILABLE else 'missing'),
         },
     }), 200
 

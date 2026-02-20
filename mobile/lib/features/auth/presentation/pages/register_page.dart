@@ -53,6 +53,22 @@ class _RegisterPageState extends State<RegisterPage> {
   int _currentStep = 0;
   String _selectedLanguage = 'fr';
 
+  static const _weakPasswords = [
+    'password',
+    '12345678',
+    '123456789',
+    'qwerty',
+    'azerty',
+    'abc123',
+    'password123',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController.addListener(() => setState(() {}));
+  }
+
   @override
   void dispose() {
     _nomController.dispose();
@@ -442,7 +458,12 @@ class _RegisterPageState extends State<RegisterPage> {
             onPressed: () =>
                 setState(() => _obscurePassword = !_obscurePassword),
           ),
+          validator: _validatePassword,
         ),
+        if (_passwordController.text.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _buildPasswordCriteria(),
+        ],
         const SizedBox(height: 12),
         _buildTextField(
           'Confirmer mot de passe *',
@@ -688,6 +709,78 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
       ],
+    );
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) return 'Requis';
+    if (value.length < 8) return 'Au moins 8 caractères requis';
+    if (!RegExp(r'[A-Z]').hasMatch(value))
+      return 'Au moins une majuscule requise';
+    if (!RegExp(r'[a-z]').hasMatch(value))
+      return 'Au moins une minuscule requise';
+    if (!RegExp(r'[0-9]').hasMatch(value)) return 'Au moins un chiffre requis';
+    if (_weakPasswords.contains(
+      value.toLowerCase().replaceAll(RegExp(r'[0-9]'), ''),
+    )) {
+      return 'Ce mot de passe est trop commun';
+    }
+    return null;
+  }
+
+  Widget _buildPasswordCriteria() {
+    final pw = _passwordController.text;
+    final criteria = [
+      (label: 'Au moins 8 caractères', ok: pw.length >= 8),
+      (label: 'Au moins une majuscule', ok: RegExp(r'[A-Z]').hasMatch(pw)),
+      (label: 'Au moins une minuscule', ok: RegExp(r'[a-z]').hasMatch(pw)),
+      (label: 'Au moins un chiffre', ok: RegExp(r'[0-9]').hasMatch(pw)),
+      (
+        label: 'Mot de passe non commun',
+        ok: !_weakPasswords.contains(
+          pw.toLowerCase().replaceAll(RegExp(r'[0-9]'), ''),
+        ),
+      ),
+    ];
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Critères du mot de passe :',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          ...criteria.map(
+            (c) => Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Row(
+                children: [
+                  Icon(
+                    c.ok ? Icons.check_circle : Icons.cancel,
+                    size: 14,
+                    color: c.ok ? const Color(0xFF28A745) : Colors.red,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    c.label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: c.ok ? const Color(0xFF28A745) : Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

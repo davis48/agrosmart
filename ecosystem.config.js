@@ -2,10 +2,18 @@
  * PM2 Ecosystem Configuration - AgriSmart CI
  * Déploiement sans Docker (Nginx + PM2)
  *
+ * Architecture :
+ *   Backend  (Node/Express) → port 3600 (cluster mode)
+ *   Frontend (Next.js)      → port 3601
+ *   IoT      (Node/MQTT)    → port 4000 (optional - requires Redis + MQTT)
+ *   AI       (Python/Flask) → port 5001 (optional - requires TensorFlow)
+ *
  * Usage :
- *   pm2 start ecosystem.config.js
- *   pm2 save
- *   pm2 startup
+ *   pm2 start ecosystem.config.js            # Start all
+ *   pm2 start ecosystem.config.js --only agrismart-backend
+ *   pm2 stop ecosystem.config.js
+ *   pm2 restart ecosystem.config.js
+ *   pm2 save && pm2 startup                  # Auto-start on boot
  */
 
 module.exports = {
@@ -32,7 +40,11 @@ module.exports = {
             // Redémarrage automatique en cas de crash
             autorestart: true,
             restart_delay: 4000,
-            max_restarts: 10
+            max_restarts: 10,
+            // Graceful startup
+            wait_ready: false,
+            listen_timeout: 10000,
+            kill_timeout: 5000
         },
 
         // =============================================
@@ -88,19 +100,21 @@ module.exports = {
         // =============================================
         // AI SERVICE - Python / Flask / Gunicorn
         // =============================================
-        // IMPORTANT : Gunicorn doit être installé dans le venv Python
-        // Le service AI tourne sur le port 5001
+        // IMPORTANT : Créer le venv depuis la racine avant de démarrer :
+        //   cd ai_service && python3 -m venv .venv && source .venv/bin/activate
+        //   pip install -r requirements.txt && pip install gunicorn && deactivate
+        // Le chemin `interpreter` est TOUJOURS résolu depuis la racine du projet.
         {
             name: 'agrismart-ai',
-            script: 'gunicorn',
-            args: '--workers 2 --bind 127.0.0.1:5001 app:app',
+            script: './ai_service/.venv/bin/gunicorn',
+            args: '--workers 2 --bind 127.0.0.1:5001 --timeout 120 app:app',
             cwd: './ai_service',
-            interpreter: './.venv/bin/python3',  // Adapter selon le chemin du venv
             instances: 1,
             exec_mode: 'fork',
             watch: false,
             max_memory_restart: '600M',
             env: {
+                NODE_ENV: 'production',
                 PYTHONUNBUFFERED: '1',
                 FLASK_ENV: 'production'
             },
