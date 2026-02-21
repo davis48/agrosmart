@@ -5,7 +5,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // output: 'standalone',
   // Fix monorepo: forces Turbopack to use frontend/ as root so it resolves
   // node_modules from frontend/node_modules instead of wandering up to a
   // stray package-lock.json in the home directory.
