@@ -3,6 +3,10 @@
 FROM node:22-bookworm-slim AS backend-builder
 WORKDIR /app/backend
 
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends openssl ca-certificates \
+	&& rm -rf /var/lib/apt/lists/*
+
 COPY backend/package*.json ./
 RUN npm ci
 
@@ -17,6 +21,10 @@ RUN npm prune --omit=dev && npm cache clean --force
 FROM node:22-bookworm-slim AS backend-runtime
 ENV NODE_ENV=production
 WORKDIR /app/backend
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends openssl ca-certificates \
+	&& rm -rf /var/lib/apt/lists/*
 
 COPY --from=backend-builder /app/backend/node_modules ./node_modules
 COPY --from=backend-builder /app/backend/prisma ./prisma
