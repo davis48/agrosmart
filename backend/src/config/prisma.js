@@ -1,7 +1,4 @@
-// Charger le bon fichier .env selon l'environnement
-const path = require('path');
-const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
-require('dotenv').config({ path: path.resolve(__dirname, '../../', envFile) });
+require('./loadEnv');
 
 const { PrismaClient } = require('@prisma/client');
 
