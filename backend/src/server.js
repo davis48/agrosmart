@@ -168,9 +168,10 @@ const startServer = async () => {
       logger.info('Worker IoT désactivé (Redis désactivé)');
     }
 
-    server.listen(config.server.port, () => {
+    server.listen(config.server.port, '0.0.0.0', () => {
       logger.info(`AgroSmart Backend démarré`);
       logger.info(`Port: ${config.server.port}`);
+      logger.info('Bind address: 0.0.0.0');
       logger.info(`Environnement: ${config.env}`);
       logger.info(`API Version: ${config.server.apiVersion}`);
       logger.info(`URL: http://localhost:${config.server.port}`);
