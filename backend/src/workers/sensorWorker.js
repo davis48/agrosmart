@@ -1,20 +1,21 @@
 /**
  * Worker pour le traitement des mesures IoT
- * Consomme la file 'sensor-data' et écrit en base
+ * REDIS DISABLED - BullMQ is not used
+ * This just provides the processMeasure function for sync/fallback processing
  */
-const { Worker } = require('bullmq');
+// const { Worker } = require('bullmq'); // REDIS DISABLED
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
 const alertesService = require('../services/alertesService');
 const parcelleHealthService = require('../services/parcelleHealthService');
 const config = require('../config');
 
-// Configuration Redis centralisée
-const connection = {
-    host: config.redis.host,
-    port: config.redis.port,
-    password: config.redis.password
-};
+// REDIS CONFIGURATION - DISABLED
+// const connection = {
+//     host: config.redis.host,
+//     port: config.redis.port,
+//     password: config.redis.password
+// };
 
 let worker;
 

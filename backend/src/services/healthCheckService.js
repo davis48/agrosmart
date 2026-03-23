@@ -67,18 +67,19 @@ class HealthCheckService {
 
   /**
    * Health check complet - tous les services
+   * REDIS CHECK DISABLED - Redis is not used in this application
    */
   async getFullHealth() {
     const checks = await Promise.allSettled([
       this.checkDatabase(),
-      this.checkRedis(),
+      // REDIS DISABLED: this.checkRedis(),
       this.checkAIService(),
       this.checkIoTService(),
       this.checkExternalServices(),
       this.getSystemMetrics()
     ]);
 
-    const [database, redis, aiService, iotService, external, system] = checks.map(
+    const [database, aiService, iotService, external, system] = checks.map(
       (result, index) => {
         if (result.status === 'fulfilled') {
           return result.value;
@@ -91,10 +92,15 @@ class HealthCheckService {
       }
     );
 
+    // Redis check is disabled
+    const redis = {
+      status: HealthStatus.HEALTHY,
+      message: 'Redis is disabled (not required)'
+    };
+
     // Déterminer le statut global
     const allStatuses = [
       database.status,
-      redis.status,
       aiService.status,
       iotService.status
     ];

@@ -2,25 +2,21 @@
  * Service de cache Redis amélioré
  * AgroSmart - Système Agricole Intelligent
  * 
- * Features:
- * - Cache météo (30 minutes)
- * - Cache parcelles utilisateur (5 minutes)
- * - Cache données capteurs (1 minute)
- * - Cache marketplace (10 minutes)
- * - Invalidation intelligente par pattern
- * - Compression pour les gros objets
+ * REDIS DISABLED - All cache methods return null/no-op
+ * This was causing connection issues and wasn't essential to the application.
+ * The application works fine with in-memory caching for now.
  */
 
-const Redis = require('ioredis');
+// const Redis = require('ioredis');
 const config = require('../config');
 const logger = require('./logger');
-const zlib = require('zlib');
-const { promisify } = require('util');
+// const zlib = require('zlib');
+// const { promisify } = require('util');
 
-const gzip = promisify(zlib.gzip);
-const gunzip = promisify(zlib.gunzip);
+// const gzip = promisify(zlib.gzip);
+// const gunzip = promisify(zlib.gunzip);
 
-let redisClient;
+let redisClient = null; // Always null
 
 // Seuil de compression (1KB)
 const COMPRESSION_THRESHOLD = 1024;
@@ -51,46 +47,19 @@ const PREFIXES = {
 };
 
 /**
- * Initialise le client Redis
- * @returns {Redis} Client Redis
+ * Initialise le client Redis - DISABLED
+ * @returns {null} Redis is disabled
  */
 const initRedis = () => {
-  if (!config.redis.enabled) {
-    return null;
-  }
-
-  if (!redisClient) {
-    redisClient = new Redis({
-      host: config.redis.host,
-      port: config.redis.port,
-      password: config.redis.password,
-      keyPrefix: 'agrismart:',
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
-      maxRetriesPerRequest: 3,
-      enableReadyCheck: true,
-      lazyConnect: true
-    });
-
-    redisClient.on('connect', () => {
-      logger.info('[Cache] Redis Client Connected');
-    });
-
-    redisClient.on('ready', () => {
-      logger.info('[Cache] Redis Client Ready');
-    });
-
-    redisClient.on('error', (err) => {
-      logger.error('[Cache] Redis Client Error', { error: err.message });
-    });
-
-    redisClient.on('close', () => {
-      logger.warn('[Cache] Redis Client Connection Closed');
-    });
-  }
-  return redisClient;
+  // Redis is disabled
+  // if (!config.redis.enabled) {
+  //   return null;
+  // }
+  // if (!redisClient) {
+  //   redisClient = new Redis({ ... });
+  //   // ... event handlers
+  // }
+  return null;
 };
 
 /**

@@ -1,62 +1,54 @@
 /**
  * Service de file d'attente pour l'ingestion IoT
- * Utilise BullMQ pour gérer les mesures de manière asynchrone
+ * REDIS DISABLED - BullMQ is not used
+ * The application falls back to synchronous processing
  */
-const { Queue } = require('bullmq');
+// const { Queue } = require('bullmq'); // REDIS DISABLED
 const config = require('../config');
 const logger = require('../utils/logger');
 
-// Configuration Redis pour BullMQ (centralisée via config)
-const connection = {
-    host: config.redis.host,
-    port: config.redis.port,
-    password: config.redis.password
-};
+// REDIS CONFIGURATION - DISABLED
+// const connection = {
+//     host: config.redis.host,
+//     port: config.redis.port,
+//     password: config.redis.password
+// };
 
 let sensorQueue = null;
 
 const getSensorQueue = () => {
-    if (!config.redis.enabled) {
-        return null;
-    }
-
-    if (!sensorQueue) {
-        sensorQueue = new Queue('sensor-data', {
-            connection,
-            defaultJobOptions: {
-                attempts: 3,
-                backoff: {
-                    type: 'exponential',
-                    delay: 1000,
-                },
-                removeOnComplete: true,
-                removeOnFail: 1000 // Garder les 1000 derniers échecs pour debug
-            }
-        });
-
-        sensorQueue.on('error', (err) => {
-            logger.error('Erreur file d\'attente sensor-data', { error: err.message });
-        });
-    }
-
-    return sensorQueue;
+    // Redis is disabled, return null (triggers sync fallback)
+    return null;
+    
+    // OLD CODE (DISABLED):
+    // if (!config.redis.enabled) {
+    //     return null;
+    // }
+    // if (!sensorQueue) {
+    //     sensorQueue = new Queue('sensor-data', { ... });
+    // }
+    // return sensorQueue;
 };
 
 /**
  * Ajouter une mesure à la file d'attente
+ * Falls back to synchronous processing since Redis is disabled
  * @param {Object} data Données de la mesure (capteur_id, valeur, unite, timestamp)
  */
 exports.addJob = async (data) => {
     try {
+        // Redis is disabled, use synchronous processing
         if (!config.redis.enabled) {
+            logger.debug('[Queue] Processing measure synchronously (Redis disabled)', { data });
             const { processMeasure } = require('../workers/sensorWorker');
             return processMeasure({ id: `sync-${Date.now()}`, data });
         }
 
-        const queue = getSensorQueue();
-        return await queue.add('process-measure', data);
+        // This code won't be reached since Redis is disabled
+        // const queue = getSensorQueue();
+        // return await queue.add('process-measure', data);
     } catch (error) {
-        logger.error('Échec ajout job file d\'attente', { error: error.message });
+        logger.error('Échec traitement mesure', { error: error.message });
         throw error;
     }
 };

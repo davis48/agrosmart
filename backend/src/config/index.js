@@ -126,13 +126,14 @@ const config = {
     }
   },
 
-  // Redis configuration
+  // Redis configuration - DISABLED
+  // Redis was not being used effectively, all rate limiting uses in-memory store
   redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT) || 6379,
-    password: process.env.REDIS_PASSWORD || undefined,
-    ttl: parseInt(process.env.REDIS_TTL) || 3600, // Default 1 hour
-    enabled: process.env.REDIS_ENABLED !== 'false' // Enabled by default
+    enabled: false // Hardcoded to false - DO NOT ENABLE
+    // host: process.env.REDIS_HOST || 'localhost',
+    // port: parseInt(process.env.REDIS_PORT) || 6379,
+    // password: process.env.REDIS_PASSWORD || undefined,
+    // ttl: parseInt(process.env.REDIS_TTL) || 3600,
   },
 
   // Dev mode configuration
