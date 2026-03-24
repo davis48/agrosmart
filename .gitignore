@@ -121,6 +121,7 @@ temp/
 
 # ============ DATABASE ============
 *.sql
+!backend/prisma/migrations/**/*.sql
 *.sqlite
 *.sqlite3
 *.db
