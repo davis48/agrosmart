@@ -7,8 +7,8 @@
  *
  * Architecture (Microservices):
  *   1. Backend   (Node/Express)  → port 3600
- *   2. Frontend  (Next.js)       → port 3601
- *   3. IoT       (Node/MQTT)     → port 4000  (optional — requires Redis + MQTT)
+ *   2. Frontend  (Next.js)       → port 3603
+ *   3. IoT       (Node/MQTT)     → port 4000  (optional — requires MQTT)
  *   4. AI        (Python/Flask)  → port 5001  (optional — requires TensorFlow models)
  *   5. Studio   (Prisma Studio)  → port 5555  (optional — DB explorer)
  *
@@ -48,9 +48,9 @@ const SERVICES = {
     name: 'Frontend',
     color: '\x1b[34m',    // blue
     cmd: 'npx',
-    args: ['next', 'dev', '-p', '3601'],
+    args: ['next', 'dev', '-p', '3603'],
     cwd: path.join(ROOT, 'frontend'),
-    port: 3601,
+    port: 3603,
     healthUrl: null,
     required: true,
     enabled: !args.includes('--no-frontend') && !args.includes('--backend'),
@@ -295,7 +295,7 @@ ${GREEN}  AgroSmart is running!${RESET}
 
   ${BOLD}Backend API:${RESET}    http://localhost:3600
   ${BOLD}API Docs:${RESET}       http://localhost:3600/api-docs
-  ${BOLD}Frontend:${RESET}       http://localhost:3601${SERVICES.iot.enabled ? `
+  ${BOLD}Frontend:${RESET}       http://localhost:3603${SERVICES.iot.enabled ? `
   ${BOLD}IoT Service:${RESET}    http://localhost:4000` : ''}${SERVICES.ai.enabled ? `
   ${BOLD}AI Service:${RESET}     http://localhost:5001` : ''}${SERVICES.studio.enabled ? `
   ${BOLD}Prisma Studio:${RESET}  http://localhost:5555` : ''}

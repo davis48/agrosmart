@@ -133,7 +133,6 @@ docker-compose.local.yml
 
 # Docker volumes locaux
 mysql_data/
-redis_data/
 influxdb_data/
 
 # ============ TESTS ============

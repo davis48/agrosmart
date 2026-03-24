@@ -48,7 +48,6 @@ nano backend/.env
 |----------|-------------|-------------------|
 | `JWT_EXPIRES_IN` | Durée de validité du token | `7d` |
 | `JWT_REFRESH_EXPIRES_IN` | Durée du refresh token | `30d` |
-| `REDIS_ENABLED` | Activer Redis (cache) | `false` (pas de Redis sans Docker) |
 | `LOG_LEVEL` | Niveau de logs | `info` |
 | `TZ` | Fuseau horaire | `Africa/Abidjan` |
 | `MAX_FILE_SIZE` | Taille max upload | `50MB` |
@@ -66,8 +65,6 @@ nano backend/.env
 | `SMTP_PORT` | Port SMTP | `587` (STARTTLS) ou `465` (SSL) |
 | `SMTP_USER` | Email expéditeur | Ex: `noreply@agrosmart.ci` |
 | `SMTP_PASSWORD` | Mot de passe SMTP | — |
-| `REDIS_HOST` | Adresse Redis | `127.0.0.1` si Redis installé |
-| `REDIS_PORT` | Port Redis | `6379` |
 | `INFLUXDB_URL` | URL InfluxDB | `http://127.0.0.1:8086` |
 | `INFLUXDB_TOKEN` | Token InfluxDB | — |
 | `OPENWEATHER_API_KEY` | Clé API météo | Depuis openweathermap.org |
@@ -109,8 +106,6 @@ nano iot_service/.env
 | `MQTT_PORT` | Port MQTT | `1883` |
 | `MQTT_USERNAME` | Username MQTT (si auth activé) | — |
 | `MQTT_PASSWORD` | Password MQTT (si auth activé) | — |
-| `REDIS_HOST` | Adresse Redis (requis pour BullMQ) | `127.0.0.1` |
-| `REDIS_PORT` | Port Redis | `6379` |
 | `BACKEND_API_URL` | URL du backend | `http://127.0.0.1:3600` |
 | `IOT_GATEWAY_SECRET` | Secret partagé avec le backend | Chaîne aléatoire sécurisée |
 

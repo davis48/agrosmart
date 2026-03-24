@@ -293,24 +293,6 @@ ls /var/www/agrosmart/ai_service/models/
 
 ## Étape 6 — IoT Service (Node.js + MQTT)
 
-### 6.0 Installer Redis (requis par BullMQ)
-
-Le service IoT utilise **BullMQ** pour la queue des capteurs, qui requiert Redis.
-
-```bash
-apt install -y redis-server
-systemctl enable redis-server
-systemctl start redis-server
-
-# Vérifier
-redis-cli ping
-# Réponse attendue: PONG
-```
-
-> **Si Redis n'est pas installé**, le service IoT démarre quand même mais
-> les données des capteurs ne sont pas mis en queue (warning dans les logs).
-> Redis est **obligatoire** pour un fonctionnement complet.
-
 ### 6.1 Installer les dépendances
 
 ```bash
@@ -329,9 +311,6 @@ nano .env
 NODE_ENV=production
 PORT=4000
 MQTT_BROKER_URL=mqtt://127.0.0.1:1883
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-# REDIS_PASSWORD=votre_mot_de_passe   # Uniquement si Redis est sécurisé
 BACKEND_API_URL=http://127.0.0.1:3600
 ```
 
@@ -828,18 +807,10 @@ curl http://127.0.0.1:3600/health
 tail -50 /var/log/nginx/agrosmart-backend-error.log
 ```
 
-### IoT Service ne démarre pas (erreur Redis)
+### IoT Service ne démarre pas
 
 ```bash
 pm2 logs agrismart-iot --lines 30 --err
-
-# Vérifier que Redis tourne
-systemctl status redis-server
-redis-cli ping    # doit répondre PONG
-
-# Si Redis est arrêté
-systemctl start redis-server
-pm2 restart agrismart-iot
 ```
 
 ### AI Service ne démarre pas
@@ -867,7 +838,6 @@ cd /var/www/agrosmart/ai_service
 | AI Service       | 5001       | `/ai/*` ou `ai.domaine.com`           |
 | IoT Service      | 4000       | `/iot/*` ou `iot.domaine.com`         |
 | MySQL Hostinger  | 3306       | Direct (pas via Nginx)                |
-| Redis            | 6379       | Interne uniquement (jamais exposé)    |
 
 > **Prisma Studio** (port 5555) est un outil de développement uniquement — ne pas l'exposer en production.
 

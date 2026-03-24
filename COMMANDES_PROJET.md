@@ -49,7 +49,7 @@ npm run dev
 
 L'orchestrateur démarre les services dans le bon ordre, attend que le backend soit disponible, puis lance le frontend et les services optionnels en parallèle.
 
-Pour **exclure les services optionnels** si Redis/MQTT/TF ne sont pas installés :
+Pour **exclure les services optionnels** si MQTT/TF ne sont pas installés :
 
 ```bash
 npm run dev -- --no-iot --no-ai --no-studio
@@ -100,8 +100,8 @@ flutter run -d emulator-5554
 lsof -nP -iTCP:3600 -sTCP:LISTEN
 kill -9 <PID>
 
-# Idem pour le frontend (port 3601)
-lsof -nP -iTCP:3601 -sTCP:LISTEN
+# Idem pour le frontend (port 3603)
+lsof -nP -iTCP:3603 -sTCP:LISTEN
 kill -9 <PID>
 ```
 

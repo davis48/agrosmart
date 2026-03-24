@@ -4,8 +4,8 @@
  *
  * Architecture :
  *   Backend  (Node/Express) → port 3600 (cluster mode)
- *   Frontend (Next.js)      → port 3601
- *   IoT      (Node/MQTT)    → port 4000 (optional - requires Redis + MQTT)
+ *   Frontend (Next.js)      → port 3603
+ *   IoT      (Node/MQTT)    → port 4000 (optional - requires MQTT)
  *   AI       (Python/Flask) → port 5001 (optional - requires TensorFlow)
  *
  * Usage :
@@ -53,7 +53,7 @@ module.exports = {
         {
             name: 'agrismart-frontend',
             script: 'node_modules/.bin/next',
-            args: 'start -p 3601',
+            args: 'start -p 3603',
             cwd: './frontend',
             instances: 1,              // Next.js gère sa propre concurrence
             exec_mode: 'fork',
@@ -61,7 +61,7 @@ module.exports = {
             max_memory_restart: '400M',
             env: {
                 NODE_ENV: 'production',
-                PORT: 3601
+                PORT: 3603
             },
             error_file: './logs/pm2/frontend-error.log',
             out_file: './logs/pm2/frontend-out.log',
@@ -72,7 +72,7 @@ module.exports = {
         },
 
         // =============================================
-        // IOT SERVICE - Node.js / MQTT / BullMQ
+        // IOT SERVICE - Node.js / MQTT
         // =============================================
         {
             name: 'agrismart-iot',
@@ -84,10 +84,7 @@ module.exports = {
             max_memory_restart: '200M',
             env: {
                 NODE_ENV: 'production',
-                PORT: 4000,
-                // Redis doit être installé localement si ce service est actif
-                REDIS_HOST: '127.0.0.1',
-                REDIS_PORT: 6379
+                PORT: 4000
             },
             error_file: './logs/pm2/iot-error.log',
             out_file: './logs/pm2/iot-out.log',

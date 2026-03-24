@@ -32,13 +32,6 @@ services:
       RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS}
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS}
       APP_VERSION: ${APP_VERSION}
-      # REDIS désactivé - rate limiting utilise la mémoire locale
-      # Pour activer Redis en production, voir docker-compose-redis.yml
-      # REDIS_ENABLED: ${REDIS_ENABLED}
-      # REDIS_HOST: ${REDIS_HOST}
-      # REDIS_PORT: ${REDIS_PORT}
-      # REDIS_PASSWORD: ${REDIS_PASSWORD}
-      # REDIS_TTL: ${REDIS_TTL}
       WEATHER_API_URL: ${WEATHER_API_URL}
       WEATHER_API_KEY: ${WEATHER_API_KEY}
       OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY}
@@ -85,7 +78,6 @@ services:
   #     - .env
   #   environment:
   #     <<: *backend-env
-  #     # REDIS_ENABLED: true  # Worker nécessite Redis - à décommenter si Redis est configuré
   #   extra_hosts:
   #     - "host.docker.internal:host-gateway"
   #   restart: unless-stopped

@@ -1,6 +1,5 @@
 require('dotenv').config();
 const mqtt = require('mqtt');
-const { Queue } = require('bullmq');
 const http = require('http');
 
 // ============================
@@ -8,16 +7,17 @@ const http = require('http');
 // ============================
 const PORT = process.env.PORT || 4000;
 let mqttConnected = false;
-let redisConnected = false;
+let messagesReceived = 0;
 
 const healthServer = http.createServer((req, res) => {
     if (req.url === '/health' && req.method === 'GET') {
-        const healthy = mqttConnected && redisConnected;
+        const healthy = mqttConnected;
         res.writeHead(healthy ? 200 : 503, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
             status: healthy ? 'healthy' : 'unhealthy',
             mqtt: mqttConnected ? 'connected' : 'disconnected',
-            redis: redisConnected ? 'connected' : 'disconnected',
+            queue: 'disabled',
+            messagesReceived,
             timestamp: new Date().toISOString()
         }));
     } else if (req.url === '/' && req.method === 'GET') {
@@ -36,46 +36,6 @@ const healthServer = http.createServer((req, res) => {
 healthServer.listen(PORT, () => {
     console.log(`[Health] HTTP server listening on port ${PORT}`);
 });
-
-// ============================
-// Configuration Redis pour BullMQ
-// ============================
-const connection = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || undefined,
-    // Required by BullMQ v5 to avoid unhandled promise rejections on timeout
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-};
-
-const sensorQueue = new Queue('sensor-data', {
-    connection,
-    // Don't crash the process on Redis connect failure
-    defaultJobOptions: { removeOnComplete: 100, removeOnFail: 50 },
-});
-
-// Track Redis connection errors
-sensorQueue.on('error', (err) => {
-    // Ignore ECONNREFUSED during retry cycle — it is expected when Redis is down
-    if (err.code !== 'ECONNREFUSED') {
-        console.error('[Redis] Queue error:', err.message);
-    }
-    redisConnected = false;
-});
-
-// Check Redis connection on startup using BullMQ v5 API
-(async () => {
-    try {
-        await sensorQueue.waitUntilReady();
-        redisConnected = true;
-        console.log('[Redis] Connected to Redis successfully');
-    } catch (err) {
-        console.error('[Redis] Connection failed (service will retry automatically):', err.message);
-        console.warn('[Redis] IoT service is running without Redis — sensor data will NOT be queued.');
-        redisConnected = false;
-    }
-})();
 
 // Configuration MQTT
 const MQTT_BROKER = process.env.MQTT_BROKER_URL || process.env.MQTT_BROKER || 'mqtt://test.mosquitto.org';
@@ -125,8 +85,9 @@ client.on('message', async (topic, message) => {
         const data = decodePayload(payload);
 
         if (data) {
-            // Push to Queue for async processing by Backend Worker
-            await enqueueMeasurement(deviceId, data);
+            messagesReceived += 1;
+            // Traitement local immédiat: le service reste autonome et observable.
+            processMeasurement(deviceId, data);
         }
     } catch (error) {
         console.error('Error processing message:', error);
@@ -142,23 +103,6 @@ function decodePayload(payload) {
     }
 }
 
-async function enqueueMeasurement(deviceCode, data) {
-    // Envoie { device_code, values, timestamp } dans la queue.
-    // Le worker backend (sensorWorker.js) est responsable du lookup UUID par device_code.
-    if (!redisConnected) {
-        console.warn(`[Queue] Redis indisponible — données du device "${deviceCode}" ignorées.`);
-        return;
-    }
-
-    try {
-        await sensorQueue.add('process-mqtt', {
-            device_code: deviceCode,
-            values: data,
-            timestamp: new Date(),
-        });
-        console.log(`[Queue] Enqueued data for device: ${deviceCode}`);
-    } catch (err) {
-        console.error(`[Queue] Failed to enqueue data for device "${deviceCode}":`, err.message);
-        redisConnected = false;
-    }
+function processMeasurement(deviceCode, data) {
+    console.log(`[IoT] Measurement received from ${deviceCode}: ${JSON.stringify(data)}`);
 }

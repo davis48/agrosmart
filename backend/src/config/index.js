@@ -14,7 +14,7 @@ const config = {
 
   // Serveur
   server: {
-    port: parseInt(process.env.PORT) || 8000,
+    port: parseInt(process.env.PORT || process.env.BACKEND_PORT) || 8000,
     apiVersion: process.env.API_VERSION || 'v1'
   },
 
@@ -124,16 +124,6 @@ const config = {
       warningHigh: 7.5,
       criticalHigh: 8.5
     }
-  },
-
-  // Redis configuration - DISABLED
-  // Redis was not being used effectively, all rate limiting uses in-memory store
-  redis: {
-    enabled: false // Hardcoded to false - DO NOT ENABLE
-    // host: process.env.REDIS_HOST || 'localhost',
-    // port: parseInt(process.env.REDIS_PORT) || 6379,
-    // password: process.env.REDIS_PASSWORD || undefined,
-    // ttl: parseInt(process.env.REDIS_TTL) || 3600,
   },
 
   // Dev mode configuration

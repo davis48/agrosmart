@@ -14,60 +14,18 @@
 
 const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
-// rate-limit-redis v4.x uses named export or default
-const { RedisStore } = require('rate-limit-redis');
-const Redis = require('ioredis');
 const config = require('../config');
 const logger = require('../utils/logger');
 
-// Client Redis pour le rate limiting (partagé)
-let redisClient = null;
-
 /**
- * Initialise le client Redis pour le rate limiting
- * @returns {Redis} Client Redis
- */
-const getRedisClient = () => {
-  if (!redisClient) {
-    redisClient = new Redis({
-      host: config.redis.host,
-      port: config.redis.port,
-      password: config.redis.password,
-      keyPrefix: 'rl:',
-      retryStrategy: (times) => Math.min(times * 50, 2000)
-    });
-    
-    redisClient.on('error', (err) => {
-      logger.error('Rate Limiter Redis Error:', err.message);
-    });
-  }
-  return redisClient;
-};
-
-/**
- * Crée un store Redis pour le rate limiting
+ * Mode mémoire uniquement pour le rate limiting.
+ * Store externe volontairement retiré du runtime backend.
  * @param {string} prefix - Préfixe pour les clés
- * @returns {RedisStore|undefined} Store Redis ou undefined (fallback mémoire)
+ * @returns {undefined}
  */
-const createRedisStore = (prefix) => {
-  // Skip Redis store creation if Redis is disabled
-  if (!config.redis.enabled) {
-    logger.info(`Redis disabled, using memory store for ${prefix}`);
-    return undefined;
-  }
-  
-  try {
-    const client = getRedisClient();
-    const store = new RedisStore({
-      sendCommand: (...args) => client.call(...args),
-      prefix: `rl:${prefix}:`
-    });
-    logger.info(`Redis store created for ${prefix}`);
-    return store;
-  } catch (error) {
-    logger.warn(`Redis store creation failed for ${prefix}, using memory store: ${error.message}`);
-    return undefined;
-  }
+const createLimiterStore = (prefix) => {
+  logger.debug(`Rate limiter '${prefix}' uses in-memory store`);
+  return undefined;
 };
 
 /**
@@ -113,7 +71,7 @@ const loginLimiter = rateLimit({
   message: 'Trop de tentatives de connexion. Réessayez dans 15 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('login'),
+  store: createLimiterStore('login'),
   validate: commonValidateOptions,
   keyGenerator: (req) => {
     // Utiliser seulement l'IP pour éviter le blocage par email
@@ -140,7 +98,7 @@ const registerLimiter = rateLimit({
   message: 'Trop de créations de compte. Réessayez dans 1 heure.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('register'),
+  store: createLimiterStore('register'),
   validate: commonValidateOptions,
   keyGenerator: (req) => getClientIp(req),
   skip: (req) => config.isTest || process.env.NODE_ENV === 'development',
@@ -160,7 +118,7 @@ const otpLimiter = rateLimit({
   message: 'Trop de demandes de code OTP. Réessayez dans 10 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('otp'),
+  store: createLimiterStore('otp'),
   validate: commonValidateOptions,
   keyGenerator: (req) => {
     const phone = req.body?.telephone || req.params?.telephone || 'unknown';
@@ -184,7 +142,7 @@ const otpVerifyLimiter = rateLimit({
   message: 'Trop de tentatives de vérification. Réessayez dans 5 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('otp-verify'),
+  store: createLimiterStore('otp-verify'),
   validate: commonValidateOptions,
   keyGenerator: (req) => {
     const phone = req.body?.telephone || 'unknown';
@@ -208,7 +166,7 @@ const uploadLimiter = rateLimit({
   message: 'Trop de fichiers téléchargés. Réessayez dans 1 heure.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('upload'),
+  store: createLimiterStore('upload'),
   validate: commonValidateOptions,
   keyGenerator: (req) => {
     const userId = req.user?.id || getClientIp(req);
@@ -231,7 +189,7 @@ const diagnosticLimiter = rateLimit({
   message: 'Trop de diagnostics demandés. Réessayez dans 1 heure.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('diagnostic'),
+  store: createLimiterStore('diagnostic'),
   validate: commonValidateOptions,
   keyGenerator: (req) => {
     const userId = req.user?.id || getClientIp(req);
@@ -254,7 +212,7 @@ const apiLimiter = rateLimit({
   message: 'Trop de requêtes. Veuillez patienter.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('api'),
+  store: createLimiterStore('api'),
   validate: commonValidateOptions,
   keyGenerator: (req) => getClientIp(req),
   skip: (req) => config.isTest,
@@ -274,7 +232,7 @@ const strictLimiter = rateLimit({
   message: 'Limite de requêtes atteinte pour cette ressource.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('strict'),
+  store: createLimiterStore('strict'),
   validate: commonValidateOptions,
   keyGenerator: (req) => {
     const userId = req.user?.id || getClientIp(req);
@@ -296,7 +254,7 @@ const passwordResetLimiter = rateLimit({
   message: 'Trop de demandes de réinitialisation. Réessayez dans 1 heure.',
   standardHeaders: true,
   legacyHeaders: false,
-  store: createRedisStore('pwd-reset'),
+  store: createLimiterStore('pwd-reset'),
   validate: commonValidateOptions,
   keyGenerator: (req) => {
     const email = req.body?.email || 'unknown';
@@ -318,6 +276,5 @@ module.exports = {
   diagnosticLimiter,
   apiLimiter,
   strictLimiter,
-  passwordResetLimiter,
-  getRedisClient
+  passwordResetLimiter
 };

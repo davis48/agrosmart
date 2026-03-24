@@ -23,12 +23,11 @@ la production agricole.
 
 ```text
 Nginx (80/443)
-  +-- Frontend Next.js :3601
+  +-- Frontend Next.js :3603
   +-- Backend Node.js  :3600
   +-- AI Service Flask :5001 (optionnel)
   +-- IoT Service      :4000 (optionnel)
   +-- MySQL 8.x (Hostinger distant)
-  +-- Redis (optionnel, cache memoire par defaut)
 ```
 
 Deploiement : **PM2** gere les processus, **Nginx** en reverse proxy.
@@ -86,14 +85,13 @@ Variables essentielles backend :
 
 - `DATABASE_URL` : connexion MySQL
 - `JWT_SECRET` / `JWT_REFRESH_SECRET` : secrets JWT
-- `REDIS_ENABLED` : false pour desactiver Redis
 - `ALLOWED_ORIGINS` : origins CORS
 - `PORT` : 3600
 
 ## Utilisation
 
 - Backend : `cd backend && npm run dev` (port 3600)
-- Frontend : `cd frontend && npm run dev` (port 3601)
+- Frontend : `cd frontend && npm run dev` (port 3603)
 - Mobile : `cd mobile && flutter run`
 - API Docs : `http://localhost:3600/api/docs`
 - Health : `http://localhost:3600/health`

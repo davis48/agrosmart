@@ -11,6 +11,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const http = require('http');
+const path = require('path');
 
 const config = require('./config');
 const { closePool } = require('./config/database');
@@ -165,7 +166,7 @@ const startServer = async () => {
     if (worker) {
       logger.info('Worker IoT initialisé');
     } else {
-      logger.info('Worker IoT désactivé (Redis désactivé)');
+      logger.info('Worker IoT externe désactivé (mode synchrone)');
     }
 
     server.listen(config.server.port, '0.0.0.0', () => {

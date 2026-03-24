@@ -21,7 +21,7 @@ const DIM = '\x1b[2m';
 
 const SERVICES = [
   { name: 'Backend',  url: 'http://localhost:3600/health', required: true },
-  { name: 'Frontend', url: 'http://localhost:3601',        required: true },
+  { name: 'Frontend', url: 'http://localhost:3603',        required: true },
   { name: 'IoT',      url: 'http://localhost:4000/health', required: false },
   { name: 'AI',       url: 'http://localhost:5001/health', required: false },
 ];

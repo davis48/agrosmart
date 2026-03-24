@@ -1,27 +1,15 @@
 /**
- * Worker pour le traitement des mesures IoT
- * REDIS DISABLED - BullMQ is not used
- * This just provides the processMeasure function for sync/fallback processing
+ * Traitement des mesures IoT
+ * Fournit la fonction processMeasure pour un traitement synchrone.
  */
-// const { Worker } = require('bullmq'); // REDIS DISABLED
 const prisma = require('../config/prisma');
 const logger = require('../utils/logger');
 const alertesService = require('../services/alertesService');
 const parcelleHealthService = require('../services/parcelleHealthService');
-const config = require('../config');
-
-// REDIS CONFIGURATION - DISABLED
-// const connection = {
-//     host: config.redis.host,
-//     port: config.redis.port,
-//     password: config.redis.password
-// };
-
-let worker;
 
 /**
  * Traiter un job de mesure
- * @param {Object} job Job BullMQ
+ * @param {Object} job Job local
  */
 const processMeasure = async (job) => {
     // Support both direct ID (HTTP) and device_code (MQTT)
@@ -168,28 +156,11 @@ const processMeasure = async (job) => {
 
 /**
  * Initialiser le worker
+ * Le mode file externe est retiré: retourne null.
  */
 const initWorker = () => {
-    if (!config.redis.enabled) {
-        logger.info('Redis désactivé: worker IoT non démarré (mode synchrone).');
-        return null;
-    }
-
-    worker = new Worker('sensor-data', processMeasure, {
-        connection,
-        concurrency: 5
-    });
-
-    worker.on('completed', (job) => {
-        // logger.debug(`Job ${job.id} terminé`);
-    });
-
-    worker.on('failed', (job, err) => {
-        logger.error(`Job ${job.id} a échoué après ${job.attemptsMade} tentatives`, { error: err.message });
-    });
-
-    logger.info('Worker IoT démarré et en écoute de "sensor-data"');
-    return worker;
+    logger.info('Worker IoT externe désactivé: mode synchrone actif.');
+    return null;
 };
 
 module.exports = { initWorker, processMeasure };

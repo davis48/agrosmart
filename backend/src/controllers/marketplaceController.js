@@ -604,7 +604,7 @@ exports.cancelCommande = async (req, res, next) => {
       });
     });
 
-    // Invalidate cache (non-blocking, don't fail if Redis is down)
+    // Invalidation cache non bloquante
     try {
       const cache = require('../utils/cache');
       await cache.clearPattern('marketplace:products:*');

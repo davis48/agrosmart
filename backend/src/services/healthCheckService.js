@@ -1,53 +1,30 @@
 /**
  * Service de Health Checks Avancés
  * AgroSmart - Backend
- * 
- * Endpoints de monitoring pour vérifier la santé de tous les services:
- * - Base de données MySQL
- * - Cache Redis
- * - Service IA (Python)
- * - Service IoT (MQTT)
- * - Services externes (API météo, Firebase)
- * 
- * Métriques collectées:
- * - Temps de réponse
- * - Utilisation mémoire
- * - Charge CPU
- * - État des connexions
  */
 
 const os = require('os');
 const logger = require('../utils/logger');
 
-/**
- * Configuration des seuils d'alerte
- */
 const HEALTH_THRESHOLDS = {
   database: {
-    responseTimeMs: 500,      // Max 500ms pour une requête DB
-    connectionPool: 80        // Max 80% du pool utilisé
-  },
-  redis: {
-    responseTimeMs: 100,      // Max 100ms pour Redis
-    memoryUsagePercent: 80    // Max 80% mémoire Redis
+    responseTimeMs: 500,
+    connectionPool: 80
   },
   memory: {
-    usagePercent: 85          // Max 85% mémoire système
+    usagePercent: 85
   },
   cpu: {
-    loadAverage: 80           // Max 80% charge CPU moyenne
+    loadAverage: 80
   },
   aiService: {
-    responseTimeMs: 5000      // Max 5s pour le service IA
+    responseTimeMs: 5000
   },
   iotService: {
-    responseTimeMs: 2000      // Max 2s pour le service IoT
+    responseTimeMs: 2000
   }
 };
 
-/**
- * État possible d'un service
- */
 const HealthStatus = {
   HEALTHY: 'healthy',
   DEGRADED: 'degraded',
@@ -55,60 +32,38 @@ const HealthStatus = {
   UNKNOWN: 'unknown'
 };
 
-/**
- * Classe principale de Health Check
- */
 class HealthCheckService {
-  constructor(prisma, redis) {
+  constructor(prisma) {
     this.prisma = prisma;
-    this.redis = redis;
     this.startTime = Date.now();
   }
 
-  /**
-   * Health check complet - tous les services
-   * REDIS CHECK DISABLED - Redis is not used in this application
-   */
   async getFullHealth() {
     const checks = await Promise.allSettled([
       this.checkDatabase(),
-      // REDIS DISABLED: this.checkRedis(),
       this.checkAIService(),
       this.checkIoTService(),
       this.checkExternalServices(),
       this.getSystemMetrics()
     ]);
 
-    const [database, aiService, iotService, external, system] = checks.map(
-      (result, index) => {
-        if (result.status === 'fulfilled') {
-          return result.value;
-        }
-        logger.error(`Health check ${index} failed`, { error: result.reason });
-        return {
-          status: HealthStatus.UNHEALTHY,
-          error: result.reason?.message || 'Check failed'
-        };
+    const [database, aiService, iotService, external, system] = checks.map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value;
       }
-    );
+      logger.error(`Health check ${index} failed`, { error: result.reason });
+      return {
+        status: HealthStatus.UNHEALTHY,
+        error: result.reason?.message || 'Check failed'
+      };
+    });
 
-    // Redis check is disabled
-    const redis = {
-      status: HealthStatus.HEALTHY,
-      message: 'Redis is disabled (not required)'
-    };
-
-    // Déterminer le statut global
-    const allStatuses = [
-      database.status,
-      aiService.status,
-      iotService.status
-    ];
+    const allStatuses = [database.status, aiService.status, iotService.status];
 
     let overallStatus = HealthStatus.HEALTHY;
-    if (allStatuses.some(s => s === HealthStatus.UNHEALTHY)) {
+    if (allStatuses.some((s) => s === HealthStatus.UNHEALTHY)) {
       overallStatus = HealthStatus.UNHEALTHY;
-    } else if (allStatuses.some(s => s === HealthStatus.DEGRADED)) {
+    } else if (allStatuses.some((s) => s === HealthStatus.DEGRADED)) {
       overallStatus = HealthStatus.DEGRADED;
     }
 
@@ -120,7 +75,6 @@ class HealthCheckService {
       environment: process.env.NODE_ENV || 'development',
       services: {
         database,
-        redis,
         aiService,
         iotService,
         external
@@ -128,7 +82,6 @@ class HealthCheckService {
       system
     };
 
-    // Logger si unhealthy
     if (overallStatus === HealthStatus.UNHEALTHY) {
       logger.security('[HealthCheck] System unhealthy', healthReport);
     }
@@ -136,12 +89,8 @@ class HealthCheckService {
     return healthReport;
   }
 
-  /**
-   * Health check rapide - pour load balancers
-   */
   async getLivenessCheck() {
     try {
-      // Vérifier juste que le process répond
       return {
         status: HealthStatus.HEALTHY,
         timestamp: new Date().toISOString(),
@@ -155,18 +104,11 @@ class HealthCheckService {
     }
   }
 
-  /**
-   * Readiness check - prêt à recevoir du trafic
-   */
   async getReadinessCheck() {
     try {
-      // Vérifier DB et Redis sont connectés
-      const [dbOk, redisOk] = await Promise.all([
-        this.isDatabaseReady(),
-        this.isRedisReady()
-      ]);
+      const dbOk = await this.isDatabaseReady();
 
-      if (dbOk && redisOk) {
+      if (dbOk) {
         return {
           status: HealthStatus.HEALTHY,
           timestamp: new Date().toISOString(),
@@ -179,8 +121,7 @@ class HealthCheckService {
         timestamp: new Date().toISOString(),
         ready: false,
         details: {
-          database: dbOk,
-          redis: redisOk
+          database: dbOk
         }
       };
     } catch (error) {
@@ -192,26 +133,20 @@ class HealthCheckService {
     }
   }
 
-  /**
-   * Vérifier la base de données
-   */
   async checkDatabase() {
     const start = Date.now();
-    
+
     try {
-      // Query simple pour tester la connexion
       await this.prisma.$queryRaw`SELECT 1`;
       const responseTime = Date.now() - start;
 
-      // Récupérer les métriques de connexion
       const metrics = await this.prisma.$queryRaw`
         SHOW STATUS LIKE 'Threads_connected'
       `;
-      const connectionCount = parseInt(metrics[0]?.Value || 0);
+      const connectionCount = parseInt(metrics[0]?.Value || 0, 10);
 
-      // Vérifier la taille de la DB
       const dbSize = await this.prisma.$queryRaw`
-        SELECT 
+        SELECT
           table_schema as 'database',
           ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) as 'size_mb'
         FROM information_schema.tables
@@ -244,64 +179,10 @@ class HealthCheckService {
     }
   }
 
-  /**
-   * Vérifier Redis
-   */
-  async checkRedis() {
-    const start = Date.now();
-    
-    try {
-      if (!this.redis) {
-        return {
-          status: HealthStatus.UNKNOWN,
-          message: 'Redis not configured'
-        };
-      }
-
-      // Test ping
-      const pingResult = await this.redis.ping();
-      const responseTime = Date.now() - start;
-
-      // Récupérer les infos Redis
-      const info = await this.redis.info('memory');
-      const memoryMatch = info.match(/used_memory_human:(\S+)/);
-      const memoryUsed = memoryMatch ? memoryMatch[1] : 'unknown';
-
-      const maxMemoryMatch = info.match(/maxmemory_human:(\S+)/);
-      const maxMemory = maxMemoryMatch ? maxMemoryMatch[1] : 'unlimited';
-
-      // Stats clés
-      const keyCount = await this.redis.dbsize();
-
-      const status = responseTime > HEALTH_THRESHOLDS.redis.responseTimeMs
-        ? HealthStatus.DEGRADED
-        : HealthStatus.HEALTHY;
-
-      return {
-        status,
-        responseTimeMs: responseTime,
-        memoryUsed,
-        maxMemory,
-        keyCount,
-        pingResult
-      };
-    } catch (error) {
-      logger.error('[HealthCheck] Redis check failed', { error: error.message });
-      return {
-        status: HealthStatus.UNHEALTHY,
-        error: error.message,
-        responseTimeMs: Date.now() - start
-      };
-    }
-  }
-
-  /**
-   * Vérifier le service IA (Python)
-   */
   async checkAIService() {
     const start = Date.now();
     const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://ai_service:5002';
-    
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
@@ -338,13 +219,10 @@ class HealthCheckService {
     }
   }
 
-  /**
-   * Vérifier le service IoT (MQTT)
-   */
   async checkIoTService() {
     const start = Date.now();
     const iotServiceUrl = process.env.IOT_SERVICE_URL || 'http://iot_service:3004';
-    
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
@@ -381,13 +259,9 @@ class HealthCheckService {
     }
   }
 
-  /**
-   * Vérifier les services externes
-   */
   async checkExternalServices() {
     const results = {};
 
-    // Vérifier API météo
     try {
       const weatherApiKey = process.env.OPENWEATHER_API_KEY;
       if (weatherApiKey) {
@@ -407,9 +281,7 @@ class HealthCheckService {
       results.weatherApi = { status: HealthStatus.UNHEALTHY, error: error.message };
     }
 
-    // Vérifier Firebase
     try {
-      // Juste vérifier que les credentials existent
       const firebaseConfigured = !!(
         process.env.FIREBASE_PROJECT_ID &&
         process.env.FIREBASE_PRIVATE_KEY
@@ -425,9 +297,6 @@ class HealthCheckService {
     return results;
   }
 
-  /**
-   * Métriques système
-   */
   getSystemMetrics() {
     const totalMemory = os.totalmem();
     const freeMemory = os.freemem();
@@ -438,7 +307,6 @@ class HealthCheckService {
     const loadAvg = os.loadavg();
     const cpuUsage = process.cpuUsage();
 
-    // Status basé sur la mémoire
     let status = HealthStatus.HEALTHY;
     if (memoryUsagePercent > HEALTH_THRESHOLDS.memory.usagePercent) {
       status = HealthStatus.DEGRADED;
@@ -479,9 +347,6 @@ class HealthCheckService {
     };
   }
 
-  /**
-   * Uptime formaté
-   */
   getUptime() {
     const uptimeMs = Date.now() - this.startTime;
     const seconds = Math.floor(uptimeMs / 1000);
@@ -495,9 +360,6 @@ class HealthCheckService {
     return `${seconds}s`;
   }
 
-  /**
-   * Formater les bytes
-   */
   formatBytes(bytes) {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
     let unitIndex = 0;
@@ -505,15 +367,12 @@ class HealthCheckService {
 
     while (value >= 1024 && unitIndex < units.length - 1) {
       value /= 1024;
-      unitIndex++;
+      unitIndex += 1;
     }
 
     return `${value.toFixed(2)} ${units[unitIndex]}`;
   }
 
-  /**
-   * Check rapide DB ready
-   */
   async isDatabaseReady() {
     try {
       await this.prisma.$queryRaw`SELECT 1`;
@@ -522,31 +381,13 @@ class HealthCheckService {
       return false;
     }
   }
-
-  /**
-   * Check rapide Redis ready
-   */
-  async isRedisReady() {
-    try {
-      if (!this.redis) return true; // Redis optionnel
-      await this.redis.ping();
-      return true;
-    } catch {
-      return false;
-    }
-  }
 }
 
-/**
- * Routes Express pour les health checks
- */
 function setupHealthRoutes(app, healthService) {
-  // Health check complet
   app.get('/health', async (req, res) => {
     try {
       const health = await healthService.getFullHealth();
-      const statusCode = health.status === HealthStatus.HEALTHY ? 200 : 
-                         health.status === HealthStatus.DEGRADED ? 200 : 503;
+      const statusCode = health.status === HealthStatus.UNHEALTHY ? 503 : 200;
       res.status(statusCode).json(health);
     } catch (error) {
       logger.error('[HealthCheck] Error in /health', { error: error.message });
@@ -557,27 +398,23 @@ function setupHealthRoutes(app, healthService) {
     }
   });
 
-  // Liveness probe (Kubernetes)
   app.get('/health/live', async (req, res) => {
     const result = await healthService.getLivenessCheck();
     const statusCode = result.status === HealthStatus.HEALTHY ? 200 : 503;
     res.status(statusCode).json(result);
   });
 
-  // Readiness probe (Kubernetes)
   app.get('/health/ready', async (req, res) => {
     const result = await healthService.getReadinessCheck();
     const statusCode = result.ready ? 200 : 503;
     res.status(statusCode).json(result);
   });
 
-  // Métriques système uniquement
   app.get('/health/metrics', async (req, res) => {
     const metrics = healthService.getSystemMetrics();
     res.json(metrics);
   });
 
-  // Métriques Prometheus (format texte)
   app.get('/metrics', async (req, res) => {
     try {
       const health = await healthService.getFullHealth();
@@ -590,9 +427,6 @@ function setupHealthRoutes(app, healthService) {
   });
 }
 
-/**
- * Générer les métriques au format Prometheus
- */
 function generatePrometheusMetrics(health) {
   const lines = [
     '# HELP agrismart_up Application status (1 = up, 0 = down)',
@@ -606,14 +440,6 @@ function generatePrometheusMetrics(health) {
     '# HELP agrismart_database_connections Number of database connections',
     '# TYPE agrismart_database_connections gauge',
     `agrismart_database_connections ${health.services.database.connections || 0}`,
-    '',
-    '# HELP agrismart_redis_response_time_ms Redis response time in milliseconds',
-    '# TYPE agrismart_redis_response_time_ms gauge',
-    `agrismart_redis_response_time_ms ${health.services.redis.responseTimeMs || 0}`,
-    '',
-    '# HELP agrismart_redis_keys Number of keys in Redis',
-    '# TYPE agrismart_redis_keys gauge',
-    `agrismart_redis_keys ${health.services.redis.keyCount || 0}`,
     '',
     '# HELP agrismart_memory_usage_percent System memory usage percentage',
     '# TYPE agrismart_memory_usage_percent gauge',
