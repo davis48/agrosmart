@@ -10,6 +10,7 @@
     "db:migrate:dev": "npx prisma migrate dev",
     "db:seed": "node scripts/seed.js",
     "seed": "npm run db:seed",
+    "post:deploy:oneshot": "bash scripts/post_deploy_oneshot.sh",
     "db:reset": "npx prisma migrate reset --force",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio",
