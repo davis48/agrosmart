@@ -7,6 +7,7 @@
 
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const crypto = require('crypto');
 
 // Load env
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
@@ -16,20 +17,22 @@ const prisma = require('../src/config/prisma');
 async function createAdmin() {
   console.log('🔐 Création du compte administrateur AgroSmart...\n');
 
+  const generatedPassword = crypto.randomBytes(12).toString('base64url') + '9!aA';
+
   // ⚠️ SÉCURITÉ: Le mot de passe par défaut est utilisé UNIQUEMENT en développement
   // En production, définir ADMIN_PASSWORD dans .env
   const adminData = {
     telephone: process.env.ADMIN_TELEPHONE || '+2250100000000',
     email: process.env.ADMIN_EMAIL || 'admin@agrosmart.ci',
-    password: process.env.ADMIN_PASSWORD || 'ChangeMe@2024!',
+    password: process.env.ADMIN_PASSWORD || generatedPassword,
     nom: 'Administrateur',
     prenoms: 'AgroSmart',
     role: 'ADMIN',
   };
 
   if (!process.env.ADMIN_PASSWORD) {
-    console.warn('⚠️  ATTENTION: Utilisation du mot de passe par défaut (DEV uniquement)');
-    console.warn('   En production, définissez ADMIN_PASSWORD dans .env!');
+    console.warn('⚠️  ADMIN_PASSWORD absent: mot de passe temporaire généré automatiquement.');
+    console.warn('   Définissez ADMIN_PASSWORD dans .env pour un mot de passe déterministe.');
   }
 
   try {

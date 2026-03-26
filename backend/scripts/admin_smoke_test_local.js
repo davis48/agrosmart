@@ -2,8 +2,8 @@
 
 const base = 'http://localhost:3600/api/v1';
 const frontendBase = 'http://localhost:3603';
-const adminIdentifier = process.env.ADMIN_SMOKE_IDENTIFIER || 'admin@agrosmart.ci';
-const adminPassword = process.env.ADMIN_SMOKE_PASSWORD || 'ChangeMe@2024!';
+const adminIdentifier = process.env.ADMIN_SMOKE_IDENTIFIER || process.env.ADMIN_EMAIL || process.env.ADMIN_TELEPHONE || '';
+const adminPassword = process.env.ADMIN_SMOKE_PASSWORD || process.env.ADMIN_PASSWORD || '';
 
 async function req(path, opts = {}) {
   const res = await fetch(base + path, opts);
@@ -19,6 +19,12 @@ async function req(path, opts = {}) {
 (async () => {
   const results = [];
   const push = (name, ok, detail) => results.push({ name, ok, detail });
+
+  if (!adminIdentifier || !adminPassword) {
+    push('LOGIN admin', false, 'Set ADMIN_SMOKE_IDENTIFIER and ADMIN_SMOKE_PASSWORD (or ADMIN_PASSWORD) before running.');
+    console.table(results);
+    process.exit(1);
+  }
 
   const login = await req('/auth/login', {
     method: 'POST',

@@ -9,6 +9,7 @@
 
 const axios = require('axios');
 const path = require('path');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 
@@ -19,16 +20,26 @@ const adminIdentifier =
   process.env.ADMIN_SMOKE_IDENTIFIER ||
   process.env.ADMIN_EMAIL ||
   process.env.ADMIN_TELEPHONE ||
-  'admin@agrosmart.ci';
+  null;
 const adminPassword =
   process.env.ADMIN_SMOKE_PASSWORD ||
   process.env.ADMIN_PASSWORD ||
-  'ChangeMe@2024!';
+  null;
 
 function randomDigits(size) {
   const min = 10 ** (size - 1);
   const max = 10 ** size - 1;
   return String(Math.floor(Math.random() * (max - min + 1)) + min);
+}
+
+function generateTempPassword() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  const raw = crypto.randomBytes(16);
+  let generated = '';
+  for (let i = 0; i < raw.length; i += 1) {
+    generated += alphabet[raw[i] % alphabet.length];
+  }
+  return `${generated}9!aA`;
 }
 
 async function run() {
@@ -44,6 +55,9 @@ async function run() {
   try {
     let token = null;
     try {
+      if (!adminIdentifier || !adminPassword) {
+        throw new Error('admin smoke credentials not set');
+      }
       const login = await client.post('/auth/login', {
         identifier: adminIdentifier,
         password: adminPassword,
@@ -79,7 +93,7 @@ async function run() {
     const ts = Date.now();
     const tempPhone = `+22507${randomDigits(8)}`;
     const tempEmail = `temp.prod.${ts}@agrosmart.ci`;
-    const tempPassword = `TmpProd!${randomDigits(4)}Aa`;
+    const tempPassword = generateTempPassword();
 
     // 1) Gestion utilisateurs
     const created = await auth.post('/users', {
