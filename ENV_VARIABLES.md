@@ -2,7 +2,6 @@
 
 > Ce fichier liste **toutes** les variables d'environnement à configurer pour le déploiement.
 > Ne contient **aucune donnée sensible** — il est sûr de le commiter sur Git.
->
 > ⚠️ Les vraies valeurs doivent être mises uniquement dans les fichiers `.env` sur le serveur
 > (ces fichiers sont dans `.gitignore` et ne seront jamais poussés sur GitHub).
 
@@ -33,14 +32,14 @@ nano backend/.env
 | `ALLOWED_ORIGINS` | URLs autorisées CORS | `http://VOTRE_IP,https://votre-domaine.com` |
 | `CORS_ORIGIN` | Pareil que ALLOWED_ORIGINS | `http://VOTRE_IP,https://votre-domaine.com` |
 
-> **Générer des secrets JWT forts** :
-> ```bash
-> node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-> ```
-> Exécuter 2 fois pour obtenir `JWT_SECRET` et `JWT_REFRESH_SECRET`.
+**Générer des secrets JWT forts** :
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+Exécuter 2 fois pour obtenir `JWT_SECRET` et `JWT_REFRESH_SECRET`.
 
-> **DATABASE_URL** : Si le mot de passe contient `+`, encoder en `%2B` :
-> `mysql://<user>:<mot%2Bde%2Bpasse>@<host>:3306/<db_name>`
+**DATABASE_URL** : Si le mot de passe contient `+`, encoder en `%2B` :
+`mysql://<user>:<mot%2Bde%2Bpasse>@<host>:3306/<db_name>`
 
 ### 🟡 Variables RECOMMANDÉES
 

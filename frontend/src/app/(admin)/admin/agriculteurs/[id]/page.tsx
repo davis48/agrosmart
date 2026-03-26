@@ -148,8 +148,9 @@ export default function AgriculteurDetailPage() {
 
   const handleStatusChange = async (newStatus: string) => {
     try {
-      await api.patch(`/users/${agriculteurId}`, { status: newStatus })
-      setAgriculteur(prev => prev ? { ...prev, status: newStatus } : null)
+      const normalizedStatus = newStatus.toUpperCase()
+      await api.put(`/users/${agriculteurId}/status`, { status: normalizedStatus })
+      setAgriculteur(prev => prev ? { ...prev, status: normalizedStatus } : null)
       toast.success(`Statut mis à jour: ${newStatus}`)
     } catch {
       toast.error('Erreur lors de la mise à jour du statut')
@@ -159,12 +160,15 @@ export default function AgriculteurDetailPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'actif':
+      case 'ACTIF':
       case 'active':
         return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Actif</Badge>
       case 'inactif':
+      case 'INACTIF':
       case 'inactive':
         return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Inactif</Badge>
       case 'suspendu':
+      case 'SUSPENDU':
         return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">Suspendu</Badge>
       default:
         return <Badge>{status}</Badge>

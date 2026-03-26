@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 // Read port from env or default to 3600
 const API_PORT = process.env.PORT || 3600;
 const API_URL = `http://localhost:${API_PORT}/api/v1`; // Note: check prefix in server.js

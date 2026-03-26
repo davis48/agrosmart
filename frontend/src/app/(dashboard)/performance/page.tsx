@@ -397,7 +397,7 @@ export default function PerformancePage() {
               <Skeleton className="h-75 w-full" />
             ) : (
               <div className="h-75">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                   <AreaChart data={moisComparaison}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                     <XAxis dataKey="mois" stroke="#6B7280" fontSize={12} />
@@ -451,7 +451,7 @@ export default function PerformancePage() {
               <Skeleton className="h-75 w-full" />
             ) : (
               <div className="h-75">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                   <RadarChart data={radarData}>
                     <PolarGrid stroke="#E5E7EB" />
                     <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
@@ -507,7 +507,7 @@ export default function PerformancePage() {
             <Skeleton className="h-75 w-full" />
           ) : (
             <div className="h-75">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                 <LineChart data={productionTrends}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis dataKey="mois" stroke="#6B7280" fontSize={12} />

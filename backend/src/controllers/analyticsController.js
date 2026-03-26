@@ -542,18 +542,30 @@ exports.getSeasonalComparison = async (req, res) => {
 exports.exportAnalytics = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { format = 'csv', type = 'all' } = req.query;
+        const { format = 'csv', type = 'all', types } = req.query;
+
+        const requestedTypes = new Set(
+            String(types || '')
+                .split(',')
+                .map((t) => t.trim().toLowerCase())
+                .filter(Boolean)
+        );
+
+        const wants = (name) => {
+            if (type === 'all') return true;
+            if (String(type).toLowerCase() === name) return true;
+            return requestedTypes.has(name);
+        };
 
         const data = {};
 
-        if (type === 'all' || type === 'parcelles') {
+        if (wants('parcelles') || requestedTypes.has('users')) {
             data.parcelles = await prisma.parcelle.findMany({
-                where: { userId, isActive: true },
-                include: { cultures: { select: { nom: true } } }
+                where: { userId, isActive: true }
             });
         }
 
-        if (type === 'all' || type === 'rendements') {
+        if (wants('rendements') || requestedTypes.has('productions')) {
             data.rendements = await prisma.rendementParCulture.findMany({
                 where: { parcelle: { userId } },
                 include: { culture: { select: { nom: true } }, parcelle: { select: { nom: true } } },
@@ -561,7 +573,7 @@ exports.exportAnalytics = async (req, res) => {
             });
         }
 
-        if (type === 'all' || type === 'mesures') {
+        if (wants('mesures')) {
             data.mesures = await prisma.mesure.findMany({
                 where: { capteur: { parcelle: { userId } } },
                 include: { capteur: { select: { nom: true, type: true } } },
@@ -570,7 +582,7 @@ exports.exportAnalytics = async (req, res) => {
             });
         }
 
-        if (type === 'all' || type === 'alertes') {
+        if (wants('alertes')) {
             data.alertes = await prisma.alerte.findMany({
                 where: { userId },
                 orderBy: { createdAt: 'desc' },

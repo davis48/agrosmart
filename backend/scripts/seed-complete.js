@@ -9,7 +9,7 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 
 // Données réalistes pour la Côte d'Ivoire
 const REGIONS_CI = [

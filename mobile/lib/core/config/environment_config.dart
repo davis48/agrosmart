@@ -9,10 +9,30 @@ enum Environment { development, staging, production }
 class EnvironmentConfig {
   static Environment _currentEnvironment = Environment.development;
 
+  static const String _appEnv = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: 'development',
+  );
+
   static Environment get currentEnvironment => _currentEnvironment;
 
   static void setEnvironment(Environment env) {
     _currentEnvironment = env;
+  }
+
+  static void initFromDartDefine() {
+    switch (_appEnv.toLowerCase()) {
+      case 'production':
+      case 'prod':
+        _currentEnvironment = Environment.production;
+        break;
+      case 'staging':
+      case 'stage':
+        _currentEnvironment = Environment.staging;
+        break;
+      default:
+        _currentEnvironment = Environment.development;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -43,7 +63,7 @@ class EnvironmentConfig {
       case Environment.staging:
         return 'https://staging-api.agrosmart.ci/api/v1';
       case Environment.production:
-        return 'https://api.agrosmart.ci/api/v1';
+        return 'https://api.agrosmart.voisilab.online/api/v1';
     }
   }
 
@@ -55,7 +75,19 @@ class EnvironmentConfig {
       case Environment.staging:
         return 'wss://staging-api.agrosmart.ci';
       case Environment.production:
-        return 'wss://api.agrosmart.ci';
+        return 'wss://api.agrosmart.voisilab.online';
+    }
+  }
+
+  /// Base backend origin without API version path, used for static assets URLs.
+  static String get backendOrigin {
+    switch (_currentEnvironment) {
+      case Environment.development:
+        return 'http://$_devHost:$_devPort';
+      case Environment.staging:
+        return 'https://staging-api.agrosmart.ci';
+      case Environment.production:
+        return 'https://api.agrosmart.voisilab.online';
     }
   }
 

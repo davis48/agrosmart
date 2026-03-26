@@ -38,14 +38,54 @@ app.use(helmet({
 
 /**
  * Configuration CORS
- * - Dev : Autorise toutes les origines
- * - Prod : Whitelist stricte via ALLOWED_ORIGINS
+ * - Utilise CORS_ORIGIN et/ou ALLOWED_ORIGINS (CSV)
+ * - En dev: autorise tout
+ * - En prod sans whitelist: fallback localhost pour éviter de bloquer le front local
  */
+const parseCsvOrigins = (value) => (value || '')
+  .split(',')
+  .map((v) => v.trim())
+  .filter(Boolean);
+
+const configuredOrigins = [
+  ...parseCsvOrigins(process.env.CORS_ORIGIN),
+  ...parseCsvOrigins(process.env.ALLOWED_ORIGINS)
+];
+
+const localhostFallbackOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3601',
+  'http://localhost:3603',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3601',
+  'http://127.0.0.1:3603'
+];
+
+const allowLocalhostCors = process.env.ALLOW_LOCALHOST_CORS !== 'false';
+
+const strictConfiguredOrigins = configuredOrigins.length > 0 ? configuredOrigins : [];
+const prodOrigins = [
+  ...strictConfiguredOrigins,
+  ...(allowLocalhostCors ? localhostFallbackOrigins : [])
+];
+
 const allowedOrigins = config.isProd
-  ? (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)
+  ? [...new Set(prodOrigins)]
   : '*';
 
-app.use(cors({
+if (config.isProd && configuredOrigins.length === 0 && allowLocalhostCors) {
+  logger.warn('CORS: aucune whitelist configurée (CORS_ORIGIN/ALLOWED_ORIGINS). Fallback localhost actif.');
+}
+
+if (config.isProd && configuredOrigins.length === 0 && !allowLocalhostCors) {
+  logger.warn('CORS: aucune whitelist configurée et ALLOW_LOCALHOST_CORS=false. Toutes les origines seront bloquées.');
+}
+
+if (config.isProd && allowLocalhostCors) {
+  logger.warn('CORS: ALLOW_LOCALHOST_CORS actif. Les origines localhost sont autorisées en plus de la whitelist.');
+}
+
+const corsOptions = {
   origin: (origin, callback) => {
     if (!config.isProd || allowedOrigins === '*') {
       return callback(null, true);
@@ -57,12 +97,15 @@ app.use(cors({
       return callback(null, true);
     }
     logger.warn(`CORS: Origine non autorisée bloquée: ${origin}`);
-    callback(new Error('Not allowed by CORS'));
+    return callback(new Error('Not allowed by CORS'));
   },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 // Rate limiting global (désactivé en mode test)
 if (process.env.NODE_ENV !== 'test') {
@@ -156,7 +199,14 @@ app.set('emitMeasurement', (parcelleId, measurement) => {
 // DÉMARRAGE DU SERVEUR
 // =====================================================
 
+let __serverBootstrapped = false;
+
 const startServer = async () => {
+  if (__serverBootstrapped) {
+    return;
+  }
+  __serverBootstrapped = true;
+
   try {
     await prisma.$connect();
     logger.info('Prisma connected to MySQL successfully');
@@ -208,7 +258,9 @@ process.on('unhandledRejection', (reason) => {
   logger.error('Promesse rejetée non gérée', { reason });
 });
 
-if (require.main === module) {
+// Démarrer automatiquement le serveur dans tous les environnements hors test.
+// Démarrage idempotent via garde __serverBootstrapped.
+if (!config.isTest && process.env.START_SERVER !== 'false') {
   startServer();
 }
 

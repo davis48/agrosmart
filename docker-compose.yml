@@ -7,7 +7,7 @@ services:
     container_name: agrosmart-backend
     env_file:
       - .env
-    environment: &backend-env
+    environment:
       NODE_ENV: production
       PORT: ${BACKEND_PORT}
       DATABASE_URL: ${DATABASE_URL}
@@ -26,6 +26,7 @@ services:
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       CORS_ORIGIN: ${CORS_ORIGIN}
+      ALLOW_LOCALHOST_CORS: ${ALLOW_LOCALHOST_CORS}
       LOG_LEVEL: ${LOG_LEVEL}
       LOG_DIR: ${LOG_DIR}
       LOG_FILE: ${LOG_FILE}

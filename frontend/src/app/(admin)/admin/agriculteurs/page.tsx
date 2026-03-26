@@ -101,13 +101,14 @@ export default function AgriculteursPage() {
       a.telephone.includes(searchQuery) ||
       a.email?.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesStatus = statusFilter === 'all' || a.status === statusFilter
+    const normalizedStatus = String(a.status || '').toLowerCase()
+    const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter
 
     return matchesSearch && matchesStatus
   })
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    switch (String(status || '').toLowerCase()) {
       case 'actif':
         return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Actif</Badge>
       case 'inactif':
@@ -269,7 +270,7 @@ export default function AgriculteursPage() {
         <Card className="dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {agriculteurs.filter(a => a.status === 'actif').length}
+              {agriculteurs.filter(a => String(a.status || '').toLowerCase() === 'actif').length}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Actifs</p>
           </CardContent>

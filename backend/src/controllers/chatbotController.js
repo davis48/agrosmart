@@ -13,7 +13,7 @@ const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
 const cache = require('../utils/cache');
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 
 /**
  * Langues supportées avec leurs configurations

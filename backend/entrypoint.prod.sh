@@ -69,7 +69,7 @@ fi
 # Vérifier si c'est le premier déploiement (table users vide)
 USER_COUNT=$(node -e "
   const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
   prisma.user.count()
     .then(count => { console.log(count); prisma.\$disconnect(); })
     .catch(() => { console.log('0'); prisma.\$disconnect(); });

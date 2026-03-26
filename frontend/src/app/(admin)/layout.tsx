@@ -21,15 +21,18 @@ import {
   BarChart3,
   Download,
   Activity,
+  Wrench,
 } from 'lucide-react'
 
 const adminNavigation = [
   { name: 'Tableau de bord', href: '/admin', icon: LayoutDashboard },
+  { name: 'Utilisateurs', href: '/admin/users', icon: Users },
   { name: 'Agriculteurs', href: '/admin/agriculteurs', icon: Users },
   { name: 'Capteurs', href: '/admin/capteurs', icon: Cpu },
   { name: 'Productions', href: '/admin/productions', icon: Activity },
   { name: 'Rapports', href: '/admin/rapports', icon: BarChart3 },
   { name: 'Export Données', href: '/admin/export', icon: Download },
+  { name: 'Mises à jour', href: '/admin/software-updates', icon: Wrench },
 ]
 
 const bottomNavigation = [

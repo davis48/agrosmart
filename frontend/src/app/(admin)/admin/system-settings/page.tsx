@@ -56,37 +56,6 @@ interface Setting {
 export default function SettingsPage() {
     // Initial settings configuration
     // In production, these should be loaded from the backend API
-    // Initial loading of settings
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const response = await api.get('/admin/settings');
-                if (response.data.success) {
-                    const serverSettings = response.data.data;
-
-                    // Update settings state with server values
-                    setSettings(prevSettings =>
-                        prevSettings.map(section => ({
-                            ...section,
-                            settings: section.settings.map(setting => ({
-                                ...setting,
-                                // Use server value if it exists, otherwise constant
-                                value: serverSettings[setting.id] !== undefined
-                                    ? serverSettings[setting.id]
-                                    : setting.value
-                            }))
-                        }))
-                    );
-                }
-            } catch (error) {
-                logger.error('Failed to load settings', error as Error);
-                // Don't show toast on load failure to avoid annoyance, just log
-            }
-        };
-
-        fetchSettings();
-    }, []);
-
     const initialSettings: SettingSection[] = [
         {
             title: 'Notifications',
@@ -203,6 +172,35 @@ export default function SettingsPage() {
     // State management
     const [settings, setSettings] = useState<SettingSection[]>(initialSettings)
     const [hasChanges, setHasChanges] = useState(false)
+
+    // Initial loading of settings
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await api.get('/admin/settings');
+                if (response.data.success) {
+                    const serverSettings = response.data.data;
+
+                    // Update settings state with server values
+                    setSettings(prevSettings =>
+                        prevSettings.map(section => ({
+                            ...section,
+                            settings: section.settings.map(setting => ({
+                                ...setting,
+                                value: serverSettings[setting.id] !== undefined
+                                    ? serverSettings[setting.id]
+                                    : setting.value
+                            }))
+                        }))
+                    );
+                }
+            } catch (error) {
+                logger.error('Failed to load settings', error as Error);
+            }
+        };
+
+        fetchSettings();
+    }, []);
 
     /**
      * Handle toggling of boolean settings
@@ -342,8 +340,6 @@ export default function SettingsPage() {
                                                     }`}
                                                 title={`${setting.value ? 'Actif' : 'Inactif'} - Cliquer pour ${setting.value ? 'désactiver' : 'activer'}`}
                                                 type="button"
-                                                role="switch"
-                                                aria-checked={setting.value === true ? 'true' : 'false'}
                                                 aria-label={setting.label}
                                             >
                                                 <span

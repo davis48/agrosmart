@@ -131,7 +131,8 @@ export default function AdminCapteursPage() {
 
   const handleMaintenance = async (capteurId: string, action: 'start' | 'end') => {
     try {
-      await api.put(`/capteurs/${capteurId}/maintenance`, { action })
+      const status = action === 'start' ? 'MAINTENANCE' : 'ACTIF'
+      await api.put(`/capteurs/${capteurId}`, { status })
       toast.success(action === 'start' ? 'Maintenance démarrée' : 'Maintenance terminée')
       fetchData()
     } catch {

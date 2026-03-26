@@ -228,7 +228,7 @@ exports.markAsRead = async (req, res, next) => {
     const { id } = req.params;
 
     await prisma.$executeRaw`
-      UPDATE messages SET lu = true, lu_at = NOW() 
+      UPDATE messages SET lu = true
       WHERE id = ${id} AND destinataire_id = ${req.user.id}
     `;
 
@@ -246,7 +246,7 @@ exports.markAllAsRead = async (req, res, next) => {
     const { userId } = req.params;
 
     await prisma.$executeRaw`
-      UPDATE messages SET lu = true, lu_at = NOW() 
+      UPDATE messages SET lu = true
       WHERE destinataire_id = ${req.user.id} AND expediteur_id = ${userId} AND lu = false
     `;
 
@@ -264,24 +264,32 @@ exports.markAllAsRead = async (req, res, next) => {
 // Les notifications utilisent la table alertes
 exports.getNotifications = async (req, res, next) => {
   try {
-    // Alerte model seems okay (id, userId, titre, message, type, niveau, statut, dateCreation...)
-    // But checking schema lines 294-309:
-    // id, userId, capteurId, type, niveau, titre, message, statut, donnees, createdAt.
-    // Missing: 'lu_at'. 
-    // Legacy used 'lu_at'.
-    // So Alerte model is ALSO incomplete.
+    const alerts = await prisma.alerte.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: {
+        id: true,
+        niveau: true,
+        titre: true,
+        message: true,
+        type: true,
+        statut: true,
+        createdAt: true,
+      },
+    });
 
-    // Fallback to raw queries for notifications too.
-
-    const result = await prisma.$queryRaw`
-      SELECT a.id, a.niveau, a.titre, a.message, a.categorie, a.statut,
-        CASE WHEN a.lu_at IS NOT NULL THEN true ELSE false END as lue,
-        a.lu_at, a.created_at
-      FROM alertes a
-      WHERE a.user_id = ${req.user.id}
-      ORDER BY a.created_at DESC
-      LIMIT 50
-    `;
+    const result = alerts.map((a) => ({
+      id: a.id,
+      niveau: a.niveau,
+      titre: a.titre,
+      message: a.message,
+      categorie: a.type,
+      statut: a.statut,
+      lue: a.statut !== 'NOUVELLE',
+      lu_at: null,
+      created_at: a.createdAt,
+    }));
 
     res.json({
       success: true,
@@ -294,19 +302,19 @@ exports.getNotifications = async (req, res, next) => {
 
 exports.getUnreadCount = async (req, res, next) => {
   try {
-    const messages = await prisma.$queryRaw`
-      SELECT CAST(COUNT(*) AS SIGNED) as count FROM messages WHERE destinataire_id = ${req.user.id} AND lu = false
-    `;
+    const messages = await prisma.message.count({
+      where: { destinataireId: req.user.id, lu: false },
+    });
 
-    const notifications = await prisma.$queryRaw`
-      SELECT CAST(COUNT(*) AS SIGNED) as count FROM alertes WHERE user_id = ${req.user.id} AND lu_at IS NULL
-    `;
+    const notifications = await prisma.alerte.count({
+      where: { userId: req.user.id, statut: 'NOUVELLE' },
+    });
 
     res.json({
       success: true,
       data: {
-        messages: messages[0].count,
-        notifications: notifications[0].count
+        messages,
+        notifications
       }
     });
   } catch (error) {
@@ -318,9 +326,10 @@ exports.markNotificationRead = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    await prisma.$executeRaw`
-      UPDATE alertes SET lu_at = NOW() WHERE id = ${id} AND user_id = ${req.user.id} AND lu_at IS NULL
-    `;
+    await prisma.alerte.updateMany({
+      where: { id, userId: req.user.id, statut: 'NOUVELLE' },
+      data: { statut: 'LUE' },
+    });
 
     res.json({
       success: true,
@@ -333,9 +342,10 @@ exports.markNotificationRead = async (req, res, next) => {
 
 exports.markAllNotificationsRead = async (req, res, next) => {
   try {
-    await prisma.$executeRaw`
-      UPDATE alertes SET lu_at = NOW() WHERE user_id = ${req.user.id} AND lu_at IS NULL
-    `;
+    await prisma.alerte.updateMany({
+      where: { userId: req.user.id, statut: 'NOUVELLE' },
+      data: { statut: 'LUE' },
+    });
 
     res.json({
       success: true,

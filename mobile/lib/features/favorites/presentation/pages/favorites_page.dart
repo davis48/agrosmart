@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:agriculture/core/config/environment_config.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../bloc/favorites_bloc.dart';
@@ -317,11 +317,8 @@ class _FavoriteItemCard extends StatelessWidget {
   String _getImageUrl(String? path) {
     if (path == null) return '';
     if (path.startsWith('http')) return path;
-    String baseUrl = Platform.isAndroid
-        ? 'http://10.0.2.2:3600'
-        : 'http://localhost:3600';
     if (!path.startsWith('/')) path = '/$path';
-    return '$baseUrl$path';
+    return '${EnvironmentConfig.backendOrigin}$path';
   }
 
   @override

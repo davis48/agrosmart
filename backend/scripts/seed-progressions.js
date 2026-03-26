@@ -1,5 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
-const p = new PrismaClient();
+const p = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 
 function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function randomElement(arr) { return arr[Math.floor(Math.random() * arr.length)]; }

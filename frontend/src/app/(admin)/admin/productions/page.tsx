@@ -90,15 +90,16 @@ export default function AdminProductionsPage() {
     setLoading(true)
     try {
       // Récupérer les données depuis l'API
-      const [parcellesRes, culturesRes] = await Promise.all([
+      const [parcellesRes, analyticsRes] = await Promise.all([
         api.get('/parcelles'),
-        api.get('/cultures'),
+        api.get('/analytics/stats').catch(() => ({ data: { data: {} } })),
       ])
 
       const parcelles = parcellesRes.data?.data || []
+      const analytics = analyticsRes.data?.data || {}
 
       // Transformer les données réelles
-      const productionsData = parcelles.map((p: any) => ({
+      let productionsData = parcelles.map((p: any) => ({
         culture: p.nom || 'Culture inconnue',
         superficie_ha: parseFloat(p.superficie_hectares) || 0,
         rendement_estime: parseFloat(p.rendement_estime) || 0,
@@ -107,6 +108,12 @@ export default function AdminProductionsPage() {
         statut: p.status || 'en_croissance',
         region: p.region_nom || 'Non définie',
       }))
+
+      if (selectedRegion !== 'all') {
+        productionsData = productionsData.filter(
+          (p: ProductionData) => p.region.toLowerCase().includes(selectedRegion.toLowerCase())
+        )
+      }
 
       setProductions(productionsData)
 
@@ -126,14 +133,21 @@ export default function AdminProductionsPage() {
       }, [])
       setRepartition(repartitionData)
 
-      // Pour les tendances, si pas de données historiques réelles, on laisse vide pour l'instant
-      // ou on adapte selon ce que l'API renvoie plus tard
-      setTrendData([])
+      const rawTrend = analytics?.production_mensuelle || []
+      const mappedTrend = Array.isArray(rawTrend)
+        ? rawTrend.map((row: any) => ({
+            mois: String(row.mois || ''),
+            rendement: Number(row.production || 0),
+            objectif: Number(row.saisonPrecedente || 0),
+          }))
+        : []
+      setTrendData(mappedTrend)
 
     } catch (error) {
       logger.error('Erreur chargement productions admin', error instanceof Error ? error : undefined)
       setProductions([])
       setRepartition([])
+      setTrendData([])
     } finally {
       setLoading(false)
     }
@@ -280,7 +294,7 @@ export default function AdminProductionsPage() {
           <CardContent>
             <div className="h-80">
               {trendData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={320}>
                   <LineChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
                     <XAxis dataKey="mois" stroke="#6B7280" />
@@ -332,7 +346,7 @@ export default function AdminProductionsPage() {
           <CardContent>
             <div className="h-80">
               {repartition.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={320}>
                   <RechartsPieChart>
                     <Pie
                       data={repartition}

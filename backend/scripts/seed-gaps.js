@@ -1,5 +1,5 @@
 const{PrismaClient}=require('@prisma/client');
-const p=new PrismaClient();
+const p=new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 
 function randomBetween(min, max) { return Math.round((Math.random() * (max - min) + min) * 100) / 100; }
 function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }

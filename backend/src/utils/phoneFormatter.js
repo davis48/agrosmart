@@ -19,7 +19,7 @@ function normalizePhoneNumber(phone) {
   if (!phone) return phone;
 
   // Enlever tous les espaces, tirets et parenthèses
-  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  let cleaned = phone.replace(/[\s()-]/g, '');
 
   // Si le numéro commence par +225, on le retourne tel quel
   if (cleaned.startsWith('+225')) {
@@ -121,7 +121,7 @@ function getPhoneVariants(phone) {
   }
 
   // Format avec espaces
-  variants.push(normalized.replace(/[\s\-]/g, ''));
+  variants.push(normalized.replace(/[\s-]/g, ''));
 
   // Retourner uniquement les variantes uniques
   return [...new Set(variants)];

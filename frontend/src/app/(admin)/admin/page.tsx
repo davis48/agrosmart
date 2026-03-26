@@ -83,7 +83,7 @@ export default function AdminDashboard() {
       const alertes = alertesRes.data?.data || []
 
       // Utiliser les stats de l'API si disponibles
-      const agriculteurs = users.filter((u: { role: string }) => u.role === 'producteur')
+      const agriculteurs = users.filter((u: { role: string }) => String(u.role || '').toUpperCase() === 'PRODUCTEUR')
 
       setStats({
         totalAgriculteurs: userStats?.producteurs ? parseInt(userStats.producteurs) : agriculteurs.length,

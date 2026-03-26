@@ -50,38 +50,39 @@ exports.updateSettings = async (req, res, next) => {
         const settings = req.body;
         const updates = Object.entries(settings);
 
-        await prisma.$transaction(async (tx) => {
-            for (const [key, value] of updates) {
-                // Déterminer le type (simplifié)
-                let type = 'string';
-                let stringValue = String(value);
+        const operations = updates.map(([key, value]) => {
+            let type = 'string';
+            let stringValue = String(value);
 
-                if (typeof value === 'boolean') {
-                    type = 'boolean';
-                    stringValue = String(value);
-                } else if (typeof value === 'number') {
-                    type = 'number';
-                    stringValue = String(value);
-                } else if (typeof value === 'object') {
-                    type = 'json';
-                    stringValue = JSON.stringify(value);
-                }
-
-                await tx.configuration.upsert({
-                    where: { cle: key },
-                    update: {
-                        valeur: stringValue,
-                        type,
-                        updatedAt: new Date()
-                    },
-                    create: {
-                        cle: key,
-                        valeur: stringValue,
-                        type
-                        // updatedAt defaults to now()
-                    }
-                });
+            if (typeof value === 'boolean') {
+                type = 'boolean';
+                stringValue = String(value);
+            } else if (typeof value === 'number') {
+                type = 'number';
+                stringValue = String(value);
+            } else if (typeof value === 'object') {
+                type = 'json';
+                stringValue = JSON.stringify(value);
             }
+
+            return prisma.configuration.upsert({
+                where: { cle: key },
+                update: {
+                    valeur: stringValue,
+                    type,
+                    updatedAt: new Date()
+                },
+                create: {
+                    cle: key,
+                    valeur: stringValue,
+                    type
+                }
+            });
+        });
+
+        await prisma.$transaction(operations, {
+            maxWait: 10000,
+            timeout: 20000
         });
 
         res.json({

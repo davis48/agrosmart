@@ -432,7 +432,7 @@ export default function MesuresPage() {
         </CardHeader>
         <CardContent>
           <div className="h-100">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
@@ -493,7 +493,7 @@ export default function MesuresPage() {
             </CardHeader>
             <CardContent>
               <div className="h-87.5">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
@@ -545,7 +545,7 @@ export default function MesuresPage() {
             </CardHeader>
             <CardContent>
               <div className="h-87.5">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
@@ -608,7 +608,7 @@ export default function MesuresPage() {
                   </div>
                 </div>
                 <div className="h-75">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis dataKey={selectedPeriod === '24h' ? 'heure' : 'date'} tick={{ fontSize: 10 }} />

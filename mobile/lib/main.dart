@@ -29,6 +29,9 @@ void main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
+      // Select API environment from --dart-define APP_ENV (development|staging|production).
+      EnvironmentConfig.initFromDartDefine();
+
       // Configurer le BlocObserver pour le debugging
       Bloc.observer = AppBlocObserver();
 

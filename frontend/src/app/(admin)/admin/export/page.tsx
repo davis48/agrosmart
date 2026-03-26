@@ -125,13 +125,25 @@ export default function AdminExportPage() {
 
     setExporting(true)
     try {
-      // Appel API réel
-      // Note: L'endpoint /export doit être implémenté côté backend
-      await api.post('/export', {
-        types: selectedTypes,
-        format,
-        period: dateRange
-      })
+      const calls: Promise<unknown>[] = []
+
+      // Export spécifique des mesures si demandé.
+      if (selectedTypes.includes('mesures')) {
+        calls.push(api.get('/mesures/export', { params: { format } }))
+      }
+
+      // Export analytique global pour le reste des données admin.
+      calls.push(
+        api.get('/analytics/export', {
+          params: {
+            format,
+            period: dateRange,
+            types: selectedTypes.join(','),
+          },
+        })
+      )
+
+      await Promise.all(calls)
 
       toast.success('Export lancé. Vous recevrez un lien par email.')
       // En l'absence d'historique réel venant du backend, on ne rajoute pas de fausse entrée

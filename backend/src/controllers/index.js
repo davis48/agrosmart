@@ -66,5 +66,3 @@ module.exports = {
   paymentController,
   groupPurchasesController
 };
-  messagesController
-};

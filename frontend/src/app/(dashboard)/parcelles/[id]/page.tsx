@@ -422,8 +422,8 @@ export default function ParcelleDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-50">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="heure" tick={{ fontSize: 10 }} />
@@ -450,8 +450,8 @@ export default function ParcelleDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-50">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
                     <AreaChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="heure" tick={{ fontSize: 10 }} />

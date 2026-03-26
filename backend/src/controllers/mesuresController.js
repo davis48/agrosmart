@@ -227,7 +227,7 @@ exports.getStats = async (req, res, next) => {
       prisma.mesure.count({ where: { timestamp: { gt: thirtyDaysAgo } } }),
       prisma.mesure.count({ where: { timestamp: { gt: oneDayAgo } } }),
       prisma.mesure.count({ where: { timestamp: { gt: sevenDaysAgo } } }),
-      prisma.capteur.count({ where: { status: 'ACTIF' } })
+      prisma.capteur.count({ where: { statut: 'ACTIF' } })
     ]);
 
     const typeStatsRaw = await prisma.$queryRaw`
@@ -238,7 +238,7 @@ exports.getStats = async (req, res, next) => {
              MAX(m.valeur) as max
       FROM mesures m
       JOIN capteurs c ON m.capteur_id = c.id
-      WHERE m.mesure_at > ${oneDayAgo}
+      WHERE m.timestamp > ${oneDayAgo}
       GROUP BY c.type
     `;
 
@@ -273,23 +273,12 @@ exports.getAggregated = async (req, res, next) => {
     const { parcelle_id, capteur_id, type, periode = 'jour', debut, fin } = req.query;
 
     const dateFormat = periode === 'heure' ? '%Y-%m-%d %H:00:00' : '%Y-%m-%d';
-    // const groupByFormat = periode === 'heure' ? 'DATE_FORMAT(m.mesure_at, "%Y-%m-%d %H:00:00")' : 'DATE_FORMAT(m.mesure_at, "%Y-%m-%d")';
-
-    // Construct Where Clause
-    let whereClause = `WHERE m.mesure_at >= COALESCE(?, NOW() - INTERVAL 7 DAY) 
-                       AND m.mesure_at <= COALESCE(?, NOW())`;
-    const params = [debut ? new Date(debut) : undefined, fin ? new Date(fin) : undefined]; // undefined will be handled as NULL in some drivers or we should ensure logic matches. 
-    // Actually Prisma raw query parameter handling:
-    // If we use ${value}, it's safe.
-    // Let's build query string carefully or use Prisma findMany and aggregate in Code (heavy).
-    // Better: Helper function to build WHERE string + params might be tricky with tagged template literal.
-    // We will use $queryRawUnsafe for dynamic query building carefully.
 
     const paramsUnsafe = [debut ? new Date(debut) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), fin ? new Date(fin) : new Date()];
 
     let sql = `
       SELECT 
-        DATE_FORMAT(m.mesure_at, '${dateFormat}') as periode,
+        DATE_FORMAT(m.timestamp, '${dateFormat}') as periode,
         c.type as capteur_type,
         AVG(m.valeur) as moyenne,
         MIN(m.valeur) as min,
@@ -299,7 +288,7 @@ exports.getAggregated = async (req, res, next) => {
       JOIN capteurs c ON m.capteur_id = c.id
       JOIN stations s ON c.station_id = s.id
       JOIN parcelles p ON s.parcelle_id = p.id
-      WHERE m.mesure_at >= ? AND m.mesure_at <= ?
+      WHERE m.timestamp >= ? AND m.timestamp <= ?
     `;
 
     if (req.user.role === ROLES.PRODUCTEUR) {

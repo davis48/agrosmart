@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:agriculture/core/config/environment_config.dart';
 import 'package:agriculture/core/widgets/smart_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -575,11 +575,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
 
   String _getImageUrl(String path) {
     if (path.startsWith('http')) return path;
-    // Base URL logic (duplicated from ApiClient for now, strictly should be in config)
-    String baseUrl = Platform.isAndroid
-        ? 'http://10.0.2.2:3600'
-        : 'http://localhost:3600';
     if (!path.startsWith('/')) path = '/$path';
-    return '$baseUrl$path';
+    return '${EnvironmentConfig.backendOrigin}$path';
   }
 }

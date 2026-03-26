@@ -456,7 +456,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="h-75">
-              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                 {mesures.length > 0 ? (
                   <LineChart data={mesures}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -512,7 +512,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="h-75 flex items-center">
               <div className="w-1/2 h-full">
-                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                   <PieChart>
                     <Pie
                       data={cultureData}

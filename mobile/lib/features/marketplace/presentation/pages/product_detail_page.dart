@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:agriculture/core/config/environment_config.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -663,10 +663,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   String _getImageUrl(String path) {
     if (path.startsWith('http')) return path;
-    String baseUrl = Platform.isAndroid
-        ? 'http://10.0.2.2:3600'
-        : 'http://localhost:3600';
     if (!path.startsWith('/')) path = '/$path';
-    return '$baseUrl$path';
+    return '${EnvironmentConfig.backendOrigin}$path';
   }
 }
